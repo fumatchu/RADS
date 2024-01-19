@@ -23,6 +23,7 @@ The Script will do the following:
 Install the requirements needed by the samba source
 It will then place a phase two installer upon reboot
 The Phase two installer will 
+    modify chrony to point to pool.ntp.org
     download and install samba-latest
     Prompt you for domain provisioning
     Force you to update your dns entries via nmtui (for proper resolution for AD)
