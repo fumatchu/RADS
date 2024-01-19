@@ -1,8 +1,6 @@
 #!/bin/sh
 #Install2
 IP=$(hostname -I)
-FQDN=$(hostname)
-DOMAIN=$(hostname)
 echo " "
 echo " "
 echo "*********************************************"
