@@ -1,6 +1,8 @@
 #!/bin/sh
 #Install2
 IP=$(hostname -I)
+DOMAIN=$(hostname | sed 's/...//')
+FQDN=$(hostname)
 echo " "
 echo " "
 echo "*********************************************"
@@ -113,7 +115,32 @@ echo " "
 echo "First, we will provide output that samba is operational"
 read -p 
 ps -ax | grep samba
+echo " "
+echo "Should be running"
+read -p "Press a Key to continue"
 
-#host -t SRV _ldap._tcp..
-#host -t SRV _kerberos._udp.test.int.
-#host -t A dc.test.int.
+echo "Now we will check Kerberos"
+kinit 
+klist
+read-p "Press a Key to continue"
+echo " "
+echo " "
+
+echo "We should check DNS OOB"
+echo "If you did not change the IP earlier in nmtui, this will probably fail"
+echo "Testing _ldap._tcp"
+host -t SRV _ldap._tcp.$DOMAIN.
+read -p Press Any Key 
+echo" " 
+echo " "
+echo "testing _udp kerberos"
+host -t SRV _kerberos._udp.$DOMAIN.
+read -p Press Any Key 
+echo " " 
+echo " "
+echo "Testing A Record of Domain Controller
+host -t A $FQDN.
+read -p "Press Any Key"
+echo " " 
+echo " "
+
