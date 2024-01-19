@@ -62,7 +62,7 @@ samba-tool domain provision --use-rfc2307 --interactive
 \cp /root/ADDCInstaller/samba-ad-dc.service /etc/systemd/system/
 
 echo "It looks like Samba compiled"
-read -p Press Any Key
+read -p "Press Any Key"
 
 echo "It looks like your Main IP address is:"
 echo "$IP"
