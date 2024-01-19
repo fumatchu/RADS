@@ -5,5 +5,5 @@ Installing
 
 cd /root/
 dnf -y install wget 
-wget -0 https://raw.githubusercontent.com/fumatchu/DaD/main/DC-Installer.sh
+wget https://raw.githubusercontent.com/fumatchu/DaD/main/DC-Installer.sh
 chmod 700 ./DC-Installer.sh
