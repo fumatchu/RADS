@@ -3,7 +3,6 @@
 IP=$(hostname -I)
 FQDN=$(hostname)
 DOMAIN=$(hostname)
-host
 echo " "
 echo " "
 echo "*********************************************"
@@ -60,7 +59,7 @@ samba-tool domain provision --use-rfc2307 --interactive
 
 
 #Move the AD Service and enroll
-\cp /root/samba-ad-dc.service /etc/systemd/system/
+\cp /root/ADDCInstall/samba-ad-dc.service /etc/systemd/system/
 
 
 
@@ -98,6 +97,6 @@ echo "Now we are going to do some testing"
 
 read -p "Press any Key"
 
-host -t SRV _ldap._tcp..
-host -t SRV _kerberos._udp.test.int.
-host -t A dc.test.int.
+#host -t SRV _ldap._tcp..
+#host -t SRV _kerberos._udp.test.int.
+#host -t A dc.test.int.
