@@ -128,9 +128,9 @@ echo "Should be running"
 read -p "Press a Key to continue"
 
 echo "Now we will check Kerberos"
-kinit 
+kinit Administrator
 klist
-read-p "Press a Key to continue"
+read -p "Press a Key to continue"
 echo " "
 echo " "
 
