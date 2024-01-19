@@ -61,7 +61,8 @@ samba-tool domain provision --use-rfc2307 --interactive
 #Move the AD Service and enroll
 \cp /root/ADDCInstaller/samba-ad-dc.service /etc/systemd/system/
 
-
+echo "It looks like Samba compiled"
+read -p Press Any Key
 
 echo "It looks like your Main IP address is:"
 echo "$IP"
@@ -69,7 +70,8 @@ echo "This should be the IP address that you make as your primary DNS"
 echo "REMOVE ALL OTHER DNS ENTRIES!"
 echo "IT SHOULD ONLY BE THE MAIN IP OF THIS SERVER"
 echo "The next page will take you there to modify it"
-echo "Make sure you update this, otherwise AD Registration will fail"
+echo "Make sure you update this, otherwise AD Registrations will fail"
+read -p "Press Enter When Ready"
 
 #change domain resolution
 nmtui
@@ -96,6 +98,9 @@ rm -r -f /root/samba-latest/
 echo "Now we are going to do some testing"
 
 read -p "Press any Key"
+
+echo "First, we will provide output that samba is operational"
+journalctl -xe
 
 #host -t SRV _ldap._tcp..
 #host -t SRV _kerberos._udp.test.int.
