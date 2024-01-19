@@ -66,7 +66,7 @@ read -p Press Any Key
 
 echo "It looks like your Main IP address is:"
 echo "$IP"
-echo "This should be the IP address that you make as your primary DNS"
+echo "This should be the IP address that you make as your primary DNS for this system"
 echo "REMOVE ALL OTHER DNS ENTRIES!"
 echo "IT SHOULD ONLY BE THE MAIN IP OF THIS SERVER"
 echo "The next page will take you there to modify it"
