@@ -79,7 +79,8 @@ read -p "Press Enter When Ready"
 nmtui
 
 systemctl restart NetworkManager
-
+echo " "
+echo " "
 echo "**********************"
 echo "Now we are going to enable and start samba-ad-dc Service"
 echo "**********************"
@@ -96,13 +97,16 @@ sed -i '$ d' /root/.bash_profile
 rm -f /root/samba-latest.tar.gz
 rm -r -f /root/samba-latest/
 
-
+echo " "
+echo " "
 echo "Now we are going to do some testing"
 
 read -p "Press any Key"
-
+echo " "
+echo " "
 echo "First, we will provide output that samba is operational"
-journalctl -xe
+read -p 
+ps -ax | grep samba
 
 #host -t SRV _ldap._tcp..
 #host -t SRV _kerberos._udp.test.int.
