@@ -7,9 +7,9 @@ It just goes out to the internet and collects source from VALID locations to bui
 
 ####Pre-requisites
 You should install Rocky from scratch. 
-You do not need to (nor should you) install anything from dnf EXCEPT wget to grab the first installer file 
-During your setup, the hostname and domain name that you specify in the GUI installer of Rocky should reflect 
-the name you want your AD server to advertise itself as. 
+You should make sure the server has a static IP.
+During your setup, the hostname and domain name that you specify in the GUI installer of Rocky be what you want.
+You do not need to (nor should you) install anything from dnf EXCEPT wget to grab the first installer file.
 
 
 The Script will do the following:
