@@ -122,7 +122,7 @@ echo " "
 echo " "
 echo "First, we will provide output that samba is operational"
 read -p 
-ps -ax | grep samba
+systemctl status samba-ad-dc.service
 echo " "
 echo "Should be running"
 read -p "Press a Key to continue"
