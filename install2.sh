@@ -138,15 +138,15 @@ echo "We should check DNS OOB"
 echo "If you did not change the IP earlier in nmtui, this will probably fail"
 echo "Testing _ldap._tcp"
 host -t SRV _ldap._tcp.$DOMAIN.
-read -p Press Any Key 
-echo" " 
-echo " "
-echo "testing _udp kerberos"
-host -t SRV _kerberos._udp.$DOMAIN.
-read -p Press Any Key 
+read -p "Press Any Key" 
 echo " " 
 echo " "
-echo "Testing A Record of Domain Controller
+echo "Testing _udp kerberos"
+host -t SRV _kerberos._udp.$DOMAIN.
+read -p "Press Any Key" 
+echo " " 
+echo " "
+echo "Testing A Record of Domain Controller"
 host -t A $FQDN.
 read -p "Press Any Key"
 echo " " 
