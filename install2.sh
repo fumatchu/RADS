@@ -28,6 +28,11 @@ echo " "
 echo "Setting a valid time source"
 sed -i '/server /c\pool pool.ntp.org iburst' /etc/chrony.conf
 systemctl restart chronyd
+chronyc tracking
+echo " " 
+echo " " 
+echo "We should be syncing time"
+read -p "Press Any Key"
 
 cd /root/
 mkdir samba-latest
