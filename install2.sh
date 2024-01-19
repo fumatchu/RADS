@@ -26,8 +26,11 @@ echo " "
 read -p "Press Enter when you're ready"
 echo " "
 echo "Setting a valid time source"
+read -p "Press Any Key"
 sed -i '/server /c\pool pool.ntp.org iburst' /etc/chrony.conf
 systemctl restart chronyd
+echo "Sleeping for 5 seconds for chrony"
+sleep 5s
 chronyc tracking
 echo " " 
 echo " " 
