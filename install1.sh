@@ -51,5 +51,9 @@ systemctl disable iscsi-onboot
 echo " "
 echo " "
 echo "The Server is ready to reboot"
+echo "Please make sure you are logging back in as root
+echo "for the second part of the install"
+echo " "
+echo " "
 read -p "Press Any key when you're ready"
 reboot
