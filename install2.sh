@@ -24,6 +24,10 @@ echo "This will take around 15-20 minutes depending on your Internet connection"
 echo "and processor speed/memory"
 echo " "
 read -p "Press Enter when you're ready"
+echo " "
+echo "Setting a valid time source"
+sed -i '/server /c\pool pool.ntp.org iburst' /etc/chrony.conf
+systemctl restart chronyd
 
 cd /root/
 mkdir samba-latest
