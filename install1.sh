@@ -48,7 +48,7 @@ export PERL_MM_USE_DEFAULT=1
 cpan JSON
 echo "export PATH=/usr/local/samba/bin/:/usr/local/samba/sbin/:$PATH" >> /root/.bash_profile
 
-echo "/root/ADDCInstaller/install2" >> .bash_profile
+echo "/root/install2" >> .bash_profile
 
 systemctl disable iscsi
 systemctl disable iscsi-onboot
