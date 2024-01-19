@@ -4,24 +4,41 @@ This is a script to allow a Rocky (RHEL) Server to become a an AD/DC Server from
 Yes, there are others that build RPMS and you can probably find them (Not saying they are doing anything nefarious). 
 I took this approach because there is not one binary that this script modifies and therefore can be a trusted source (no pun intended). 
 It goes out to the internet and collects source from VALID locations to build Samba.
+
+####Pre-requisites
+You should install Rocky from scratch. 
+You do not need to (nor should you) install anything from dnf EXCEPT wget to grab the first installer file 
+During your setup, the hostname and domain name that you specify in the GUI installer of Rocky should reflect 
+the name you want your AD server to advertise itself as. 
+
+
 The Script will do the following:
   Disable SELINX
   Disable firewalld
+  Disable un-needed services
+  Install cockpit
   Enable the Rocky REPOS needed to build 
     EPEL
     CRB 
-    
+Install the requirements needed by the samba source
+It will then place a phase two installer upon reboot
+The Phase two installer will 
+    download and install samba-latest
+    Prompt you for domain provisioning
+    Force you to update your dns entries via nmtui (for proper resolution for AD)
+    Add the samba-ad-dc.service 
+    Use systemctl to activate and enable samba on boot 
+    Clean up all the install files (We like to be tidy)
+    Provide basic AD testing from the console (Almost done with this) 
+    Provide you with a "next steps" for samba administration (Almost done with this)
 
+####Sounds great! How do I get it?
 
-
-
-
-####Installing
+Installing
+(Just copy and paste the following lines on the Rocky terminal)
 
 cd /root/
 dnf -y install wget 
 wget https://raw.githubusercontent.com/fumatchu/DaD/main/DC-Installer.sh
 chmod 700 ./DC-Installer.sh
-
-To run
 /root/DC-Installer.sh
