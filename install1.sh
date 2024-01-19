@@ -48,6 +48,6 @@ echo "/root/ADDCInstaller/install2.sh" >> /root/.bash_profile
 
 systemctl disable iscsi
 systemctl disable iscsi-onboot
-echo"The Server is ready to reboot"
-read -p "Press Any kEy when you're ready"
+echo "The Server is ready to reboot"
+read -p "Press Any key when you're ready"
 reboot
