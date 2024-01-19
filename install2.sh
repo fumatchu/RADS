@@ -64,6 +64,8 @@ samba-tool domain provision --use-rfc2307 --interactive
 echo "It looks like Samba compiled"
 read -p "Press Any Key"
 
+echo " "
+echo " "
 echo "It looks like your Main IP address is:"
 echo "$IP"
 echo "This should be the IP address that you make as your primary DNS for this system"
