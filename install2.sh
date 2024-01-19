@@ -59,7 +59,7 @@ samba-tool domain provision --use-rfc2307 --interactive
 
 
 #Move the AD Service and enroll
-\cp /root/ADDCInstall/samba-ad-dc.service /etc/systemd/system/
+\cp /root/ADDCInstaller/samba-ad-dc.service /etc/systemd/system/
 
 
 
