@@ -15,7 +15,7 @@ echo "Retreiving Files from github"
 
 mkdir /root/ADDCInstaller
 
-git clone https://github.com/fumatchu/DaD.git /root/ADDCInstaller
+git clone https://github.com/fumatchu/RADS.git /root/ADDCInstaller
 
 chmod 700 /root/ADDCInstaller/i*
 
