@@ -31,12 +31,13 @@ sed -i '/server /c\pool pool.ntp.org iburst' /etc/chrony.conf
 systemctl restart chronyd
 echo "Sleeping for 10 seconds for chrony"
 sleep 10s
+clear
 chronyc tracking
 echo " " 
 echo " " 
 echo "We should be syncing time"
 read -p "Press Any Key"
-
+clear
 cd /root/
 mkdir samba-latest
 wget https://download.samba.org/pub/samba/samba-latest.tar.gz
