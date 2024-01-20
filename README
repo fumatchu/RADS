@@ -1,4 +1,4 @@
-(quick) and Dirty active Directory (DaD)
+(R)ocky (A)ctive (D)irectory (S)cript Builder
 
 This is a script to allow a Rocky (RHEL) Server to become a an AD/DC Server from Samba Source. 
 Yes, there are others that build RPMS and you can probably find them (Not saying they are doing anything nefarious). 
