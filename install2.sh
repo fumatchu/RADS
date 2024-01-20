@@ -76,7 +76,7 @@ samba-tool domain provision --use-rfc2307 --interactive
 
 echo "It looks like Samba compiled"
 read -p "Press Any Key"
-
+clear
 echo " "
 echo " "
 echo "It looks like your Main IP address is:"
@@ -119,6 +119,7 @@ echo " "
 echo "Now we are going to do some testing"
 
 read -p "Press any Key"
+clear
 echo " "
 echo " "
 echo "First, we will provide output that samba is operational"
@@ -127,6 +128,7 @@ systemctl status samba-ad-dc.service
 echo " "
 echo "Should be running"
 read -p "Press a Key to continue"
+clear
 
 echo "Now we will check Kerberos"
 kinit Administrator
@@ -134,6 +136,7 @@ klist
 read -p "Press a Key to continue"
 echo " "
 echo " "
+clear
 
 echo "We should check DNS OOB"
 echo "If you did not change the IP earlier in nmtui, this will probably fail"
