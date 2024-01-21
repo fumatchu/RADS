@@ -3,6 +3,7 @@
 IP=$(hostname -I)
 DOMAIN=$(hostname | sed 's/...//')
 FQDN=$(hostname)
+PRI_INT=$(nmcli | grep "connected to")
 echo " "
 echo " "
 echo "*********************************************"
@@ -82,7 +83,9 @@ echo " "
 echo "Your Primary IP address is:"
 echo " "
 echo " "
-echo "$IP"
+echo "$IP" 
+echo "via the interface"
+echo $PRI_INT
 echo " "
 echo " "
 echo "This should be the IP address that you make as your primary DNS for this system"
