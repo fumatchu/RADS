@@ -48,6 +48,7 @@ echo "/root/ADDCInstaller/install2.sh" >> /root/.bash_profile
 
 systemctl disable iscsi
 systemctl disable iscsi-onboot
+clear
 echo " "
 echo " "
 echo "The Server is ready to reboot"
