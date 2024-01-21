@@ -147,7 +147,7 @@ echo "And actual the result is"
 host -t SRV _ldap._tcp.$DOMAIN.
 echo " "
 echo " "
-echo "
+echo " "
 read -p "Press enter to continue" 
 clear
 echo " " 
