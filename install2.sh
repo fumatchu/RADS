@@ -51,7 +51,7 @@ make -j 8
 
 
 make install
-
+clear
 echo "************************************"
 echo "The Next step will provision the domain"
 echo "If you setup the server originally with the domain name you want,"
@@ -62,7 +62,7 @@ echo "Keep DNS backend to SAMBA_INTERNAL"
 echo "************************************"
 
 read -p "Press Enter when you're ready"
-
+clear
 #Provision the Domain
 samba-tool domain provision --use-rfc2307 --interactive
 
@@ -79,17 +79,19 @@ read -p "Press Any Key"
 clear
 echo " "
 echo " "
-echo "It looks like your Main IP address is:"
+echo "Your Primary IP address is:"
 echo " "
 echo " "
 echo "$IP"
 echo " "
 echo " "
 echo "This should be the IP address that you make as your primary DNS for this system"
+echo " "
 echo "REMOVE ALL OTHER DNS ENTRIES!"
-echo "IT SHOULD ONLY BE THE MAIN IP OF THIS SERVER"
-echo "The next page will take you there to modify it"
+echo " "
+echo "The next page will take you there to modify it via your interface"
 echo "Make sure you update this, otherwise AD Registrations will fail"
+echo "This is an AD server nd it must point to itself"
 read -p "Press Enter When Ready"
 
 #change domain resolution
