@@ -94,7 +94,7 @@ echo "REMOVE ALL OTHER DNS ENTRIES!"
 echo " "
 echo "The next page will take you there to modify it via your interface"
 echo "Make sure you update this, otherwise AD Registrations will fail"
-echo "This is an AD server nd it must point to itself"
+echo "This is an AD server and it must point to itself"
 read -p "Press Enter When Ready"
 
 #change domain resolution
