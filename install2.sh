@@ -101,6 +101,7 @@ read -p "Press Enter When Ready"
 nmtui
 
 systemctl restart NetworkManager
+clear
 echo " "
 echo " "
 echo "**********************"
@@ -111,35 +112,28 @@ echo "**********************"
 systemctl enable samba-ad-dc.service
 systemctl start samba-ad-dc
 
-
-echo "Clean up our mess"
-
-#clean up our mess
-sed -i '$ d' /root/.bash_profile
-rm -f /root/samba-latest.tar.gz
-rm -r -f /root/samba-latest/
-
 echo " "
 echo " "
 echo "Now we are going to do some testing"
 
-read -p "Press any Key"
+read -p "Press enter to continue" 
 clear
 echo " "
 echo " "
 echo "First, we will provide output that samba is operational"
-read -p 
+echo "Press "q" to exit the scroll output"
+read -p "Press enter to continue"
 systemctl status samba-ad-dc.service
 echo " "
 echo "Should be running"
-read -p "Press a Key to continue"
+read -p "Press enter to continue"
 clear
 
 echo "Now we will check Kerberos"
 echo "You must supply the domain Password you created earlier"
 kinit Administrator
 klist
-read -p "Press a Key to continue"
+read -p "Press enter to continue"
 echo " "
 echo " "
 clear
@@ -147,32 +141,39 @@ clear
 echo "We should check DNS OOB"
 echo "If you did not change the DNS IP earlier, this will probably fail"
 echo "Testing _ldap._tcp"
-echo "The result should have similar formatting to this:
+echo "The result should have similar formatting to this:"
 echo "_ldap._tcp.samdom.example.com has SRV record 0 100 389 dc1.samdom.example.com."
 echo "And actual the result is"
 host -t SRV _ldap._tcp.$DOMAIN.
 echo " "
 echo " "
 echo "
-read -p "Press Any Key" 
+read -p "Press enter to continue" 
 clear
 echo " " 
 echo " "
 echo "Testing _udp kerberos"
-echo "The result should have similar formatting to this:
+echo "The result should have similar formatting to this:"
 echo"_kerberos._udp.samdom.example.com has SRV record 0 100 88 dc1.samdom.example.com."
 echo "And actual the result is"
 host -t SRV _kerberos._udp.$DOMAIN.
-read -p "Press Any Key" 
+read -p "Press enter to continue" 
 echo " " 
 echo " "
 clear
 echo "Testing A Record of Domain Controller"
-echo "The result should have similar formatting to this:
+echo "The result should have similar formatting to this:"
 echo "dc1.samdom.example.com has address 10.99.0.1"
 echo "And actual the result is"
 host -t A $FQDN.
-read -p "Press Any Key"
+read -p "Press enter to continue" 
 echo " " 
 echo " "
+
+echo "Clean up our mess"
+
+#clean up our mess
+sed -i '$ d' /root/.bash_profile
+rm -f /root/samba-latest.tar.gz
+rm -r -f /root/samba-latest/
 
