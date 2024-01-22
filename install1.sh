@@ -1,12 +1,12 @@
 #!/bin/sh
 #Install1
-echo " "
-echo " "
+clear
 echo "*********************************************"
 echo " "
 echo "This script was created for Rocky 9.x"
 echo "This will install a Samba AD/DC Server. There will be some manual"
-echo "intervention needed later in the install for final configuration."
+echo "intervention needed later in the install for final configuration,"
+echo "in Phase two, after the initial server reboot"
 echo " "
 echo "What this script does:"
 echo "1. Disable Firewall Services and SELINUX"
@@ -20,6 +20,11 @@ echo " "
 echo "This will take around 10-15 minutes depending on your Internet connection"
 echo "and processor speed/memory"
 echo " "
+tput setaf 1; echo "PLEASE NOTE: When you setup your Rocky Server via the installer,"
+echo "You should have specified the domain name and FQDN you want to use for your AD instance."
+echo "We assume this is the correct information and will utilize it for the install moving forward."
+echo "If this information is not correct, i.e. ip address hostname, domain name, use nmtui to modify it,"
+echo "and start the installer again"; tput sgr0
 read -p "Press Enter when you're ready"
 
 
@@ -52,8 +57,8 @@ clear
 echo " "
 echo "************************************************ "
 echo "The Server is ready to reboot"
-echo "Please make sure you are logging back in as root"
-echo "for the second part of the install"
+tput setaf 1; echo "Please make sure you are logging back in as root"
+echo "for the second part of the install"; tput sgr0
 echo "************************************************ "
 echo " "
 read -p "Press Any key when you're ready"
