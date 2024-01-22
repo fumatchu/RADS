@@ -209,7 +209,7 @@ echo "And the actual result is"
 echo " "
 echo " "
 echo ${green}
-host -t A $FQDN."
+host -t A $FQDN.
 echo ${textreset}
 echo " "
 read -p "Press enter to continue" 
