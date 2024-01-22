@@ -215,7 +215,7 @@ echo " "
 echo " "
 echo "Please add this as approriate and apply it to the system"
 echo "After that is complete, please reboot the system with the command"
-echo "reboot"
+tput setaf 1; echo "reboot"; tput sgr0
 
 #clean up our mess
 sed -i '$ d' /root/.bash_profile
