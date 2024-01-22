@@ -25,7 +25,7 @@ echo "4. Will have you manually adjust the DNS resolver. The Server must point t
 echo "5. Setup krb5 from the Samba install"
 echo "6. Create the samba-ad-dc service for boot"
 echo "7. Do some testing to validate Samba/AD resources are running and operational"
-tput setaf 1; echo "PLEASE STAY AT THE CONSOLE-THIS IS INTERACTIVE"; tput sgr0
+echo ${red}"PLEASE STAY AT THE CONSOLE-THIS IS INTERACTIVE${textreset}"
 echo " "
 echo "*********************************************"
 echo " "
@@ -96,10 +96,10 @@ echo " "
 echo " "
 echo "This should be the IP address that you make as your primary DNS for this system"
 echo " "
-tput setaf 1; echo "REMOVE ALL OTHER DNS ENTRIES!"; tput sgr0
+echo ${red} "REMOVE ALL OTHER DNS ENTRIES!${textreset}"
 echo " "
 echo "The next page will take you there to modify it via your interface"
-echo "Make sure you update this, otherwise AD Registrations will fail"
+echo "Make sure you update this, ${red}otherwise, AD Registrations will fail${textreset}"
 echo "This is an AD server and it must point to itself"
 echo "Once the DNS server entry has been modified, navigate back and quit the application"
 read -p "Press Enter When Ready"
@@ -150,7 +150,9 @@ echo " "
 echo "Now we will check Kerberos"
 echo "You must supply the domain Password you created earlier"
 kinit Administrator
+echo ${green}
 klist
+echo ${textreset}
 read -p "Press enter to continue"
 echo " "
 echo " "
@@ -163,12 +165,14 @@ echo " "
 echo " "
 echo "The result should have similar formatting to this:"
 echo " "
-echo "_ldap._tcp.samdom.example.com has SRV record 0 100 389 dc1.samdom.example.com."
+echo ${yellow}"_ldap._tcp.samdom.example.com has SRV record 0 100 389 dc1.samdom.example.com.${textreset}"
 echo " "
 echo "And the actual result is"
 echo " "
 echo " "
-tput setaf 1; host -t SRV _ldap._tcp.$DOMAIN.; tput sgr0
+echo ${green}
+host -t SRV _ldap._tcp.$DOMAIN.
+echo ${textreset}
 echo " "
 echo " "
 read -p "Press enter to continue" 
@@ -180,12 +184,14 @@ echo " "
 echo " "
 echo "The result should have similar formatting to this:"
 echo " "
-echo "_kerberos._udp.samdom.example.com has SRV record 0 100 88 dc1.samdom.example.com."
+echo ${yellow}"_kerberos._udp.samdom.example.com has SRV record 0 100 88 dc1.samdom.example.com.${textreset}"
 echo " "
 echo "And the actual result is"
 echo " "
 echo " "
-tput setaf 1; host -t SRV _kerberos._udp.$DOMAIN.; tput sgr0
+echo ${green}
+host -t SRV _kerberos._udp.$DOMAIN.
+echo ${textreset}
 echo " "
 echo " "
 read -p "Press enter to continue" 
@@ -197,12 +203,14 @@ echo " "
 echo " "
 echo "The result should have similar formatting to this:"
 echo " "
-echo "dc1.samdom.example.com has address 10.99.0.1"
+echo ${yellow}"dc1.samdom.example.com has address 10.99.0.1${textreset}"
 echo " "
 echo "And the actual result is"
 echo " "
 echo " "
-tput setaf 1; host -t A $FQDN."; tput sgr0
+echo ${green}
+host -t A $FQDN."
+echo ${textreset}
 echo " "
 read -p "Press enter to continue" 
 echo " " 
@@ -214,7 +222,7 @@ echo "The last thing that should be done is add a reverse zone in DNS."
 echo "Based on your configuration, and assuming a Class C subnet, your command should be:"
 echo " "
 echo " "
-tput setaf 1; echo ""samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator w/o quotes""; tput sgr0
+echo ${green}""samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator w/o quotes${textreset}""
 echo " "
 echo " "
 echo "Please add this as approriate and apply it to the system"
