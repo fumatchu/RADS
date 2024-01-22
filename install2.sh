@@ -95,6 +95,7 @@ echo " "
 echo "The next page will take you there to modify it via your interface"
 echo "Make sure you update this, otherwise AD Registrations will fail"
 echo "This is an AD server and it must point to itself"
+echo "Once the DNS server entry has been modified, navigate back and quit the application"
 read -p "Press Enter When Ready"
 
 #change domain resolution
@@ -108,17 +109,27 @@ echo "**********************"
 echo "Now we are going to enable and start samba-ad-dc Service"
 echo "**********************"
 
+read -p "Press enter to continue"
+
 #Start the AD Service
 systemctl enable samba-ad-dc.service
 systemctl start samba-ad-dc
 
-echo " "
+ps-ax | grep samba
+
+echo "Process should be up and running"
+read -p "Press enter to continue"
+
+
 echo " "
 echo "Now we are going to do some testing"
-
+echo "These tests came from:"
+echo "https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_Domain_Controller#Troubleshooting"
+echo " "
+echo "If you would like, please following along from that link"
+echo " "
 read -p "Press enter to continue" 
 clear
-echo " "
 echo " "
 echo "First, we will provide output that samba is operational"
 echo "Press "q" to exit the scroll output"
@@ -128,7 +139,7 @@ echo " "
 echo "Should be running"
 read -p "Press enter to continue"
 clear
-
+echo " "
 echo "Now we will check Kerberos"
 echo "You must supply the domain Password you created earlier"
 kinit Administrator
@@ -137,15 +148,20 @@ read -p "Press enter to continue"
 echo " "
 echo " "
 clear
-
+echo " "
 echo "We should check DNS OOB"
 echo "If you did not change the DNS IP earlier, this will probably fail"
 echo "Testing _ldap._tcp"
-echo "The result should have similar formatting to this:"
-echo "_ldap._tcp.samdom.example.com has SRV record 0 100 389 dc1.samdom.example.com."
-echo "And actual the result is"
-host -t SRV _ldap._tcp.$DOMAIN.
 echo " "
+echo " "
+echo "The result should have similar formatting to this:"
+echo " "
+echo "_ldap._tcp.samdom.example.com has SRV record 0 100 389 dc1.samdom.example.com."
+echo " "
+echo "And the actual result is"
+echo " "
+echo " "
+host -t SRV _ldap._tcp.$DOMAIN.
 echo " "
 echo " "
 read -p "Press enter to continue" 
@@ -153,22 +169,40 @@ clear
 echo " " 
 echo " "
 echo "Testing _udp kerberos"
+echo " "
+echo " "
 echo "The result should have similar formatting to this:"
-echo"_kerberos._udp.samdom.example.com has SRV record 0 100 88 dc1.samdom.example.com."
-echo "And actual the result is"
+echo " "
+echo "_kerberos._udp.samdom.example.com has SRV record 0 100 88 dc1.samdom.example.com."
+echo " "
+echo "And the actual result is"
+echo " "
+echo " "
 host -t SRV _kerberos._udp.$DOMAIN.
+echo " "
+echo " "
 read -p "Press enter to continue" 
 echo " " 
 echo " "
 clear
 echo "Testing A Record of Domain Controller"
+echo " "
+echo " "
 echo "The result should have similar formatting to this:"
+echo " "
 echo "dc1.samdom.example.com has address 10.99.0.1"
+echo " "
 echo "And actual the result is"
+echo " "
+echo " "
 host -t A $FQDN.
+echo " "
 read -p "Press enter to continue" 
 echo " " 
 echo " "
+
+echo "We should add a reverse zone into AD DNS"
+echo 
 
 echo "Clean up our mess"
 
@@ -177,3 +211,4 @@ sed -i '$ d' /root/.bash_profile
 rm -f /root/samba-latest.tar.gz
 rm -r -f /root/samba-latest/
 
+echo "If all test returned valid 
