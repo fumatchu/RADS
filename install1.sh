@@ -1,9 +1,13 @@
 #!/bin/sh
 #Install1
+textreset=$(tput sgr0) # reset the foreground colour
+red=$(tput setaf 1)
+yellow=$(tput setaf 3)
+green=$(tput setaf 2)
 clear
 echo "*********************************************"
 echo " "
-echo "This script was created for Rocky 9.x"
+echo "This script was created for ${green}Rocky 9.x${textreset}"
 echo "This will install a Samba AD/DC Server. There will be some manual"
 echo "intervention needed later in the install for final configuration,"
 echo "in Phase two, after the initial server reboot"
@@ -13,19 +17,19 @@ echo "1. Disable Firewall Services and SELINUX"
 echo "2. Disable un-needed Services"
 echo "2. Install the REPO(s) needed and dependencies needed"
 echo "3. Once that is complete we will restart the server"
-tput setaf 1; echo "4. After the Server restarts, PLEASE LOG BACK IN as root to continue"; tput sgr0
+echo ${red}"4. After the Server restarts, PLEASE LOG BACK IN as root to continue${textreset}"
 echo " "
 echo "*********************************************"
 echo " "
 echo "This will take around 10-15 minutes depending on your Internet connection"
 echo "and processor speed/memory"
 echo " "
-tput setaf 1; echo "PLEASE NOTE: When you setup your server via the Rocky installer,"
+echo ${red}"PLEASE NOTE: When you setup your server via the Rocky installer,"
 echo "You should have specified the static IP and FQDN to be used your AD instance."
 echo "We assume this is the correct information and will utilize it for the install moving forward."
 echo "If this information is not correct, i.e. ip address hostname, domain name, use nmtui to modify it,"
-echo "and start the installer again"; tput sgr0
-read -p "Press Enter when you're ready"
+echo "and start the installer again${textreset}"
+read -p "Press Enter to conitnue or CtrL-C to terminate the installer"
 
 
 
@@ -57,8 +61,8 @@ clear
 echo " "
 echo "************************************************ "
 echo "The Server is ready to reboot"
-tput setaf 1; echo "Please make sure you are logging back in as root"
-echo "for the second part of the install"; tput sgr0
+echo ${red}"Please make sure you are logging back in as root"
+echo "for the second part of the install${textreset}"
 echo "************************************************ "
 echo " "
 read -p "Press Any key when you're ready"
