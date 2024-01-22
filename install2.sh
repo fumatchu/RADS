@@ -44,7 +44,7 @@ clear
 chronyc tracking
 echo " " 
 echo " " 
-echo "We should be syncing time"
+echo ${green}"We should be syncing time${textreset}"
 read -p "Press Any Key"
 clear
 cd /root/
