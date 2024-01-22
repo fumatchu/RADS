@@ -21,7 +21,7 @@ echo "This will take around 10-15 minutes depending on your Internet connection"
 echo "and processor speed/memory"
 echo " "
 tput setaf 1; echo "PLEASE NOTE: When you setup your server via the Rocky installer,"
-echo "You should have specified the domain name and FQDN you want to use for your AD instance."
+echo "You should have specified the static IP and FQDN to be used your AD instance."
 echo "We assume this is the correct information and will utilize it for the install moving forward."
 echo "If this information is not correct, i.e. ip address hostname, domain name, use nmtui to modify it,"
 echo "and start the installer again"; tput sgr0
