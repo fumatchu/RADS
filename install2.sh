@@ -4,6 +4,7 @@ IP=$(hostname -I)
 DOMAIN=$(hostname | sed 's/...//')
 FQDN=$(hostname)
 PRI_INT=$(nmcli | grep "connected to")
+REVERSE=$(echo "$IP" | { IFS=. read q1 q2 q3 q4; echo "$q3.$q2.$q1"; })
 echo " "
 echo " "
 echo "*********************************************"
@@ -13,11 +14,14 @@ echo " "
 echo " "
 echo " "
 echo "What this script does:"
-echo "1. Downloads and compiles the samba latest from samba.org"
-echo "2. Will provision the Samba AD/DC"
-echo "3. Setup krb5 from the Samba install"
-echo "4. Create the samba-ad-dc service for boot"
-echo "5. PLEASE STAY AT THE CONSOLE-THIS IS INTERACTIVE"
+echo "1. Will configure this server to get time from pool.ntp.org"
+echo "2. Download and compile the samba latest from samba.org"
+echo "3. Will provision the Samba AD/DC"
+echo "4. Will have you manually adjust the DNS resolver. The Server must point to itself"
+echo "5. Setup krb5 from the Samba install"
+echo "6. Create the samba-ad-dc service for boot"
+echo "7. Do some testing to validate Samba/AD resources are running and operational"
+echo "PLEASE STAY AT THE CONSOLE-THIS IS INTERACTIVE"
 echo " "
 echo "*********************************************"
 echo " "
@@ -56,10 +60,8 @@ clear
 echo "************************************"
 echo "The Next step will provision the domain"
 echo "If you setup the server originally with the domain name you want,"
-echo "You just need to input your password...Otherwise,"
-echo "Change the following entries to what you want.. Realm/Domain"
-echo "Server Role should be dc (Default)"
-echo "Keep DNS backend to SAMBA_INTERNAL"
+echo "You just need to input the password you want to create for the Domain Administrator account"
+echo "Accept all other defaults"
 echo "************************************"
 
 read -p "Press Enter when you're ready"
@@ -134,6 +136,7 @@ echo " "
 echo "First, we will provide output that samba is operational"
 echo "Press "q" to exit the scroll output"
 read -p "Press enter to continue"
+clear
 systemctl status samba-ad-dc.service
 echo " "
 echo "Should be running"
@@ -150,7 +153,7 @@ echo " "
 clear
 echo " "
 echo "We should check DNS OOB"
-echo "If you did not change the DNS IP earlier, this will probably fail"
+echo " "
 echo "Testing _ldap._tcp"
 echo " "
 echo " "
@@ -192,7 +195,7 @@ echo "The result should have similar formatting to this:"
 echo " "
 echo "dc1.samdom.example.com has address 10.99.0.1"
 echo " "
-echo "And actual the result is"
+echo "And the actual result is"
 echo " "
 echo " "
 host -t A $FQDN.
@@ -200,15 +203,22 @@ echo " "
 read -p "Press enter to continue" 
 echo " " 
 echo " "
-
-echo "We should add a reverse zone into AD DNS"
-echo 
-
-echo "Clean up our mess"
+clear
+echo "If all tests returned valid, you have successfully installed AD on your Rocky Server!"
+echo "Congratulations!"
+echo "The last thing that should be done is add a reverse zone in DNS."
+echo "Based on your configuration, and assuming a Class C subnet, your command should be:"
+echo " "
+echo " "
+echo ""samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator w/o quotes""
+echo " "
+echo " "
+echo "Please add this as approriate and apply it to the system"
+echo "After that is complete, please reboot the system with the command"
+echo "reboot"
 
 #clean up our mess
 sed -i '$ d' /root/.bash_profile
 rm -f /root/samba-latest.tar.gz
 rm -r -f /root/samba-latest/
 
-echo "If all test returned valid 
