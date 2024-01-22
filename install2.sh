@@ -1,5 +1,9 @@
 #!/bin/sh
 #Install2
+textreset=$(tput sgr0) # reset the foreground colour
+red=$(tput setaf 1)
+yellow=$(tput setaf 3)
+green=$(tput setaf 2)
 IP=$(hostname -I)
 DOMAIN=$(hostname | sed 's/...//')
 FQDN=$(hostname)
