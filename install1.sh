@@ -13,7 +13,7 @@ echo "1. Disable Firewall Services and SELINUX"
 echo "2. Disable un-needed Services"
 echo "2. Install the REPO(s) needed and dependencies needed"
 echo "3. Once that is complete we will restart the server"
-echo "4. After the Server restarts, PLEASE LOG BACK IN as root to continue"
+tput setaf 1; echo "4. After the Server restarts, PLEASE LOG BACK IN as root to continue"; tput sgr0
 echo " "
 echo "*********************************************"
 echo " "
