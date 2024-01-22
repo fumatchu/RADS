@@ -121,7 +121,7 @@ read -p "Press enter to continue"
 systemctl enable samba-ad-dc.service
 systemctl start samba-ad-dc
 
-ps-ax | grep samba
+ps -ax | grep samba
 
 echo "Process should be up and running"
 read -p "Press enter to continue"
