@@ -21,7 +21,7 @@ echo "4. Will have you manually adjust the DNS resolver. The Server must point t
 echo "5. Setup krb5 from the Samba install"
 echo "6. Create the samba-ad-dc service for boot"
 echo "7. Do some testing to validate Samba/AD resources are running and operational"
-echo "PLEASE STAY AT THE CONSOLE-THIS IS INTERACTIVE"
+tput setaf 1; echo "PLEASE STAY AT THE CONSOLE-THIS IS INTERACTIVE"; tput sgr0
 echo " "
 echo "*********************************************"
 echo " "
@@ -92,7 +92,7 @@ echo " "
 echo " "
 echo "This should be the IP address that you make as your primary DNS for this system"
 echo " "
-echo "REMOVE ALL OTHER DNS ENTRIES!"
+tput setaf 1; echo "REMOVE ALL OTHER DNS ENTRIES!"; tput sgr0
 echo " "
 echo "The next page will take you there to modify it via your interface"
 echo "Make sure you update this, otherwise AD Registrations will fail"
@@ -164,7 +164,7 @@ echo " "
 echo "And the actual result is"
 echo " "
 echo " "
-host -t SRV _ldap._tcp.$DOMAIN.
+tput setaf 1; host -t SRV _ldap._tcp.$DOMAIN.; tput sgr0
 echo " "
 echo " "
 read -p "Press enter to continue" 
@@ -181,7 +181,7 @@ echo " "
 echo "And the actual result is"
 echo " "
 echo " "
-host -t SRV _kerberos._udp.$DOMAIN.
+tput setaf 1; host -t SRV _kerberos._udp.$DOMAIN.; tput sgr0
 echo " "
 echo " "
 read -p "Press enter to continue" 
@@ -198,7 +198,7 @@ echo " "
 echo "And the actual result is"
 echo " "
 echo " "
-host -t A $FQDN.
+tput setaf 1; host -t A $FQDN."; tput sgr0
 echo " "
 read -p "Press enter to continue" 
 echo " " 
@@ -210,7 +210,7 @@ echo "The last thing that should be done is add a reverse zone in DNS."
 echo "Based on your configuration, and assuming a Class C subnet, your command should be:"
 echo " "
 echo " "
-echo ""samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator w/o quotes""
+tput setaf 1; echo ""samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator w/o quotes""; tput sgr0
 echo " "
 echo " "
 echo "Please add this as approriate and apply it to the system"
