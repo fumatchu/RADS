@@ -34,9 +34,22 @@ echo "and processor speed/memory"
 echo " "
 read -p "Press Enter when you're ready"
 echo " "
+echo "We are going to provide NTP to our clients on the network"
+echo "Please provide the appropriate network scope in CIDR format"
+echo "i.e 192.168.0.0/16"
+echo " "
+echo "Please provide the network scope"
+read NTPCIDR
+echo " "
+echo "The CIDR formatted address you provided was:"
+echo "$NTPCIDR"
+echo " "
+read -p "Press any Key"
+echo
 echo "Setting a valid time source"
 read -p "Press Any Key"
 sed -i '/server /c\pool pool.ntp.org iburst' /etc/chrony.conf
+sed -i "/#allow /c\allow $NTPCIDR" /etc/chrony.conf
 systemctl restart chronyd
 echo "Sleeping for 10 seconds for chrony"
 sleep 10s
