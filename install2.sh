@@ -138,6 +138,7 @@ ps -ax | grep samba
 
 echo "Process should be up and running"
 read -p "Press enter to continue"
+clear
 
 
 echo " "
@@ -242,6 +243,8 @@ echo "Please add this as approriate and apply it to the system"
 echo "After that is complete, please reboot the system with the command"
 tput setaf 1; echo "reboot"; tput sgr0
 
+#Add support for FreeRADIUS
+sed -i '9i \       \ ntlm auth = mschapv2-and-ntlmv2-only' /usr/local/samba/etc/smb.conf
 #clean up our mess
 sed -i '$ d' /root/.bash_profile
 rm -f /root/samba-latest.tar.gz
