@@ -250,6 +250,7 @@ echo ${green}""samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administ
 echo " "
 echo " "
 echo "Please add this as approriate and apply it to the system"
+clear
 echo "You may want to reduce the complexity and history length, etc. of the passwords"
 echo "Type the command:"
 echo ${green}"samba-tool domain passwordsettings set --help${textreset}"
