@@ -43,7 +43,7 @@ echo "Please provide the network scope"
 read NTPCIDR
 echo " "
 echo "The CIDR formatted address you provided was:"
-echo "$NTPCIDR"
+echo ${green}"$NTPCIDR${textreset}"
 echo " "
 read -p "Press any Key"
 echo
