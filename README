@@ -30,8 +30,8 @@ The Phase two installer will
     Add the samba-ad-dc.service 
     Use systemctl to activate and enable samba on boot 
     Clean up all the install files (We like to be tidy)
-    Provide basic AD testing from the console (Almost done with this) 
-    Provide you with a "next steps" for samba administration (Almost done with this)
+    Provide basic AD testing from the console
+    Provide you with a "next steps" for samba administration
 
 ####Sounds great! How do I get it?
 
