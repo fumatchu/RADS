@@ -263,5 +263,5 @@ sed -i '$ d' /root/.bash_profile
 rm -f /root/samba-latest.tar.gz
 rm -r -f /root/samba-latest/
 rm -r -f /root/ADDCInstaller
-rm -r -f /root/DCInstaller.sh
+rm -r -f /root/DC-Installer.sh
 
