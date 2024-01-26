@@ -1,4 +1,7 @@
 #Installing
+#Install Rocky Minimal
+#Make sure you specify the domain name you want to use for AD.
+#After the GUI install: 
 #(Just copy and paste the following lines on the Rocky terminal)
 
 cd /root/
