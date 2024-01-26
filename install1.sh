@@ -28,7 +28,8 @@ echo ${red}"PLEASE NOTE: When you setup your server via the Rocky installer,"
 echo "You should have specified the static IP and FQDN to be used as your AD instance."
 echo "It is assumed this is the correct information and will utilize it for the install moving forward."
 echo "If this information is not correct, i.e. ip address, hostname, domain name, use${textreset} ${yellow}nmtui${textreset} ${red}to modify it,"
-echo "and start the installer again${textreset}"
+echo "and start the installer again by typing:"
+echo "/root/DC-Installer.sh${textreset}"
 read -p "Press Enter to conitnue or CtrL-C to terminate the installer"
 
 
