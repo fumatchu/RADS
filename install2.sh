@@ -278,7 +278,7 @@ rm -r -f /root/ADDCInstaller
 rm -r -f /root/DC-Installer.sh
 
 echo "Installation Complete"
-read -p Press a Key 
+read -p "Press any Key" 
 
 
 
