@@ -33,6 +33,7 @@ echo "This will take around 15-20 minutes depending on your Internet connection"
 echo "and processor speed/memory"
 echo " "
 read -p "Press Enter when you're ready"
+clear
 echo " "
 echo "We are going to provide NTP to our clients on the network"
 echo "Please provide the appropriate network scope in CIDR format"
