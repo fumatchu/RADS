@@ -262,6 +262,6 @@ sed -i '10i \       \#ldap server require strong auth = no #UNCOMMENT THIS IF YO
 sed -i '$ d' /root/.bash_profile
 rm -f /root/samba-latest.tar.gz
 rm -r -f /root/samba-latest/
-rm -r -f /root/FR-Installer
-rm -r -f /root/FR-Installer.sh
+rm -r -f /root/ADDCInstaller
+rm -r -f /root/ADDCInstaller.sh
 
