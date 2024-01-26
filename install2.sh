@@ -36,7 +36,7 @@ read -p "Press Enter when you're ready"
 echo " "
 echo "We are going to provide NTP to our clients on the network"
 echo "Please provide the appropriate network scope in CIDR format"
-echo "i.e 192.168.0.0/16"
+echo "(i.e 192.168.0.0/16)"
 echo " "
 echo "Please provide the network scope"
 read NTPCIDR
