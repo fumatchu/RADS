@@ -63,10 +63,12 @@ echo ${green}"We should be syncing time${textreset}"
 read -p "Press Any Key"
 clear
 #GET Samba
-echo "Getting the Latest version of Samba from samba.org and compiling"
+echo "Getting the latest version of Samba from samba.org and compiling"
 echo "This may take about 10 minutes so go get your favorite beverage"
 echo "Or take a bio break!"
-echo "push-ups, etc :)"
+echo "Or do some push-ups, etc :)"
+echo " "
+
 read -p "Press Any Key"
 cd /root/
 mkdir samba-latest
