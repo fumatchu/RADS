@@ -250,8 +250,19 @@ echo ${green}""samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administ
 echo " "
 echo " "
 echo "Please add this as approriate and apply it to the system"
+echo "You may want to reduce the complexity and history length, etc. of the passwords"
+echo "Type the command:"
+echo ${green}"samba-tool domain passwordsettings set --help${textreset}"
+echo " "
+echo "For a total list of options, or use PSO's"
+echo" "
+echo "If this is a testing envrionment, you can always use these options"
+echo "samba-tool domain passwordsettings set --complexity=off"
+echo "samba-tool domain passwordsettings set --history-length=0"
+echo "samba-tool domain passwordsettings set --min-pwd-age=0"
+echo "samba-tool domain passwordsettings set --max-pwd-age=0"
 echo "After that is complete, please reboot the system with the command"
-tput setaf 1; echo "reboot"; tput sgr0
+echo ${red}"reboot${textreset}"
 
 #Add support for FreeRADIUS
 sed -i '9i \       \ ntlm auth = mschapv2-and-ntlmv2-only' /usr/local/samba/etc/smb.conf
@@ -264,4 +275,11 @@ rm -f /root/samba-latest.tar.gz
 rm -r -f /root/samba-latest/
 rm -r -f /root/ADDCInstaller
 rm -r -f /root/DC-Installer.sh
+
+echo "Installation Complete"
+read -p Press a Key 
+
+
+
+
 
