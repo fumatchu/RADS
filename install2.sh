@@ -48,10 +48,11 @@ read -p "Press any Key"
 echo
 echo "Setting a valid time source"
 read -p "Press Any Key"
+clear
 sed -i '/server /c\pool pool.ntp.org iburst' /etc/chrony.conf
 sed -i "/#allow /c\allow $NTPCIDR" /etc/chrony.conf
 systemctl restart chronyd
-echo "Sleeping for 10 seconds for chrony"
+echo ${red}"Syncronizing time, Please wait${textreset}"
 sleep 10s
 clear
 chronyc tracking
@@ -60,6 +61,7 @@ echo " "
 echo ${green}"We should be syncing time${textreset}"
 read -p "Press Any Key"
 clear
+#GET Samba
 cd /root/
 mkdir samba-latest
 wget https://download.samba.org/pub/samba/samba-latest.tar.gz
