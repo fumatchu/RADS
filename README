@@ -13,8 +13,8 @@ You do not need to (nor should you) install anything from dnf EXCEPT wget to gra
 
 
 The Script will do the following:
-  Disable SELINX
-  Disable firewalld
+  Sets SElinux
+  Adds Firewall allowances
   Disable un-needed services
   Install cockpit
   Enable the Rocky REPOS needed to build 
