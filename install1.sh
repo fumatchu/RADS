@@ -33,9 +33,24 @@ echo "/root/DC-Installer.sh${textreset}"
 read -p "Press Enter to continue or CtrL-C to terminate the installer"
 
 
+setsebool -P samba_create_home_dirs=on \
+  samba_domain_controller=on \
+  samba_enable_home_dirs=on \
+  samba_portmapper=on \
+  use_samba_home_dirs=on
 
-sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
-systemctl disable firewalld
+firewall-cmd --zone=public --add-port=53/tcp --add-port=53/udp --permanent
+firewall-cmd --zone=public --add-port=88/tcp --add-port=88/udp --permanent
+firewall-cmd --zone=public --add-port=135/tcp --permanent
+firewall-cmd --zone=public --add-port=389/tcp --add-port=389/udp --permanent
+firewall-cmd --zone=public --add-port=445/tcp --permanent
+firewall-cmd --zone=public --add-port=464/tcp --add-port=464/udp --permanent
+firewall-cmd --zone=public --add-port=636/tcp --permanent
+firewall-cmd --zone=public --add-port=3268/tcp --permanent
+firewall-cmd --zone=public --add-port=3269/tcp --permanent
+firewall-cmd --zone=public --add-port=50000-51000/tcp --permanent
+firewall-cmd --zone=public --add-port=49152-65535/tcp --permanent
+systemctl restart firewalld
 
 
 
