@@ -50,6 +50,7 @@ echo
 echo "Setting a valid time source"
 read -p "Press Any Key"
 clear
+#If this server got DHCP, and there is an NTP option, we must change it to a pool
 sed -i '/server /c\pool pool.ntp.org iburst' /etc/chrony.conf
 sed -i "/#allow /c\allow $NTPCIDR" /etc/chrony.conf
 systemctl restart chronyd
