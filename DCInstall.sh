@@ -72,9 +72,7 @@ clear
   clear
   echo "/root/ADDCInstaller/DCInstall.sh" >> /root/.bash_profile
   reboot 
-  clear 
-  clear
-  clear
+  exit
 else
 echo   ${green}"Interface $interface is using a static IP address ${textreset}"
 fi
