@@ -287,13 +287,13 @@ EOF
 echo ${green}
 host -t A $FQDN.
 echo ${textreset}
+sleep 8s
 clear
 cat <<EOF
 Testing anonymous Logins to the server
 EOF
 smbclient -L localhost -N
-read -p "Press Any Key to Continue"
-
+sleep 8s
 clear
 cat <<EOF
 Verifying Authentication Login:
