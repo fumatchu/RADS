@@ -22,8 +22,8 @@ cat <<EOF > /etc/motd
     *********************************************
 dnf_smb_mon sees a difference between the @System dnf repository
 for Samba and the dnf repository upstream. This probably means that
-the the upstream Samba packages are a new version and the --dc packages
-are now out of date.
+the upstream Samba packages are a new version and the --dc packages
+are now out of date (Newer Samba rpm).
 
 
 You should probably run the command samba-dnf-pkg-update.
