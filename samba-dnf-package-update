@@ -1,6 +1,6 @@
 #!/bin/bash
 #samba-dnf-pkg-update
-#In the event a samba update arrives from Rocky Linux, rebuild samba packages
+#In the event a samba update arrives from Rocky Linux, rebuild Samba packages
 dnflocal=$(dnf provides samba |grep Provide | sed 's/.dc//'| sed '1d')
 dnfremote=$(dnf provides samba |grep Provide | sed 's/.dc//'| sed '$d')
 mocksmbver=$(dnf provides samba | grep samba |sed '2,4d'| cut -d: -f1| cut -dx -f1)
