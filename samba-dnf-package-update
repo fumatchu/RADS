@@ -1,0 +1,51 @@
+#!/bin/bash
+#samba-dnf-pkg-update
+#In the event a samba update arrives from Rocky Linux, rebuild samba packages
+dnflocal=$(dnf provides samba |grep Provide | sed 's/.dc//'| sed '1d')
+dnfremote=$(dnf provides samba |grep Provide | sed 's/.dc//'| sed '$d')
+mocksmbver=$(dnf provides samba | grep samba |sed '2,4d'| cut -d: -f1| cut -dx -f1)
+majoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
+minoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
+
+cat <<EOF
+This Utility is going to update your compiled samba version to a new version
+
+The current local version on the system is:
+$dnflocal
+
+And the Version in the upstream reposiitory is:
+$dnfremote
+
+This process will:
+        -Remove local packages
+        -Download the new samba source
+        -Use mock to compile the source rpm
+        -Recreate the repo in the same location
+        -Run dnf update to the new version of Samba, with dependencies
+EOF
+
+while true; do
+
+read -p "Would you like tp update tjhe system now? (y/n) " yn
+
+case $yn in
+   [yY] )
+# delete all packages
+rm -rf /root/samba/*.rpm
+dnf download samba --source
+mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc "$mocksmbver"src.rpm
+cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/samba
+createrepo /root/samba
+dnf update --repofrompath=samba,/root/samba
+
+
+sed -i d /etc/motd;
+
+      break;;
+   [nN] ) echo exiting...;
+      exit;;
+   * ) echo invalid response;;
+esac
+
+done
+exit 1
