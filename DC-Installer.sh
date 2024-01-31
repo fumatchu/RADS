@@ -20,4 +20,4 @@ git clone https://github.com/fumatchu/RADS.git /root/ADDCInstaller
 chmod 700 /root/ADDCInstaller/i*
 clear
 
-/root/ADDCInstaller/install1.sh
+/root/ADDCInstaller/DC-install.sh
