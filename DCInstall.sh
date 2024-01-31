@@ -70,7 +70,7 @@ clear
   echo "If using SSH, please use the IP Address: $IPADDR"
   read -p "Press Any Key to Continue"
   clear
-  echo "/root/ADDCInstaller/DCinstall.sh" >> /root/.bash_profile
+  echo "/root/ADDCInstaller/DCInstall.sh" >> /root/.bash_profile
   reboot 
   clear 
   clear
@@ -331,7 +331,7 @@ After that is complete, please reboot the system
 
 EOF
 
-sed -i '/root/ADDCInstaller/DCinstall.sh/d' /root/.bash_profile
+sed -i '/root/ADDCInstaller/DCInstall.sh/d' /root/.bash_profile
 
 
 while true; do
