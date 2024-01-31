@@ -331,7 +331,7 @@ After that is complete, please reboot the system
 
 EOF
 
-sed -i '/root/ADDCInstaller/DCInstall.sh/d' /root/.bash_profile
+sed -i '/DCInstall.sh/d' /root/.bash_profile
 
 
 while true; do
