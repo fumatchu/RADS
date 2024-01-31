@@ -13,7 +13,7 @@ This Utility is going to update your compiled Samba version to a newer version
 The current local version on the system is:
 $dnflocal
 
-And the Version in the upstream reposiitory is:
+And the Version in the upstream repository is:
 $dnfremote
 
 This process will:
