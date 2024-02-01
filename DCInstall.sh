@@ -187,6 +187,7 @@ Updating Firewall Rules
 EOF
 firewall-cmd --zone=public --add-port=53/tcp --add-port=53/udp --permanent
 firewall-cmd --zone=public --add-port=88/tcp --add-port=88/udp --permanent
+firewall-cmd --zone=public --add-port=123/udp --permanent
 firewall-cmd --zone=public --add-port=135/tcp --permanent
 firewall-cmd --zone=public --add-port=389/tcp --add-port=389/udp --permanent
 firewall-cmd --zone=public --add-port=445/tcp --permanent
