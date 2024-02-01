@@ -21,26 +21,20 @@ The Script will do the following:
     EPEL
     CRB 
 Install the requirements needed by the samba source
-It will then place a phase two installer upon reboot
 The Phase two installer will 
-    modify chrony to point to pool.ntp.org
-    download and install samba-latest
+    modify chrony to point to 2.rocky.pool.ntp.org
+    download and install samba-latest (.src.rpm)
     Prompt you for domain provisioning
-    Force you to update your dns entries via nmtui (for proper resolution for AD)
-    Add the samba-ad-dc.service 
-    Use systemctl to activate and enable samba on boot 
+    Add the samba service an enable it 
     Clean up all the install files (We like to be tidy)
     Provide basic AD testing from the console
+    Install a monitoring script to compare the version of compiled samba to upstream and alert you if
+    an updated is needed
+    update the.src.rpm to latest version
     Provide you with a "next steps" for samba administration
 
 ####Sounds great! How do I get it?
-(Included is a Word document providing step by step instructions-(See the File) Installing and configuring AD on Rocky-RADS)
-
 Installing
 (Just copy and paste the following lines on the Rocky terminal)
 
-cd /root/
-dnf -y install wget 
-wget https://raw.githubusercontent.com/fumatchu/RADS/main/DC-Installer.sh
-chmod 700 ./DC-Installer.sh
-/root/DC-Installer.sh
+Please see the EASY_INSTALL File 
