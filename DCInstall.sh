@@ -205,12 +205,12 @@ dnf -y update
  dnf install mock -y
  dnf download samba --source
  mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc "$mocksmbver"src.rpm
- mkdir /root/samba
- cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/samba
+ mkdir /root/.samba
+ cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/.samba
  createrepo /root/samba
  #dnf config-manager --add-repo /root/samba
  dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
-  --repofrompath=samba,/root/samba \
+  --repofrompath=samba,/root/.samba \
   --enablerepo=samba
 #Move smb.conf file
 mv -f /etc/samba/smb.conf /etc/samba/smb.bak.orig
@@ -338,8 +338,12 @@ samba-tool domain passwordsettings set --max-pwd-age=0
 After that is complete, please reboot the system
 
 EOF
-
+#Cleanup
 sed -i '/DCInstall.sh/d' /root/.bash_profile
+rm -r -f /root/DC-Installer.sh
+rm -r -f /root/ADDCInstaller
+
+
 
 
 while true; do
