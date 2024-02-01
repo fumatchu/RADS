@@ -31,12 +31,12 @@ read -p "Would you like to update the system now? (y/n) " yn
 case $yn in
    [yY] )
 # delete all packages
-rm -rf /root/samba/*.rpm
+rm -rf /root/.samba/*.rpm
 dnf download samba --source
 mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc "$mocksmbver"src.rpm
-cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/samba
-createrepo /root/samba
-dnf update --repofrompath=samba,/root/samba
+cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/.samba
+createrepo /root/.samba
+dnf update --repofrompath=samba,/root/.samba
 
 
 sed -i d /etc/motd;
