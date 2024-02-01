@@ -294,6 +294,7 @@ EOF
 echo ${green}
 host -t A $FQDN.
 echo ${textreset}
+echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
 sleep 8s
 clear
 cat <<EOF
