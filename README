@@ -13,30 +13,36 @@ You do not need to (nor should you) install anything from dnf EXCEPT wget to gra
 
 
 The Script will do the following:
+  Validate that you have a static IP setup. If you do not it will prompt you.
   Sets SElinux
   Adds Firewall allowances
-  Disable un-needed services
-  Install cockpit
   Enable the Rocky REPOS needed to build 
     EPEL
     CRB 
 Install the requirements needed by the samba source
-The Phase two installer will 
-    modify chrony to point to 2.rocky.pool.ntp.org
-    download and install samba-latest (.src.rpm)
+    Modify chrony to point to 2.rocky.pool.ntp.org
+    Download and install samba-latest (.src.rpm)
     Prompt you for domain provisioning
     Add the samba service an enable it 
     Clean up all the install files (We like to be tidy)
     Provide basic AD testing from the console
+      Kerberos
+      Kerberos udp (NS)
+      LDAP (NS
+      Anonymous login
+      Authenticated Login
+      
     Install a monitoring script to compare the version of compiled samba to upstream and alert you if
     an updated is needed
-    update the.src.rpm to latest version
+    update the .src.rpm to latest version
     Provide you with a "next steps" for samba administration
+        Create a reverse zone from the command line
+        Provide examples for password complexity, history, etc
+        Provide default user creation command to create your first AD user
 
 ####Sounds great! How do I get it?
-Installing
-(Just copy and paste the following lines on the Rocky terminal)
 
+Installing
 Please see the EASY_INSTALL File 
 
 #Installing
