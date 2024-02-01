@@ -346,6 +346,7 @@ EOF
 sed -i '/DCInstall.sh/d' /root/.bash_profile
 rm -r -f /root/DC-Installer.sh
 rm -r -f /root/ADDCInstaller
+rm -f /root/samba*.src.rpm
 
 
 
