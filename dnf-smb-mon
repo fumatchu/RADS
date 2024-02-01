@@ -3,18 +3,17 @@
 #dnf_smb_mon
 #Monitoring script that will compare the @System Repository with the Upstream Repository for Samba DC
 #If a match between the files are resolved, there will be no update
-#If a match is NOT resolved between files, a messages will be sent to MOTD and upon netc login the (root) User should ru
-n "make_smbdc_update"
+#If a match is NOT resolved between files, a messages will be sent to MOTD and upon netc login the (root) User should run "make_smbdc_update"
 
 
 dnf makecache
-dnflocal=("dnf provides samba |grep Provide | sed 's/.dc//'| sed '1d'")
-dnfremote=("dnf provides samba |grep Provide | sed 's/.dc//'| sed '$d'")
+dnflocal=$(dnf provides samba |grep Provide | sed 's/.dc//'| sed '1d')
+dnfremote=$(dnf provides samba |grep Provide | sed 's/.dc//'| sed '$d')
 
 
 if [ "$dnflocal" == "$dnfremote" ]
 then
-echo "dnf_smb_mon reports no changes needed."
+logger -s "dnf-smb-mon reports no changes needed-Repositories are in sync" 2>> /var/log/dnf-smb-mon.log
 else
 cat <<EOF > /etc/motd
     *********************************************
@@ -22,10 +21,12 @@ cat <<EOF > /etc/motd
     *********************************************
 dnf_smb_mon sees a difference between the @System dnf repository
 for Samba and the dnf repository upstream. This probably means that
-the upstream Samba packages are a new version and the --dc packages
-are now out of date (Newer Samba rpm).
+the the upstream Samba packages are a new version and the --dc packages
+are now out of date.
 
 
 You should probably run the command samba-dnf-pkg-update.
 EOF
-exit 1
+logger -s "dnf-smb-mon reports changes -Repositories are NOT in sync. Review and run samba-dnf-pkg-update" 2>> /var/log/dnf-smb-mon.log
+fi
+exit
