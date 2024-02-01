@@ -79,6 +79,16 @@ fi
 
 
 clear
+Checking for version Information
+if [ "$majoros" != "9" ]; then
+echo ${red}"Sorry, but this installer only works on Rocky 9.X ${textreset}"
+echo "Please upgrade to ${green}Rocky 9.x${textreset}"
+echo "Exiting the installer..."
+exit 
+else
+echo ${green}"Version information matches..Continuing${textreset}"
+fi
+clear
 cat <<EOF
 
  *********************************************
