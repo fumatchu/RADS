@@ -228,6 +228,15 @@ systemctl restart NetworkManager
 sed -i '8i \       \ #ntlm auth = mschapv2-and-ntlmv2-only #Added for FreeRADIUS Support'  /etc/samba/smb.conf
 #Allow plain LDAP binds
 sed -i '9i \       \#ldap server require strong auth = no #UNCOMMENT THIS IF YOU NEED PLAIN LDAP BIND (non-TLS)' /etc/samba/smb.conf
+#ADD cron for monitoring of REPOS
+touch /var/log/dnf-smb-mon.log
+chmod 700 /root/ADDCInstaller/dnf-smb-mon
+\cp /root/ADDCInstaller/dnf-smb-mon /usr/bin
+(crontab -l; echo "0 */6 * * * /usr/bin/dnf-smb-mon") | sort -u | crontab -
+systemctl restart crond
+#ADD samba-dnf-package update
+chmod 700 /root/ADDCInstaller/samba-dnf-pkg-update
+\cp /root/ADDCInstaller/samba-snf-pkg-update /usr/bin
 systemctl enable samba --now
 clear
 cat  <<EOF
