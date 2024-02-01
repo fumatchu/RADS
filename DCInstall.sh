@@ -236,7 +236,7 @@ chmod 700 /root/ADDCInstaller/dnf-smb-mon
 systemctl restart crond
 #ADD samba-dnf-package update
 chmod 700 /root/ADDCInstaller/samba-dnf-pkg-update
-\cp /root/ADDCInstaller/samba-snf-pkg-update /usr/bin
+\cp /root/ADDCInstaller/samba-dnf-pkg-update /usr/bin
 systemctl enable samba --now
 clear
 cat  <<EOF
