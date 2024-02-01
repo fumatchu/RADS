@@ -175,7 +175,6 @@ setsebool -P samba_create_home_dirs=on \
 cat <<EOF
 Updating Firewall Rules
 EOF
-${green}
 firewall-cmd --zone=public --add-port=53/tcp --add-port=53/udp --permanent
 firewall-cmd --zone=public --add-port=88/tcp --add-port=88/udp --permanent
 firewall-cmd --zone=public --add-port=135/tcp --permanent
