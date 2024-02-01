@@ -207,7 +207,7 @@ dnf -y update
  mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc "$mocksmbver"src.rpm
  mkdir /root/.samba
  cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/.samba
- createrepo /root/samba
+ createrepo /root/.samba
  #dnf config-manager --add-repo /root/samba
  dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
   --repofrompath=samba,/root/.samba \
