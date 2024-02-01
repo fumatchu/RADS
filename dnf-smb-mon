@@ -3,7 +3,7 @@
 #dnf_smb_mon
 #Monitoring script that will compare the @System Repository with the Upstream Repository for Samba DC
 #If a match between the files are resolved, there will be no update
-#If a match is NOT resolved between files, a messages will be sent to MOTD and upon netc login the (root) User should run "make_smbdc_update"
+#If a match is NOT resolved between files, a messages will be sent to MOTD and upon netc login the (root) User should run "samba-dnf-pkg-update"
 
 
 dnf makecache
