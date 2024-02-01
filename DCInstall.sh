@@ -65,7 +65,7 @@ clear
   nmcli con mod $interface ipv4.dns $DNSSERVER
   hostnamectl set-hostname $HOSTNAME
   echo " "
-  echo "The System must reboot for the changes to take effect. Please log back in as root."
+  echo "The System must reboot for the changes to take effect. ${red}Please log back in as root.${testreset}"
   echo "The installer will continue when you log back in."
   echo "If using SSH, please use the IP Address: $IPADDR"
   read -p "Press Any Key to Continue"
