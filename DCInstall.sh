@@ -375,4 +375,4 @@ case $yn in
 esac
 
 done
-exit1
+exit
