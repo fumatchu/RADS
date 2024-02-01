@@ -310,7 +310,7 @@ smbclient //localhost/netlogon -UAdministrator -c 'ls'
 read -p "Press Any Key to Continue"
 clear
 echo "If all tests returned valid, installation is successful"
-read -p "Press Any Key to Continue"
+sleep 5
 clear
 
 cat <<EOF
@@ -335,6 +335,10 @@ samba-tool domain passwordsettings set --complexity=off
 samba-tool domain passwordsettings set --history-length=0
 samba-tool domain passwordsettings set --min-pwd-age=0
 samba-tool domain passwordsettings set --max-pwd-age=0
+
+To setup your first user:
+samba-tool user add <username> [<password>]
+
 After that is complete, please reboot the system
 
 EOF
