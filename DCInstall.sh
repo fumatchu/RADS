@@ -237,9 +237,10 @@ samba-tool domain provision \
 nmcli con mod ens192 ipv4.dns $IP
 systemctl restart NetworkManager
 #Add support for FreeRADIUS
-sed -i '8i \       \ #ntlm auth = mschapv2-and-ntlmv2-only #Added for FreeRADIUS Support'  /etc/samba/smb.conf
+sed -i '8i \       \ #Added for FreeRADIUS Support' /etc/samba/smb.conf
+sed -i '9i \       \ ntlm auth = mschapv2-and-ntlmv2-only'   /etc/samba/smb.conf
 #Allow plain LDAP binds
-sed -i '9i \       \#ldap server require strong auth = no #UNCOMMENT THIS IF YOU NEED PLAIN LDAP BIND (non-TLS)' /etc/samba/smb.conf
+sed -i '10i \       \#ldap server require strong auth = no #UNCOMMENT THIS IF YOU NEED PLAIN LDAP BIND (non-TLS)' /etc/samba/smb.conf
 #ADD cron for monitoring of REPOS
 touch /var/log/dnf-smb-mon.log
 chmod 700 /root/ADDCInstaller/dnf-smb-mon
