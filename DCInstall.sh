@@ -15,9 +15,18 @@ REVERSE=$(echo "$IP" | { IFS=. read q1 q2 q3 q4; echo "$q3.$q2.$q1"; })
 mocksmbver=$(dnf provides samba | grep samba |sed '2,4d'| cut -d: -f1| cut -dx -f1)
 majoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 minoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
-cat <<stop
+#Checking for version Information
+if [ "$majoros" != "9" ]; then
+echo ${red}"Sorry, but this installer only works on Rocky 9.X ${textreset}"
+echo "Please upgrade to ${green}Rocky 9.x${textreset}"
+echo "Exiting the installer..."
+exit 
+else
+echo ${green}"Version information matches..Continuing${textreset}"
+fi
+cat <<EOF
 Checking for static IP Address
-stop
+EOF
 sleep 1s
 
 #Detect Static or DHCP (IF not Static, change it)
@@ -62,16 +71,6 @@ EOF
   exit
 else
 echo   ${green}"Interface $interface is using a static IP address ${textreset}"
-fi
-clear
-#Checking for version Information
-if [ "$majoros" != "9" ]; then
-echo ${red}"Sorry, but this installer only works on Rocky 9.X ${textreset}"
-echo "Please upgrade to ${green}Rocky 9.x${textreset}"
-echo "Exiting the installer..."
-exit 
-else
-echo ${green}"Version information matches..Continuing${textreset}"
 fi
 clear
 cat <<EOF
