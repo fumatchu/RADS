@@ -339,9 +339,7 @@ rm -f /root/samba*.src.rpm
 
 
 while true; do
-
 read -p "Do you want to reboot now? (y/n) " yn
-
 case $yn in 
    [yY] ) reboot;
       break;;
@@ -349,6 +347,5 @@ case $yn in
       exit;;
    * ) echo invalid response;;
 esac
-
 done
 exit
