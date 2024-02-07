@@ -25,38 +25,23 @@ if [ -z "$interface" ]; then
    "Usage: $0 <interface>"
   exit 1
 fi
-
 method=$(nmcli -f ipv4.method con show $interface)
-
 if [ "$method" = "ipv4.method:                            auto" ]; then
-  echo ${red}"Interface $interface is using DHCP${textreset}"
-  echo "This server should be using a Static IP"
-  echo "Please Provide a Static IP address in CIDR format"
-  echo "(i.e 192.168.24.2/24)"
-  read IPADDR
-  echo " "
-  echo "Please Provide a Default Gateway Address"
-  read GW
-  echo " "
-  echo "Please provide the domain search name"
-  echo "(i.e test.int)"
-  read DNSSEARCH
-  echo " "
-  echo "Please provide an upstream DNS IP for resolution"
-  read DNSSERVER
-  echo " "
-cat <<EOF
-Please provide the FQDN of this host to use
-(i.e. hostname.domain.int)
-EOF
-read HOSTNAME 
+echo  ${red}"Interface $interface is using DHCP${textreset}"
+read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
+read -p "Please provide a Default Gateway Address: " GW
+read -p "Please provide the domain search name (i.e. domain.com): " DNSSEARCH
+read -p "Please provide an upstream DNS IP for resolution (AD Server): " DNSSERVER
+read -p "Please provide the FQDN of this machine (i.e. machine.domain.com) " HOSTNAME  
 clear
-  echo "The following changes to the system will be configured:"
-  echo "IP address: $IPADDR"
-  echo "Gateway: $GW"
-  echo "DNS Search: $DNSSEARCH"
-  echo "DNS Server: $DNSSERVER"
-  echo "HOSTNAME: $HOSTNAME"
+cat <<EOF
+The following changes to the system will be configured:
+IP address: ${green}$IPADDR${textreset}
+Gateway: ${green}$GW${textreset}
+DNS Search: ${green}$DNSSEARCH${textreset}
+DNS Server: ${green}$DNSSERVER${textreset}
+HOSTNAME: ${green}$HOSTNAME${textreset}
+EOF
   read -p "Press any Key to Continue"
   nmcli con mod $interface ipv4.address $IPADDR
   nmcli con mod $interface ipv4.gateway $GW
@@ -64,10 +49,11 @@ clear
   nmcli con mod $interface ipv4.dns-search $DNSSEARCH
   nmcli con mod $interface ipv4.dns $DNSSERVER
   hostnamectl set-hostname $HOSTNAME
-  echo " "
-  echo "The System must reboot for the changes to take effect. ${red}Please log back in as root.${textreset}"
-  echo "The installer will continue when you log back in."
-  echo "If using SSH, please use the IP Address: $IPADDR"
+cat <<EOF
+The System must reboot for the changes to take effect. ${red}Please log back in as root.${textreset}
+The installer will continue when you log back in.
+If using SSH, please use the IP Address: $IP
+EOF
   read -p "Press Any Key to Continue"
   clear
   echo "/root/ADDCInstaller/DCInstall.sh" >> /root/.bash_profile
@@ -76,8 +62,6 @@ clear
 else
 echo   ${green}"Interface $interface is using a static IP address ${textreset}"
 fi
-
-
 clear
 #Checking for version Information
 if [ "$majoros" != "9" ]; then
