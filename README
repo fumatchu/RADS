@@ -47,6 +47,7 @@ Please see the EASY_INSTALL File
 
 #Installing
 #Install Rocky Minimal
+#https://rockylinux.org/download/
 #Make sure you specify the domain name you want to use for AD.
 #After the GUI install: 
 #(Just copy and paste the following lines on the Rocky terminal)
