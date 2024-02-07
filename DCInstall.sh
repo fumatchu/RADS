@@ -182,7 +182,7 @@ cat <<EOF
 ${green}Downloading and compiling the Samba source from Rocky --with dc${textreset}
 EOF
 sleep 3s
-dnf -y install ntsysv open-vm-tools
+dnf -y install ntsysv open-vm-tools cockpit cockpit-storaged
 dnf -y update 
 # Initial build
  dnf install epel-release createrepo -y
