@@ -78,7 +78,7 @@ cat <<EOF
  *********************************************
 
  This script was created for ${green}Rocky 9.x${textreset}
- This will install a Samba AD/DC Server.
+ This will install a Samba AD/DC Server and provision it.
 
  What this script does:
  1. Apply appropriate SELinux context and Firewall rules
@@ -89,59 +89,48 @@ cat <<EOF
  6. Once that is complete we will restart the server
 
  *********************************************"
- This will take around 20-25 minutes depending on your Internet connection
+ This will take 20-25 minutes depending on your Internet connection
  and processor speed/memory
  ${red} NOTE: This installer must run as the root account${textreset}
 EOF
-
 read -p "Press Any Key to Continue or Ctrl-C to exit the Installer"
 clear
 cat <<EOF
-Please provide the FQDN of this host to use
-(i.e. hostname.domain.int)
-EOF
-read HOSTNAME
-#Set hostname 
-hostnamectl set-hostname $HOSTNAME
-clear
-cat <<EOF
-Please provide the Samba REALM you would like to use:
-(CAPS Preferred)
-EOF
-echo "(i.e $ADREALM)"
+*********************************************
+Checklist:
+Before the Installer starts, please make sure you have the following information
 
-read REALM
-clear
-cat <<EOF
-Please provide the Samba DOMAIN name you would like to use:
-(CAPS Preferred)
-EOF
-echo "(i.e. $ADDOMAIN)"
+    1. ${yellow}An FQDN${textreset} that you want to use for this AD server.
+    2. ${yellow}A REALM (i.e CONTOSO.COM) ${textreset} that will become the AD Kerberos Advertisement
+    3. ${yellow}A DOMAIN Name (Shortened REALM- i.e. CONTOSO)${textreset} that you want to use for the DOMAIN name.
+    4. ${yellow}An Administrator password${textreset} that you want to use for the DOMAIN
+    5. ${yellow}An NTP Subnet${textreset} that you will be allowing for your clients. This server will provide syncronized time
+     
 
-read DOMAIN
+*********************************************
+EOF
+read -p "Press Any Key to Continue or Ctrl-C to exit the Installer"
 clear
+
+
+read -p "Please provide the FQDN of this host to use (i.e. hostname.contoso.com): " HOSTNAME
+read -p "Please provide the Samba REALM you would like to use (i.e. $ADREALM)  " REALM
+read -p "Please provide the Samba DOMAIN name you would like to use (CAPS PREFERRED i.e. $ADDOMAIN): " DOMAIN
+read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
+read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
+
 cat <<EOF
-Please provide the Administrator Password to use for AD/DC Provisioning:
+The installer will deploy Samba AD with the following information:
+Hostname:${green}$HOSTNAME${textreset}
+REALM: ${green}$REALM${textreset}
+DOMAIN: ${green}$DOMAIN${textreset}
+Administrator Password: ${green}$ADMINPASS${textreset}
+NTP Client Scope: ${green}$NTPCIDR${textreset}
 EOF
 
-read ADMINPASS
+read -p "Press any Key to continue or Ctrl-C to Exit"
 clear
-cat <<EOF
-We are going to provide NTP to our clients on the network
-Please provide the appropriate network scope in CIDR format
-(i.e 192.168.0.0/16)
-Please provide the network scope to service clients
-EOF
-read NTPCIDR
-clear
-echo "The installer will deploy Samba with the following information:"
-echo "Hostname:$HOSTNAME"
-echo "NTP Client Scope: $NTPCIDR"
-echo "REALM: $REALM"
-echo "DOMAIN: $DOMAIN"
-echo "Administrator Password: $ADMINPASS"
 
-read -p "Press any Key"
 #Set hostname 
 hostnamectl set-hostname $HOSTNAME
 #If this server got DHCP, and there is an NTP server option, we must change it to a pool
@@ -311,7 +300,7 @@ sleep 5
 clear
 
 cat <<EOF
-The last thing that should be done is add a reverse zone in DNS.
+The last thing that should be done is adding a reverse zone in DNS.
 Based on your configuration, and assuming a Class C subnet, your command should be:
 EOF
 echo " "
