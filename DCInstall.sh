@@ -118,7 +118,7 @@ read -p "Please provide the Samba REALM you would like to use (i.e. $ADREALM)  "
 read -p "Please provide the Samba DOMAIN name you would like to use (CAPS PREFERRED i.e. $ADDOMAIN): " DOMAIN
 read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
-
+clear
 cat <<EOF
 The installer will deploy Samba AD with the following information:
 Hostname:${green}$HOSTNAME${textreset}
