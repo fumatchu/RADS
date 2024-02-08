@@ -1,17 +1,24 @@
 #!/bin/sh
-#install.sh
-echo "**************************"
-echo "Please wait while we gather some files"
-echo "**************************"
+#DC-Installer.sh #Bootstrap to GIT REPO
+cat <<EOF
+**************************
+Please wait while we gather some files
+**************************
 
-echo " "
-echo "Installing wget and git"
-echo " "
+
+Installing wget and git
+EOF
+sleep 1
 
 dnf -y install wget git 
 
-echo " "
-echo "Retreiving Files from github"
+cat <<EOF
+*****************************
+Retrieving Files from GitHub
+*****************************
+EOF
+
+sleep 1
 
 mkdir /root/ADDCInstaller
 
