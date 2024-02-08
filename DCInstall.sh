@@ -41,7 +41,7 @@ read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24)
 read -p "Please provide a Default Gateway Address: " GW
 read -p "Please provide the FQDN of this machine (i.e. machine.domain.com) " HOSTNAME
 read -p "Please provide the domain search name (i.e. domain.com): " DNSSEARCH
-read -p "Please provide an upstream DNS IP for resolution (OpenDNS? 208.67.222.222): " DNSSERVER
+read -p "Please provide an upstream DNS IP for resolution (OPENDNS is reliable-try-208.67.222.222): " DNSSERVER
   
 clear
 cat <<EOF
