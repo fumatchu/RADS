@@ -235,7 +235,7 @@ ${red}https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_D
 If you would like, please following along from that link
 EOF
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit" 
-sleep 10s
+sleep 15s
 clear
 cat <<EOF
 First, We will check Kerberos and get a ticket
@@ -246,7 +246,7 @@ echo ${green}
 klist
 echo ${textreset}
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
-sleep 8s
+sleep 10s
 clear
 cat <<EOF
 We should check DNS for correct resolution
@@ -282,7 +282,7 @@ echo ${green}
 host -t A $FQDN.
 echo ${textreset}
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
-sleep 8s
+sleep 10s
 clear
 cat <<EOF
 Testing anonymous Logins to the server
@@ -301,7 +301,7 @@ sleep 5
 clear
 
 cat <<EOF
-The last thing that should be done is adding a reverse zone in DNS.
+ A reverse zone should be added to DNS.
 Based on your configuration, and assuming a Class C subnet, your command should be:
 EOF
 echo " "
