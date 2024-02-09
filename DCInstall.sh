@@ -180,7 +180,7 @@ sleep 8s
 clear
 cat <<EOF
 ${green}Downloading and compiling the Samba source from Rocky --with dc${textreset}
-${yellow}This may take approximately 20 minutes${textreset}
+${yellow}This may take approximately 20-30 minutes${textreset}
 EOF
 sleep 4s
 dnf -y install ntsysv open-vm-tools cockpit cockpit-storaged
