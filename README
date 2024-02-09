@@ -2,13 +2,12 @@
 
 This is a script to allow a Rocky (RHEL) Server (9.x) to become an AD/DC Server from Samba Source. 
 Yes, there are others that build RPMS, but why not build it yourself?
-I took this approach because there is not one binary that this script modifies and therefore can be a trusted source (no pun intended). 
-It just goes out to the internet and collects source from VALID locations to build Samba. :)
+I took this approach because there is not one binary that this script modifies and therefore can be a trusted source. 
+
 
 ####Pre-requisites
 You should install Rocky from scratch. 
-You should make sure the server has a static IP.
-During your setup, the hostname and domain name that you specify in the GUI installer of Rocky be what you want.
+You should make sure the server has a static IP (If It does not, the installer will walk you through modifying it).
 You do not need to (nor should you) install anything from dnf EXCEPT wget to grab the first installer file.
 
 
@@ -21,7 +20,7 @@ The Script will do the following:
     CRB 
 Install the requirements needed by the samba source
     Modify chrony to point to 2.rocky.pool.ntp.org
-    Download and install samba-latest (.src.rpm)
+    Download and install (Rocky) samba-latest (.src.rpm)
     Prompt you for domain provisioning
     Add the samba service an enable it 
     Clean up all the install files (We like to be tidy)
@@ -36,7 +35,7 @@ Install the requirements needed by the samba source
     an updated is needed
     update the .src.rpm to latest version
     Provide you with a "next steps" for samba administration
-        Create a reverse zone from the command line
+        Suggest a reverse zone from the command line after install, based on your topology
         Provide examples for password complexity, history, etc
         Provide default user creation command to create your first AD user
 
