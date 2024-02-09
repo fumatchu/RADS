@@ -2,7 +2,7 @@
 #Install Rocky Minimal
 #Make sure you specify the domain name you want to use for AD.
 #After the GUI install: 
-#(Just copy and paste the following lines on the Rocky terminal)
+#(Just copy and paste the following lines on the Rocky terminal or remote SSH terminal- remote suggested)
 
 cd /root/
 dnf -y install wget 
