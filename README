@@ -22,7 +22,7 @@ Install the requirements needed by the samba source
     Modify chrony to point to 2.rocky.pool.ntp.org
     Download and install (Rocky) samba-latest (.src.rpm)
     Prompt you for domain provisioning
-    Add the samba service an enable it 
+    Add the samba service and enable it 
     Clean up all the install files (We like to be tidy)
     Provide basic AD testing from the console
       Kerberos
