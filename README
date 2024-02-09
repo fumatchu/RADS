@@ -8,7 +8,7 @@ I took this approach because there is not one binary that this script modifies a
 ####Pre-requisites
 You should install Rocky from scratch. 
 You should make sure the server has a static IP (If It does not, the installer will walk you through modifying it).
-You do not need to (nor should you) install anything from dnf EXCEPT wget to grab the first installer file.
+You do not need to (nor should you) install anything. Just a fresh, minimal install. The insatller will do the rest for you. 
 
 
 The Script will do the following:
