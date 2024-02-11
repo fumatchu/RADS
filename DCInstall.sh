@@ -119,6 +119,10 @@ Before the Installer starts, please make sure you have the following information
     3. ${yellow}A DOMAIN Name (Shortened REALM- i.e. CONTOSO)${textreset} that you want to use for the DOMAIN name.
     4. ${yellow}An Administrator password${textreset} that you want to use for the DOMAIN
     5. ${yellow}An NTP Subnet${textreset} that you will be allowing for your clients. This server will provide syncronized time
+    6. The ${yellow}beginning and ending lease range${textreset} for DHCP
+    7. The ${yellow}client default gateway IP Address${textreset} for the DHCP Scope
+    8. A ${yellow}Friendly name${textreset} as a description to the DHCP scope created
+    
      
 
 *********************************************
@@ -126,13 +130,25 @@ EOF
 read -p "Press Any Key to Continue or Ctrl-C to exit the Installer"
 clear
 
-
+cat <<EOF
+Samba AD/DC Setup 
+EOF
 read -p "Please provide the FQDN of this host to use (i.e. hostname.contoso.com): " HOSTNAME
 read -p "Please provide the Samba REALM you would like to use (i.e. $ADREALM)  " REALM
 read -p "Please provide the Samba DOMAIN name you would like to use (CAPS PREFERRED i.e. $ADDOMAIN): " DOMAIN
 read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
 clear
+
+cat <<EOF
+DHCP Server Setup
+EOF
+
+read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
+read -p "Please provdie the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
+read -p "Please provide the default gateway for clients: " DHCPDEFGW
+read -p "Please provide a description for this subnet: " SUBNETDESC
+
 cat <<EOF
 The installer will deploy Samba AD with the following information:
 Hostname:${green}$HOSTNAME${textreset}
@@ -140,6 +156,9 @@ REALM: ${green}$REALM${textreset}
 DOMAIN: ${green}$DOMAIN${textreset}
 Administrator Password: ${green}$ADMINPASS${textreset}
 NTP Client Scope: ${green}$NTPCIDR${textreset}
+DHCP Beginning and Ending Address: ${green}$DHCPBEGIP and $DHCPENDIP${textreset}
+DHCP Default Gateway: ${green}$DHCPDEFGW${textreset}
+DHCP Description: ${green}$SUBNETDESC${textreset}
 EOF
 
 read -p "Press any Key to continue or Ctrl-C to Exit"
@@ -240,6 +259,28 @@ chmod 700 /root/ADDCInstaller/samba-dnf-pkg-update
 \cp /root/ADDCInstaller/samba-dnf-pkg-update /usr/bin
 systemctl enable samba --now
 clear
+#Configure DHCP
+mv -v /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
+
+cat <<EOF > /etc/dhcp/dhcpd.conf
+
+authoritative;
+allow unknown-clients;
+option ntp-servers $IP;
+option time-servers $IP;
+option domain-name-servers $IP;
+option domain-name "$DHCPNSNAME";
+option domain-search "$DHCPNSNAME";
+
+
+
+#$SUBNETDESC
+subnet $SUBNETNETWORK netmask $DHCPNETMASK {
+        range $DHCPBEGIP $DHCPENDIP;
+        option routers $DHCPDEFGW;
+}
+EOF
+
 cat  <<EOF
 Now we are going to do some testing
 These tests came from:
