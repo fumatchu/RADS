@@ -203,6 +203,7 @@ firewall-cmd --zone=public --add-port=3268/tcp --permanent
 firewall-cmd --zone=public --add-port=3269/tcp --permanent
 firewall-cmd --zone=public --add-port=50000-51000/tcp --permanent
 firewall-cmd --zone=public --add-port=49152-65535/tcp --permanent
+firewall-cmd --zone=public --add-service dhcp --permanent
 firewall-cmd --complete-reload
 systemctl restart firewalld
 clear
