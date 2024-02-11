@@ -17,6 +17,16 @@ REVERSE=$(echo "$IP" | { IFS=. read q1 q2 q3 q4; echo "$q3.$q2.$q1"; })
 mocksmbver=$(dnf provides samba | grep samba |sed '2,4d'| cut -d: -f1| cut -dx -f1)
 majoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 minoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
+user=$(whoami)
+
+#Checking for user permissions
+if [ "$user" != "root" ]; then
+echo ${red}"This program must be run as root ${textreset}"
+echo "Exiting"
+exit
+else
+echo "Running Program"
+fi
 #Checking for version Information
 if [ "$majoros" != "9" ]; then
 echo ${red}"Sorry, but this installer only works on Rocky 9.X ${textreset}"
@@ -26,12 +36,12 @@ exit
 else
 echo ${green}"Version information matches..Continuing${textreset}"
 fi
+#Detect Static or DHCP (IF not Static, change it)
 cat <<EOF
 Checking for static IP Address
 EOF
 sleep 1s
 
-#Detect Static or DHCP (IF not Static, change it)
 if [ -z "$interface" ]; then
    "Usage: $0 <interface>"
   exit 1
