@@ -103,7 +103,6 @@ cat <<EOF
  *********************************************"
  This will take 20-25 minutes depending on your Internet connection
  and processor speed/memory
- ${red} NOTE: This installer must run as the root account${textreset}
 EOF
 read -p "Press Any Key to Continue or Ctrl-C to exit the Installer"
 clear
