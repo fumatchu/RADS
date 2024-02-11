@@ -154,7 +154,7 @@ REALM: ${green}$REALM${textreset}
 DOMAIN: ${green}$DOMAIN${textreset}
 Administrator Password: ${green}$ADMINPASS${textreset}
 NTP Client Scope: ${green}$NTPCIDR${textreset}
-DHCP Beginning and Ending Address: ${green}$DHCPBEGIP and $DHCPENDIP${textreset}
+DHCP Beginning and Ending Address: ${green}$DHCPBEGIP to $DHCPENDIP${textreset}
 DHCP Default Gateway: ${green}$DHCPDEFGW${textreset}
 DHCP Description: ${green}$SUBNETDESC${textreset}
 EOF
