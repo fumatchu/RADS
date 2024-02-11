@@ -18,6 +18,9 @@ mocksmbver=$(dnf provides samba | grep samba |sed '2,4d'| cut -d: -f1| cut -dx -
 majoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 minoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
 user=$(whoami)
+DHCPNSNAME=$(hostname | sed 's/...//'|sed -e 's/\(.*\)/\1/')
+DHCPNETMASK=$(ifconfig | grep 255 | sed '$d'| cut -c37- |cut -d b -f1)
+SUBNETNETWORK=$(echo "$IP" | { IFS=. read q1 q2 q3 q4; echo "$q1.$q2.$q3.0"; })
 
 #Checking for user permissions
 if [ "$user" != "root" ]; then
