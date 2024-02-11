@@ -260,6 +260,7 @@ chmod 700 /root/ADDCInstaller/samba-dnf-pkg-update
 \cp /root/ADDCInstaller/samba-dnf-pkg-update /usr/bin
 systemctl enable samba --now
 clear
+
 #Configure DHCP
 mv -v /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
 
