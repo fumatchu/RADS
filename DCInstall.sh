@@ -275,7 +275,6 @@ option domain-name "$DHCPNSNAME";
 option domain-search "$DHCPNSNAME";
 
 
-
 #$SUBNETDESC
 subnet $SUBNETNETWORK netmask $DHCPNETMASK {
         range $DHCPBEGIP $DHCPENDIP;
