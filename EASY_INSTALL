@@ -5,7 +5,7 @@
 #(Just copy and paste the following lines on the Rocky terminal or remote SSH terminal- remote suggested)
 
 cd /root/
-dnf -y install wget 
+dnf -y install wget
 wget https://raw.githubusercontent.com/fumatchu/RADS/main/DC-Installer.sh
 chmod 700 ./DC-Installer.sh
 /root/DC-Installer.sh
