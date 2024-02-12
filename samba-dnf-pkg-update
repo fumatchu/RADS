@@ -1,5 +1,14 @@
 #!/bin/bash
 #samba-dnf-pkg-update
+user=$(whoami)
+#Checking for user permissions
+if [ "$user" != "root" ]; then
+echo ${red}"This program must be run as root ${textreset}"
+echo "Exiting"
+exit
+else
+echo "Running Program"
+fi
 #In the event a samba update arrives from Rocky Linux, rebuild Samba packages
 dnflocal=$(dnf provides samba |grep Provide | sed 's/.dc//'| sed '1d')
 dnfremote=$(dnf provides samba |grep Provide | sed 's/.dc//'| sed '$d')
