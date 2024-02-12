@@ -1,6 +1,7 @@
 #!/bin/sh
 #DC-install.sh
 #This script installs Samba AD with DC support using mock from Upstream Rocky REPO via src.rpm
+dnf -y install net-tools
 textreset=$(tput sgr0)
 red=$(tput setaf 1)
 yellow=$(tput setaf 3)
