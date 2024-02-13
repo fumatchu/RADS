@@ -280,7 +280,15 @@ subnet $SUBNETNETWORK netmask $DHCPNETMASK {
         option routers $DHCPDEFGW;
 }
 EOF
-
+#Update /etc/issue so we can see the hostname and IP address Before logging in
+rm -r -f /etc/issue
+touch /etc/issue
+cat <<EOF > /etc/issue
+\S
+Kernel \r on an \m
+Hostname: \n
+IP Address: \4
+EOF
 cat  <<EOF
 Now we are going to do some testing
 These tests came from:
