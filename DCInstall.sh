@@ -397,28 +397,26 @@ samba-tool domain passwordsettings set --max-pwd-age=0
 
 To setup your first user:
 samba-tool user add <username> [<password>]
-
-After that is complete, please reboot the system
-
 EOF
+
+cat << EOF
+###################################
+   Core Installation Complete!
+##################################
+EOF
+
+read -p "Press Any Key When Ready"
+
+
 #Cleanup
 sed -i '/DCInstall.sh/d' /root/.bash_profile
 rm -r -f /root/DC-Installer.sh
 rm -r -f /root/ADDCInstaller
 rm -f /root/samba*.src.rpm
 
-while true; do
-  read -p "Do you want to reboot now? (y/n) " yn
-  case $yn in
-  [yY])
-    reboot
-    break
-    ;;
-  [nN])
-    echo exiting...
-    exit
-    ;;
-  *) echo invalid response ;;
-  esac
-done
-exit
+cd /root/
+dnf -y install wget
+wget https://raw.githubusercontent.com/fumatchu/RADS-SM/main/RADS-SMInstaller.sh
+chmod 700 ./RADS-SMInstaller.sh
+/root/RADS-SMInstaller.sh
+
