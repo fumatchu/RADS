@@ -10,7 +10,7 @@ Installing wget and git
 EOF
 sleep 1
 
-dnf -y install wget git 
+dnf -y install wget git
 
 cat <<EOF
 *****************************

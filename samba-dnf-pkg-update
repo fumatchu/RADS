@@ -3,16 +3,16 @@
 user=$(whoami)
 #Checking for user permissions
 if [ "$user" != "root" ]; then
-echo ${red}"This program must be run as root ${textreset}"
-echo "Exiting"
-exit
+   echo ${red}"This program must be run as root ${textreset}"
+   echo "Exiting"
+   exit
 else
-echo "Running Program"
+   echo "Running Program"
 fi
 #In the event a samba update arrives from Rocky Linux, rebuild Samba packages
-dnflocal=$(dnf provides samba |grep Provide | sed 's/.dc//'| sed '1d')
-dnfremote=$(dnf provides samba |grep Provide | sed 's/.dc//'| sed '$d')
-mocksmbver=$(dnf provides samba | grep samba |sed '2,4d'| cut -d: -f1| cut -dx -f1)
+dnflocal=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '1d')
+dnfremote=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '$d')
+mocksmbver=$(dnf provides samba | grep samba | sed '2,4d' | cut -d: -f1 | cut -dx -f1)
 majoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 minoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
 
@@ -35,26 +35,28 @@ EOF
 
 while true; do
 
-read -p "Would you like to update the system now? (y/n) " yn
+   read -p "Would you like to update the system now? (y/n) " yn
 
-case $yn in
-   [yY] )
-# delete all packages
-rm -rf /root/.samba/*.rpm
-dnf download samba --source
-mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc "$mocksmbver"src.rpm
-cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/.samba
-createrepo /root/.samba
-dnf update --repofrompath=samba,/root/.samba
+   case $yn in
+   [yY])
+      # delete all packages
+      rm -rf /root/.samba/*.rpm
+      dnf download samba --source
+      mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc "$mocksmbver"src.rpm
+      cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/.samba
+      createrepo /root/.samba
+      dnf update --repofrompath=samba,/root/.samba
 
+      sed -i d /etc/motd
 
-sed -i d /etc/motd;
-
-      break;;
-   [nN] ) echo exiting...;
-      exit;;
-   * ) echo invalid response;;
-esac
+      break
+      ;;
+   [nN])
+      echo exiting...
+      exit
+      ;;
+   *) echo invalid response ;;
+   esac
 
 done
 exit 1
