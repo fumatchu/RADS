@@ -400,6 +400,7 @@ samba-tool user add <username> [<password>]
 EOF
 
 cat << EOF
+
 ###################################
    Core Installation Complete!
 ##################################
