@@ -373,31 +373,49 @@ sleep 5
 clear
 
 cat <<EOF
- A reverse zone should be added to DNS.
+A reverse zone should be added to DNS.
 Based on your configuration, and assuming a Class C subnet, your command should be:
-EOF
-echo " "
+
 echo ${green}""samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator ${textreset}""
-echo " "
-cat <<EOF
-Please add this as approriate and apply it to the system
-You may want to reduce the complexity and history, length, etc. of the passwords
 
-Type the command:
-${green}samba-tool domain passwordsettings set --help${textreset}
+EOF
 
-For a total list of options, or use PSO's
+read -r -p "Would you like to do this now? [y/N]" -n 1
+echo # (optional) move to a new line
+if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+    echo "Adding Entry, Please provde the Domain Administrator password"
+    samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator
+fi
 
-If this is a testing envrionment, you can always use these options (copy/paste)
+cat << EOF
+
+You may want to reduce the password requirements 
+for this system if you are using it in a lab. 
+A sane set of options are:
 
 samba-tool domain passwordsettings set --complexity=off
 samba-tool domain passwordsettings set --history-length=0
 samba-tool domain passwordsettings set --min-pwd-age=0
 samba-tool domain passwordsettings set --max-pwd-age=0
 
-To setup your first user:
-samba-tool user add <username> [<password>]
 EOF
+
+read -r -p "Would you like to change these password settings? [y/N]" -n 1
+echo # (optional) move to a new line
+if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+    echo "Modifying Password Settings"
+    samba-tool domain passwordsettings set --complexity=off
+    samba-tool domain passwordsettings set --history-length=0
+    samba-tool domain passwordsettings set --min-pwd-age=0
+    samba-tool domain passwordsettings set --max-pwd-age=0
+fi
+
+cat <<EOF
+
+To setup your first user, use the Active Directory Management Module in Server Management
+EOF
+
+
 
 cat << EOF
 
