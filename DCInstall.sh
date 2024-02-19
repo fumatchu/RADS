@@ -415,6 +415,13 @@ rm -r -f /root/DC-Installer.sh
 rm -r -f /root/ADDCInstaller
 rm -f /root/samba*.src.rpm
 
+cat <<EOF
+******************************
+Installing Server Management
+******************************
+
+EOF
+
 cd /root/
 dnf -y install wget
 wget https://raw.githubusercontent.com/fumatchu/RADS-SM/main/RADS-SMInstaller.sh
