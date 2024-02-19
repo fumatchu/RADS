@@ -376,7 +376,7 @@ cat <<EOF
 A reverse zone should be added to DNS.
 Based on your configuration, and assuming a Class C subnet, your command should be:
 
-echo ${green}""samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator ${textreset}""
+${green}samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator ${textreset}
 
 EOF
 
