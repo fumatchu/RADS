@@ -422,9 +422,13 @@ cat << EOF
 ###################################
    Installation Complete!
 ##################################
+
+The Installer will continue in a moment
+Getting Ready to install Server Management
 EOF
 
-read -p "Press Any Key When Ready"
+sleep 5
+
 
 
 #Cleanup
