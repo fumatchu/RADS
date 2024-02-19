@@ -402,7 +402,7 @@ EOF
 cat << EOF
 
 ###################################
-   Core Installation Complete!
+   Installation Complete!
 ##################################
 EOF
 
