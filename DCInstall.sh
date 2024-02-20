@@ -247,7 +247,7 @@ samba-tool domain provision \
 #Copy KDC:
 \cp -rf /var/lib/samba/private/krb5.conf /etc/krb5.conf
 #Set DNS resolver
-nmcli con mod ens192 ipv4.dns $IP
+nmcli con mod $interface ipv4.dns $IP
 systemctl restart NetworkManager
 #Add support for FreeRADIUS
 sed -i '8i \       \ #Added for FreeRADIUS Support' /etc/samba/smb.conf
