@@ -153,6 +153,8 @@ read -p "Please provdie the ending IP address in the lease range (based on the n
 read -p "Please provide the default gateway for clients: " DHCPDEFGW
 read -p "Please provide a description for this subnet: " SUBNETDESC
 clear
+
+${GREEN}Deploying the server with these settings${TEXTRESET}
 cat <<EOF
 The installer will deploy Samba AD with the following information:
 Hostname:${GREEN}$HOSTNAME${TEXTRESET}
@@ -163,8 +165,9 @@ NTP Client Scope: ${GREEN}$NTPCIDR${TEXTRESET}
 DHCP Beginning and Ending Address: ${GREEN}$DHCPBEGIP to $DHCPENDIP${TEXTRESET}
 DHCP Default Gateway: ${GREEN}$DHCPDEFGW${TEXTRESET}
 DHCP Description: ${GREEN}$SUBNETDESC${TEXTRESET}
-EOF
 
+
+EOF
 read -p "Press any Key to continue or Ctrl-C to Exit"
 clear
 
