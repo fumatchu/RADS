@@ -44,6 +44,7 @@ else
   echo "Exiting the installer..."
   exit
 fi
+clear
 #Detect Static or DHCP (IF not Static, change it)
 cat <<EOF
 Checking for static IP Address
