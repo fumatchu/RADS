@@ -250,13 +250,9 @@ dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
 mv -f /etc/samba/smb.conf /etc/samba/smb.bak.orig
 #Provision Domain
 samba-tool domain provision \
-#  --realm="$REALM" \
-#  --domain="$DOMAIN" \
-#  --adminpass="$ADMINPASS"
-
---realm=""$REALM | sed -e 's/\(.*\)/\U\1/'"" \
---domain=""$DOMAIN | sed -e 's/\(.*\)/\U\1/'"" \
---adminpass="$ADMINPASS"
+ --realm="$REALM" \
+ --domain="$DOMAIN" \
+ --adminpass="$ADMINPASS"
 
 #Copy KDC:
 \cp -rf /var/lib/samba/private/krb5.conf /etc/krb5.conf
