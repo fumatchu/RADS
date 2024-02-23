@@ -374,7 +374,7 @@ host -t A $FQDN.
 echo ${TEXTRESET}
 cat <<EOF
 
-echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
+The Installer will continue in a moment or Press Ctrl-C to Exit
 EOF
 sleep 20s
 clear
@@ -418,6 +418,8 @@ clear
 
 #If this is a Lab, reduce password complexity
 cat <<EOF
+${GREEN} Relax Passwords if in Lab Setting ${TEXTRESET}
+
 You may want to reduce the password requirements 
 for this system if you are using it in a lab. 
 A sane set of options are:
@@ -441,8 +443,9 @@ fi
 
 clear
 cat <<EOF
-
+${GREEN} Setting up Your First User ${TEXTRESET}
 To setup your first user, use the Active Directory Management Module in Server Management
+This will be installed in the next step
 EOF
 
 cat <<EOF
