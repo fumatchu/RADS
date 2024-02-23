@@ -5,6 +5,7 @@ RED=$(tput setaf 1)
 YELLOW=$(tput setaf 3)
 GREEN=$(tput setaf 2)
 USER=$(whoami)
+MAJOROS=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 
 #Checking for user permissions
 if [ "$USER" = "root" ]; then
