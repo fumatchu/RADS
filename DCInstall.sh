@@ -152,7 +152,7 @@ read -p "Please provide the beginning IP address in the lease range (based on th
 read -p "Please provdie the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
 read -p "Please provide the default gateway for clients: " DHCPDEFGW
 read -p "Please provide a description for this subnet: " SUBNETDESC
-
+clear
 cat <<EOF
 The installer will deploy Samba AD with the following information:
 Hostname:${GREEN}$HOSTNAME${TEXTRESET}
@@ -179,10 +179,11 @@ echo ${RED}"Syncronizing time, Please wait${TEXTRESET}"
 sleep 10s
 clear
 chronyc tracking
-echo " "
-echo " "
-echo ${GREEN}"We should be syncing time${TEXTRESET}"
-echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
+cat <<EOF
+${GREEN}"We should be syncing time${TEXTRESET}"
+
+The Installer will continue in a moment or Press Ctrl-C to Exit"
+EOF
 sleep 5s
 clear
 #Set selinux contexts
