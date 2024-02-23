@@ -30,7 +30,7 @@ Please wait while we gather some files
 **************************${TEXTRESET}
 
 
-Installing wget and git
+${YELLOW}Installing wget and git${TEXTRESET}
 EOF
 sleep 1
 
