@@ -2,11 +2,11 @@
 #DC-install.sh
 #This script installs Samba AD with DC support using mock from Upstream Rocky REPO via src.rpm
 dnf -y install net-tools
-textreset=$(tput sgr0)
-red=$(tput setaf 1)
-yellow=$(tput setaf 3)
-green=$(tput setaf 2)
-interface=$(nmcli | grep "connected to" | cut -c22-)
+TEXTRESET=$(tput sgr0)
+RED=$(tput setaf 1)
+YELLOW=$(tput setaf 3)
+GREEN=$(tput setaf 2)
+INTERFACE=$(nmcli | grep "connected to" | cut -c22-)
 FQDN=$(hostname)
 IP=$(hostname -I)
 ADREALM=$(hostname | sed 's/...//' | sed -e 's/\(.*\)/\U\1/')
@@ -16,10 +16,10 @@ REVERSE=$(echo "$IP" | {
   IFS=. read q1 q2 q3 q4
   echo "$q3.$q2.$q1"
 })
-mocksmbver=$(dnf provides samba | grep samba | sed '2,4d' | cut -d: -f1 | cut -dx -f1)
-majoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
-minoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
-user=$(whoami)
+MOCKSMBVER=$(dnf provides samba | grep samba | sed '2,4d' | cut -d: -f1 | cut -dx -f1)
+MAJOROS=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
+MINOROS=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
+USER=$(whoami)
 DHCPNSNAME=$(hostname | sed 's/...//' | sed -e 's/\(.*\)/\1/')
 DHCPNETMASK=$(ifconfig | grep 255 | sed '$d' | cut -c37- | cut -d b -f1)
 SUBNETNETWORK=$(echo "$IP" | {
@@ -28,21 +28,21 @@ SUBNETNETWORK=$(echo "$IP" | {
 })
 
 #Checking for user permissions
-if [ "$user" != "root" ]; then
-  echo ${red}"This program must be run as root ${textreset}"
+if [ "$USER" != "root" ]; then
+  echo ${RED}"This program must be run as root ${TEXTRESET}"
   echo "Exiting"
   exit
 else
   echo "Running Program"
 fi
 #Checking for version Information
-if [ "$majoros" != "9" ]; then
-  echo ${red}"Sorry, but this installer only works on Rocky 9.X ${textreset}"
-  echo "Please upgrade to ${green}Rocky 9.x${textreset}"
+if [ "$MAJOROS" != "9" ]; then
+  echo ${RED}"Sorry, but this installer only works on Rocky 9.X ${TEXTRESET}"
+  echo "Please upgrade to ${GREEN}Rocky 9.x${TEXTRESET}"
   echo "Exiting the installer..."
   exit
 else
-  echo ${green}"Version information matches..Continuing${textreset}"
+  echo ${GREEN}"Version information matches..Continuing${TEXTRESET}"
 fi
 #Detect Static or DHCP (IF not Static, change it)
 cat <<EOF
@@ -50,13 +50,13 @@ Checking for static IP Address
 EOF
 sleep 1s
 
-if [ -z "$interface" ]; then
+if [ -z "$INTERFACE" ]; then
   "Usage: $0 <interface>"
   exit 1
 fi
-method=$(nmcli -f ipv4.method con show $interface)
+method=$(nmcli -f ipv4.method con show $INTERFACE)
 if [ "$method" = "ipv4.method:                            auto" ]; then
-  echo ${red}"Interface $interface is using DHCP${textreset}"
+  echo ${RED}"Interface $INTERFACE is using DHCP${TEXTRESET}"
   read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
   read -p "Please provide a Default Gateway Address: " GW
   read -p "Please provide the FQDN of this machine (i.e. machine.domain.com) " HOSTNAME
@@ -66,21 +66,21 @@ if [ "$method" = "ipv4.method:                            auto" ]; then
   clear
   cat <<EOF
 The following changes to the system will be configured:
-IP address: ${green}$IPADDR${textreset}
-Gateway: ${green}$GW${textreset}
-DNS Search: ${green}$DNSSEARCH${textreset}
-DNS Server: ${green}$DNSSERVER${textreset}
-HOSTNAME: ${green}$HOSTNAME${textreset}
+IP address: ${GREEN}$IPADDR${TEXTRESET}
+Gateway: ${GREEN}$GW${TEXTRESET}
+DNS Search: ${GREEN}$DNSSEARCH${TEXTRESET}
+DNS Server: ${GREEN}$DNSSERVER${TEXTRESET}
+HOSTNAME: ${GREEN}$HOSTNAME${TEXTRESET}
 EOF
   read -p "Press any Key to Continue"
-  nmcli con mod $interface ipv4.address $IPADDR
-  nmcli con mod $interface ipv4.gateway $GW
-  nmcli con mod $interface ipv4.method manual
-  nmcli con mod $interface ipv4.dns-search $DNSSEARCH
-  nmcli con mod $interface ipv4.dns $DNSSERVER
+  nmcli con mod $INTERFACE ipv4.address $IPADDR
+  nmcli con mod $INTERFACE ipv4.gateway $GW
+  nmcli con mod $INTERFACE ipv4.method manual
+  nmcli con mod $INTERFACE ipv4.dns-search $DNSSEARCH
+  nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
   hostnamectl set-hostname $HOSTNAME
   cat <<EOF
-The System must reboot for the changes to take effect. ${red}Please log back in as root.${textreset}
+The System must reboot for the changes to take effect. ${RED}Please log back in as root.${TEXTRESET}
 The installer will continue when you log back in.
 If using SSH, please use the IP Address: $IPADDR
 EOF
@@ -90,14 +90,14 @@ EOF
   reboot
   exit
 else
-  echo ${green}"Interface $interface is using a static IP address ${textreset}"
+  echo ${GREEN}"Interface $INTERFACE is using a static IP address ${TEXTRESET}"
 fi
 clear
 cat <<EOF
 
  *********************************************
 
- This script was created for ${green}Rocky 9.x${textreset}
+ This script was created for ${GREEN}Rocky 9.x${TEXTRESET}
  This will install a Samba AD/DC Server and provision it.
 
  What this script does:
@@ -119,14 +119,14 @@ cat <<EOF
 Checklist:
 Before the Installer starts, please make sure you have the following information
 
-    1. ${yellow}An FQDN${textreset} that you want to use for this AD server.
-    2. ${yellow}A REALM (i.e CONTOSO.COM) ${textreset} that will become the AD Kerberos Advertisement
-    3. ${yellow}A DOMAIN Name (Shortened REALM- i.e. CONTOSO)${textreset} that you want to use for the DOMAIN name.
-    4. ${yellow}An Administrator password${textreset} that you want to use for the DOMAIN
-    5. ${yellow}An NTP Subnet${textreset} that you will be allowing for your clients. This server will provide syncronized time
-    6. The ${yellow}beginning and ending lease range${textreset} for DHCP
-    7. The ${yellow}client default gateway IP Address${textreset} for the DHCP Scope
-    8. A ${yellow}Friendly name${textreset} as a description to the DHCP scope created
+    1. ${YELLOW}An FQDN${TEXTRESET} that you want to use for this AD server.
+    2. ${YELLOW}A REALM (i.e CONTOSO.COM) ${TEXTRESET} that will become the AD Kerberos Advertisement
+    3. ${YELLOW}A DOMAIN Name (Shortened REALM- i.e. CONTOSO)${TEXTRESET} that you want to use for the DOMAIN name.
+    4. ${YELLOW}An Administrator password${TEXTRESET} that you want to use for the DOMAIN
+    5. ${YELLOW}An NTP Subnet${TEXTRESET} that you will be allowing for your clients. This server will provide syncronized time
+    6. The ${YELLOW}beginning and ending lease range${TEXTRESET} for DHCP
+    7. The ${YELLOW}client default gateway IP Address${TEXTRESET} for the DHCP Scope
+    8. A ${YELLOW}Friendly name${TEXTRESET} as a description to the DHCP scope created
     
      
 
@@ -156,14 +156,14 @@ read -p "Please provide a description for this subnet: " SUBNETDESC
 
 cat <<EOF
 The installer will deploy Samba AD with the following information:
-Hostname:${green}$HOSTNAME${textreset}
-REALM: ${green}$REALM${textreset}
-DOMAIN: ${green}$DOMAIN${textreset}
-Administrator Password: ${green}$ADMINPASS${textreset}
-NTP Client Scope: ${green}$NTPCIDR${textreset}
-DHCP Beginning and Ending Address: ${green}$DHCPBEGIP to $DHCPENDIP${textreset}
-DHCP Default Gateway: ${green}$DHCPDEFGW${textreset}
-DHCP Description: ${green}$SUBNETDESC${textreset}
+Hostname:${GREEN}$HOSTNAME${TEXTRESET}
+REALM: ${GREEN}$REALM${TEXTRESET}
+DOMAIN: ${GREEN}$DOMAIN${TEXTRESET}
+Administrator Password: ${GREEN}$ADMINPASS${TEXTRESET}
+NTP Client Scope: ${GREEN}$NTPCIDR${TEXTRESET}
+DHCP Beginning and Ending Address: ${GREEN}$DHCPBEGIP to $DHCPENDIP${TEXTRESET}
+DHCP Default Gateway: ${GREEN}$DHCPDEFGW${TEXTRESET}
+DHCP Description: ${GREEN}$SUBNETDESC${TEXTRESET}
 EOF
 
 read -p "Press any Key to continue or Ctrl-C to Exit"
@@ -176,13 +176,13 @@ sed -i '/server /c\pool 2.rocky.pool.ntp.org iburst' /etc/chrony.conf
 sed -i "/#allow /c\allow $NTPCIDR" /etc/chrony.conf
 systemctl restart chronyd
 clear
-echo ${red}"Syncronizing time, Please wait${textreset}"
+echo ${RED}"Syncronizing time, Please wait${TEXTRESET}"
 sleep 10s
 clear
 chronyc tracking
 echo " "
 echo " "
-echo ${green}"We should be syncing time${textreset}"
+echo ${GREEN}"We should be syncing time${TEXTRESET}"
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
 sleep 5s
 clear
@@ -212,14 +212,14 @@ firewall-cmd --zone=public --add-service dhcp --permanent
 firewall-cmd --complete-reload
 systemctl restart firewalld
 clear
-echo ${green}"These are the services/ports now open on the server${textreset}"
+echo ${GREEN}"These are the services/ports now open on the server${TEXTRESET}"
 firewall-cmd --list-all
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
 sleep 8s
 clear
 cat <<EOF
-${green}Downloading and compiling the Samba source from Rocky --with dc${textreset}
-${yellow}This may take approximately 20-30 minutes${textreset}
+${GREEN}Downloading and compiling the Samba source from Rocky --with dc${TEXTRESET}
+${YELLOW}This may take approximately 20-30 minutes${TEXTRESET}
 EOF
 sleep 4s
 dnf -y install ntsysv open-vm-tools cockpit cockpit-storaged dhcp-server net-tools nano
@@ -229,9 +229,9 @@ dnf install epel-release createrepo -y
 crb enable
 dnf install mock -y
 dnf download samba --source
-mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc "$mocksmbver"src.rpm
+mock -r rocky-"$MAJOROS"-x86_64 --enablerepo=devel --define 'dist .el'"$MAJOROS"'_'"$MINOROS"'.dc' --with dc "$MOCKSMBVER"src.rpm
 mkdir /root/.samba
-cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/.samba
+cp /var/lib/mock/rocky-"$MAJOROS"-x86_64/result/*.rpm /root/.samba
 createrepo /root/.samba
 #dnf config-manager --add-repo /root/samba
 dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
@@ -247,7 +247,7 @@ samba-tool domain provision \
 #Copy KDC:
 \cp -rf /var/lib/samba/private/krb5.conf /etc/krb5.conf
 #Set DNS resolver
-nmcli con mod $interface ipv4.dns $IP
+nmcli con mod $INTERFACE ipv4.dns $IP
 systemctl restart NetworkManager
 #Add support for FreeRADIUS
 sed -i '8i \       \ #Added for FreeRADIUS Support' /etc/samba/smb.conf
@@ -302,7 +302,7 @@ cat <<EOF
 Now we are going to do some testing
 These tests came from:
 
-${red}https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_Domain_Controller#Troubleshooting${textreset}
+${RED}https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_Domain_Controller#Troubleshooting${TEXTRESET}
 
 If you would like, please following along from that link
 EOF
@@ -314,9 +314,9 @@ First, We will check Kerberos and get a ticket
 Login with the Administrator password you created earlier for the domain
 EOF
 kinit Administrator
-echo ${green}
+echo ${GREEN}
 klist
-echo ${textreset}
+echo ${TEXTRESET}
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
 sleep 10s
 clear
@@ -324,35 +324,35 @@ cat <<EOF
 We should check DNS for correct resolution
 Testing _ldap._tcp
 Example Result:
-${yellow}_ldap._tcp.samdom.example.com has SRV record 0 100 389 dc1.samdom.example.com.${textreset}
+${YELLOW}_ldap._tcp.samdom.example.com has SRV record 0 100 389 dc1.samdom.example.com.${TEXTRESET}
 
 The actual result is:
 EOF
-echo ${green}
+echo ${GREEN}
 host -t SRV _ldap._tcp.$REALM.
-echo ${textreset}
+echo ${TEXTRESET}
 
 cat <<EOF
 Testing _udp kerberos
 Example Result:
-${yellow}_kerberos._udp.samdom.example.com has SRV record 0 100 88 dc1.samdom.example.com.${textreset}
+${YELLOW}_kerberos._udp.samdom.example.com has SRV record 0 100 88 dc1.samdom.example.com.${TEXTRESET}
 
 The actual result is:
 EOF
-echo ${green}
+echo ${GREEN}
 host -t SRV _kerberos._udp.$REALM.
-echo ${textreset}
+echo ${TEXTRESET}
 cat <<EOF
 
 Testing A Record of Domain Controller
 Example Result:
-${yellow}"dc1.samdom.example.com has address 10.99.0.1${textreset}
+${YELLOW}"dc1.samdom.example.com has address 10.99.0.1${TEXTRESET}
 
 The actual result is:
 EOF
-echo ${green}
+echo ${GREEN}
 host -t A $FQDN.
-echo ${textreset}
+echo ${TEXTRESET}
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
 sleep 10s
 clear
@@ -376,18 +376,18 @@ cat <<EOF
 A reverse zone should be added to DNS.
 Based on your configuration, and assuming a Class C subnet, your command should be:
 
-${green}samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator ${textreset}
+${GREEN}samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator ${TEXTRESET}
 
 EOF
 
 read -r -p "Would you like to do this now? [y/N]" -n 1
 echo # (optional) move to a new line
 if [[ "$REPLY" =~ ^[Yy]$ ]]; then
-    echo "Adding Entry, Please provde the Domain Administrator password"
-    samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator
+  echo "Adding Entry, Please provde the Domain Administrator password"
+  samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator
 fi
 
-cat << EOF
+cat <<EOF
 
 You may want to reduce the password requirements 
 for this system if you are using it in a lab. 
@@ -403,11 +403,11 @@ EOF
 read -r -p "Would you like to change these password settings? [y/N]" -n 1
 echo # (optional) move to a new line
 if [[ "$REPLY" =~ ^[Yy]$ ]]; then
-    echo "Modifying Password Settings"
-    samba-tool domain passwordsettings set --complexity=off
-    samba-tool domain passwordsettings set --history-length=0
-    samba-tool domain passwordsettings set --min-pwd-age=0
-    samba-tool domain passwordsettings set --max-pwd-age=0
+  echo "Modifying Password Settings"
+  samba-tool domain passwordsettings set --complexity=off
+  samba-tool domain passwordsettings set --history-length=0
+  samba-tool domain passwordsettings set --min-pwd-age=0
+  samba-tool domain passwordsettings set --max-pwd-age=0
 fi
 
 cat <<EOF
@@ -415,9 +415,7 @@ cat <<EOF
 To setup your first user, use the Active Directory Management Module in Server Management
 EOF
 
-
-
-cat << EOF
+cat <<EOF
 
 ###################################
    Installation Complete!
@@ -428,8 +426,6 @@ Getting Ready to install Server Management
 EOF
 
 sleep 5
-
-
 
 #Cleanup
 sed -i '/DCInstall.sh/d' /root/.bash_profile
@@ -449,4 +445,3 @@ dnf -y install wget
 wget https://raw.githubusercontent.com/fumatchu/RADS-SM/main/RADS-SMInstaller.sh
 chmod 700 ./RADS-SMInstaller.sh
 /root/RADS-SMInstaller.sh
-
