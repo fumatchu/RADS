@@ -92,7 +92,7 @@ EOF
 else
   echo ${GREEN}"Interface $INTERFACE is using a static IP address ${TEXTRESET}"
 fi
-#clear
+clear
 cat <<EOF
 
  *********************************************
