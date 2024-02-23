@@ -137,7 +137,7 @@ clear
 cat <<EOF
 ${GREEN}Samba AD/DC Setup${TEXTRESET}
 EOF
-read -p "Please provide the FQDN of this host to use (i.e. hostname.contoso.com): " HOSTNAME
+read -p "Please provide the FQDN of this host to use (i.e. format-hostname.domain.com): " HOSTNAME
 read -p "Please provide the Samba REALM you would like to use (CAPS PREFERRED i.e. $ADREALM)  " REALM
 read -p "Please provide the Samba DOMAIN name you would like to use (CAPS PREFERRED i.e. $ADDOMAIN): " DOMAIN
 read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
