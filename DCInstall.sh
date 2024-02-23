@@ -146,7 +146,7 @@ clear
 
 cat <<EOF
 ${GREEN}DHCP Server Setup${TEXTRESET}
-${RED} Only a scope is being created. DHCP is DISABLED by default${TEXTRESET}
+${RED}Only a scope is being created. DHCP is DISABLED by default${TEXTRESET}
 You can enable it with Server Management after install if needed
 
 
