@@ -335,8 +335,10 @@ sleep 10s
 clear
 
 cat <<EOF
-We should check DNS for correct resolution
+${GREEN}Checking DNS SRV Records${TEXTRESET}
+
 Testing _ldap._tcp
+
 Example Result:
 ${YELLOW}_ldap._tcp.samdom.example.com has SRV record 0 100 389 dc1.samdom.example.com.${TEXTRESET}
 
@@ -348,6 +350,7 @@ echo ${TEXTRESET}
 
 cat <<EOF
 Testing _udp kerberos
+
 Example Result:
 ${YELLOW}_kerberos._udp.samdom.example.com has SRV record 0 100 88 dc1.samdom.example.com.${TEXTRESET}
 
@@ -368,19 +371,22 @@ EOF
 echo ${GREEN}
 host -t A $FQDN.
 echo ${TEXTRESET}
+cat <<EOF
+
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
+EOF
 sleep 20s
 clear
 
 cat <<EOF
-Testing anonymous Logins to the server
+${GREEN}Testing anonymous Logins to the server${TEXTRESET}
 EOF
 smbclient -L localhost -N
 sleep 8s
 clear
 
 cat <<EOF
-Verifying Authentication Login:
+${GREEN}Verifying Authentication Login:${TEXTRESET}
 EOF
 smbclient //localhost/netlogon -UAdministrator -c 'ls'
 sleep 8
@@ -390,6 +396,8 @@ sleep 4
 clear
 
 cat <<EOF
+${GREEN} Add a reverse zone for the first subnet${TEXTRESET}
+
 A reverse zone should be added to DNS.
 Based on your configuration, and assuming a Class C subnet, your command should be:
 
@@ -404,6 +412,8 @@ if [[ "$REPLY" =~ ^[Yy]$ ]]; then
   echo "Adding Entry, Please provde the Domain Administrator password"
   samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator
 fi
+
+clear
 
 #If this is a Lab, reduce password complexity
 cat <<EOF
@@ -428,6 +438,7 @@ if [[ "$REPLY" =~ ^[Yy]$ ]]; then
   samba-tool domain passwordsettings set --max-pwd-age=0
 fi
 
+clear
 cat <<EOF
 
 To setup your first user, use the Active Directory Management Module in Server Management
