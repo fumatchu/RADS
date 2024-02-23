@@ -25,9 +25,9 @@ else
 fi
 
 cat <<EOF
-**************************
+${GREEN}**************************
 Please wait while we gather some files
-**************************
+**************************${TEXTRESET}
 
 
 Installing wget and git
@@ -37,9 +37,9 @@ sleep 1
 dnf -y install wget git
 
 cat <<EOF
-*****************************
+${YELLOW}*****************************
 Retrieving Files from GitHub
-*****************************
+*****************************${TEXTRESET}
 EOF
 
 sleep 1
