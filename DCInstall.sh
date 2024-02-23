@@ -28,21 +28,20 @@ SUBNETNETWORK=$(echo "$IP" | {
 })
 
 #Checking for user permissions
-if [ "$USER" != "root" ]; then
-  echo ${RED}"This program must be run as root ${TEXTRESET}"
-  echo "Exiting"
-  exit
+if [ "$user" = "root" ]; then
+echo " "
 else
-  echo "Running Program"
+  echo ${red}"This program must be run as root ${textreset}"
+  echo "Exiting"
 fi
 #Checking for version Information
-if [ "$MAJOROS" != "9" ]; then
-  echo ${RED}"Sorry, but this installer only works on Rocky 9.X ${TEXTRESET}"
-  echo "Please upgrade to ${GREEN}Rocky 9.x${TEXTRESET}"
+if [ "$majoros" = "9" ]; then
+echo " "
+else
+  echo ${red}"Sorry, but this installer only works on Rocky 9.X ${textreset}"
+  echo "Please upgrade to ${green}Rocky 9.x${textreset}"
   echo "Exiting the installer..."
   exit
-else
-  echo ${GREEN}"Version information matches..Continuing${TEXTRESET}"
 fi
 #Detect Static or DHCP (IF not Static, change it)
 cat <<EOF
