@@ -189,7 +189,7 @@ sleep 10s
 clear
 chronyc tracking
 cat <<EOF
-${GREEN}"We should be syncing time${TEXTRESET}"
+${GREEN}We should be syncing time${TEXTRESET}
 
 The Installer will continue in a moment or Press Ctrl-C to Exit"
 EOF
