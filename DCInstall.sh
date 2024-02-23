@@ -379,7 +379,7 @@ ${GREEN}samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator $
 
 EOF
 
-read -r -p "Would you like to do this now? [y/N]" -n 1
+read -r -p "Would you like to add this reverse zone now? [y/N]" -n 1
 echo # (optional) move to a new line
 if [[ "$REPLY" =~ ^[Yy]$ ]]; then
   echo "Adding Entry, Please provde the Domain Administrator password"
