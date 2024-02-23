@@ -1,5 +1,10 @@
 #!/bin/sh
 #DC-Installer.sh #Bootstrap to GIT REPO
+TEXTRESET=$(tput sgr0)
+RED=$(tput setaf 1)
+YELLOW=$(tput setaf 3)
+GREEN=$(tput setaf 2)
+
 cat <<EOF
 **************************
 Please wait while we gather some files
