@@ -135,7 +135,7 @@ read -p "Press Any Key to Continue or Ctrl-C to exit the Installer"
 clear
 
 cat <<EOF
-Samba AD/DC Setup 
+${GREEN}Samba AD/DC Setup${TEXTRESET}
 EOF
 read -p "Please provide the FQDN of this host to use (i.e. hostname.contoso.com): " HOSTNAME
 read -p "Please provide the Samba REALM you would like to use (CAPS PREFERRED i.e. $ADREALM)  " REALM
@@ -145,7 +145,7 @@ read -p "Please provide the appropriate network scope in CIDR format (i.e 192.16
 clear
 
 cat <<EOF
-DHCP Server Setup
+${GREEN}DHCP Server Setup${TEXTRESET}
 EOF
 
 read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
