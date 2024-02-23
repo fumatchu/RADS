@@ -147,6 +147,9 @@ clear
 
 cat <<EOF
 ${GREEN}DHCP Server Setup${TEXTRESET}
+${RED} Only a scope is being created. DHCP is DISABLED by default${TEXTRESET}
+You can enable it with Server Management after 
+the install if you want to use it
 EOF
 
 read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
