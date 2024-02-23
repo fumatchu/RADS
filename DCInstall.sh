@@ -431,26 +431,28 @@ EOF
 
 cat <<EOF
 
-###################################
-   Installation Complete!
-##################################
+${GREEN}********************************
+    Server Installation Complete
+********************************${TEXTRESET}
 
 The Installer will continue in a moment
-Getting Ready to install Server Management
+
+${YELLOW}Getting Ready to install Server Management${TEXTRESET}
+
 EOF
 
 sleep 3
 
-#Cleanup
+#Cleanup RADS Install Files
 sed -i '/DCInstall.sh/d' /root/.bash_profile
 rm -r -f /root/DC-Installer.sh
 rm -r -f /root/ADDCInstaller
 rm -f /root/samba*.src.rpm
 
 cat <<EOF
-******************************
+${GREEN}******************************
 Installing Server Management
-******************************
+******************************${TEXTRESET}
 
 EOF
 
