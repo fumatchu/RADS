@@ -138,7 +138,7 @@ cat <<EOF
 Samba AD/DC Setup 
 EOF
 read -p "Please provide the FQDN of this host to use (i.e. hostname.contoso.com): " HOSTNAME
-read -p "Please provide the Samba REALM you would like to use (i.e. $ADREALM)  " REALM
+read -p "Please provide the Samba REALM you would like to use (CAPS PREFERRED i.e. $ADREALM)  " REALM
 read -p "Please provide the Samba DOMAIN name you would like to use (CAPS PREFERRED i.e. $ADDOMAIN): " DOMAIN
 read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
