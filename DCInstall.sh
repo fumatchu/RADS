@@ -155,8 +155,10 @@ read -p "Please provide the default gateway for clients: " DHCPDEFGW
 read -p "Please provide a description for this subnet: " SUBNETDESC
 clear
 
-${GREEN}Deploying the server with these settings${TEXTRESET}
+
 cat <<EOF
+${GREEN}Deploying the server with these settings${TEXTRESET}
+
 The installer will deploy Samba AD with the following information:
 Hostname:${GREEN}$HOSTNAME${TEXTRESET}
 REALM: ${GREEN}$REALM${TEXTRESET}
