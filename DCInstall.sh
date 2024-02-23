@@ -312,6 +312,7 @@ EOF
 #Run tests to validate Samba Install 
 cat <<EOF
 ${GREEN}Validation${TEXTRESET}
+
 The server will now test 
   -Kerberos (Ticket)
   -DNS SRV Records 
