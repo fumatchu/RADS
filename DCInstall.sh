@@ -28,14 +28,14 @@ SUBNETNETWORK=$(echo "$IP" | {
 })
 
 #Checking for user permissions
-if [ "$user" = "root" ]; then
+if [ "$USER" = "root" ]; then
 echo " "
 else
   echo ${red}"This program must be run as root ${textreset}"
   echo "Exiting"
 fi
 #Checking for version Information
-if [ "$majoros" = "9" ]; then
+if [ "$MAJOROS" = "9" ]; then
 echo " "
 else
   echo ${red}"Sorry, but this installer only works on Rocky 9.X ${textreset}"
