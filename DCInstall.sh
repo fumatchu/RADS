@@ -31,15 +31,15 @@ SUBNETNETWORK=$(echo "$IP" | {
 if [ "$USER" = "root" ]; then
 echo " "
 else
-  echo ${red}"This program must be run as root ${textreset}"
+  echo ${RED}"This program must be run as root ${TEXTRESET}"
   echo "Exiting"
 fi
 #Checking for version Information
 if [ "$MAJOROS" = "9" ]; then
 echo " "
 else
-  echo ${red}"Sorry, but this installer only works on Rocky 9.X ${textreset}"
-  echo "Please upgrade to ${green}Rocky 9.x${textreset}"
+  echo ${RED}"Sorry, but this installer only works on Rocky 9.X ${TEXTRESET}"
+  echo "Please upgrade to ${GREEN}Rocky 9.x${TEXTRESET}"
   echo "Exiting the installer..."
   exit
 fi
