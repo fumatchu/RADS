@@ -243,16 +243,21 @@ samba-tool domain provision \
   --realm="$REALM" \
   --domain="$DOMAIN" \
   --adminpass="$ADMINPASS"
+
 #Copy KDC:
 \cp -rf /var/lib/samba/private/krb5.conf /etc/krb5.conf
+
 #Set DNS resolver
 nmcli con mod $INTERFACE ipv4.dns $IP
 systemctl restart NetworkManager
+
 #Add support for FreeRADIUS
 sed -i '8i \       \ #Added for FreeRADIUS Support' /etc/samba/smb.conf
 sed -i '9i \       \ ntlm auth = mschapv2-and-ntlmv2-only' /etc/samba/smb.conf
+
 #Allow plain LDAP binds
 sed -i '10i \       \#ldap server require strong auth = no #UNCOMMENT THIS IF YOU NEED PLAIN LDAP BIND (non-TLS)' /etc/samba/smb.conf
+
 #ADD cron for monitoring of REPOS
 touch /var/log/dnf-smb-mon.log
 chmod 700 /root/ADDCInstaller/dnf-smb-mon
@@ -262,6 +267,7 @@ chmod 700 /root/ADDCInstaller/dnf-smb-mon
   echo "0 */6 * * * /usr/bin/dnf-smb-mon"
 ) | sort -u | crontab -
 systemctl restart crond
+
 #ADD samba-dnf-package update
 chmod 700 /root/ADDCInstaller/samba-dnf-pkg-update
 \cp /root/ADDCInstaller/samba-dnf-pkg-update /usr/bin
@@ -288,6 +294,7 @@ subnet $SUBNETNETWORK netmask $DHCPNETMASK {
         option routers $DHCPDEFGW;
 }
 EOF
+
 #Update /etc/issue so we can see the hostname and IP address Before logging in
 rm -r -f /etc/issue
 touch /etc/issue
@@ -297,6 +304,8 @@ Kernel \r on an \m
 Hostname: \n
 IP Address: \4
 EOF
+
+#Run tests to validate Samba Install 
 cat <<EOF
 Now we are going to do some testing
 These tests came from:
@@ -308,6 +317,7 @@ EOF
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
 sleep 15s
 clear
+
 cat <<EOF
 First, We will check Kerberos and get a ticket
 Login with the Administrator password you created earlier for the domain
@@ -319,6 +329,7 @@ echo ${TEXTRESET}
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
 sleep 10s
 clear
+
 cat <<EOF
 We should check DNS for correct resolution
 Testing _ldap._tcp
@@ -341,6 +352,7 @@ EOF
 echo ${GREEN}
 host -t SRV _kerberos._udp.$REALM.
 echo ${TEXTRESET}
+
 cat <<EOF
 
 Testing A Record of Domain Controller
@@ -355,12 +367,14 @@ echo ${TEXTRESET}
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
 sleep 20s
 clear
+
 cat <<EOF
 Testing anonymous Logins to the server
 EOF
 smbclient -L localhost -N
 sleep 8s
 clear
+
 cat <<EOF
 Verifying Authentication Login:
 EOF
@@ -379,6 +393,7 @@ ${GREEN}samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator $
 
 EOF
 
+#Add reverse zone to AD for bound IP Range
 read -r -p "Would you like to add this reverse zone now? [y/N]" -n 1
 echo # (optional) move to a new line
 if [[ "$REPLY" =~ ^[Yy]$ ]]; then
@@ -386,8 +401,8 @@ if [[ "$REPLY" =~ ^[Yy]$ ]]; then
   samba-tool dns zonecreate $FQDN $REVERSE.in-addr.arpa -U Administrator
 fi
 
+#If this is a Lab, reduce password complexity
 cat <<EOF
-
 You may want to reduce the password requirements 
 for this system if you are using it in a lab. 
 A sane set of options are:
@@ -424,7 +439,7 @@ The Installer will continue in a moment
 Getting Ready to install Server Management
 EOF
 
-sleep 5
+sleep 3
 
 #Cleanup
 sed -i '/DCInstall.sh/d' /root/.bash_profile
