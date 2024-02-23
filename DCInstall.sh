@@ -353,7 +353,7 @@ echo ${GREEN}
 host -t A $FQDN.
 echo ${TEXTRESET}
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
-sleep 10s
+sleep 20s
 clear
 cat <<EOF
 Testing anonymous Logins to the server
@@ -365,10 +365,10 @@ cat <<EOF
 Verifying Authentication Login:
 EOF
 smbclient //localhost/netlogon -UAdministrator -c 'ls'
-read -p "Press Any Key to Continue"
+sleep 8
 clear
 echo "If all tests returned valid, installation is successful"
-sleep 5
+sleep 4
 clear
 
 cat <<EOF
