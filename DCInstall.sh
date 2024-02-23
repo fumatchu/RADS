@@ -6,6 +6,7 @@ TEXTRESET=$(tput sgr0)
 RED=$(tput setaf 1)
 YELLOW=$(tput setaf 3)
 GREEN=$(tput setaf 2)
+DETECTIP=$(nmcli -f ipv4.method con show $INTERFACE)
 INTERFACE=$(nmcli | grep "connected to" | cut -c22-)
 FQDN=$(hostname)
 IP=$(hostname -I)
@@ -53,8 +54,8 @@ if [ -z "$INTERFACE" ]; then
   "Usage: $0 <interface>"
   exit 1
 fi
-method=$(nmcli -f ipv4.method con show $INTERFACE)
-if [ "$method" = "ipv4.method:                            auto" ]; then
+
+if [ "$DETECTIP" = "ipv4.method:                            auto" ]; then
   echo ${RED}"Interface $INTERFACE is using DHCP${TEXTRESET}"
   read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
   read -p "Please provide a Default Gateway Address: " GW
