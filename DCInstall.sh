@@ -269,7 +269,7 @@ systemctl enable samba --now
 clear
 
 #Configure DHCP
-mv -v /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
+mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
 
 cat <<EOF >/etc/dhcp/dhcpd.conf
 
