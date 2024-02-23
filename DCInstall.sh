@@ -21,6 +21,7 @@ MOCKSMBVER=$(dnf provides samba | grep samba | sed '2,4d' | cut -d: -f1 | cut -d
 MAJOROS=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 MINOROS=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
 USER=$(whoami)
+DOMAIN=$(hostname | sed 's/^[^.:]*[.:]//' |sed -e 's/\(.*\)/\U\1/')
 DHCPNSNAME=$(hostname | sed 's/...//' | sed -e 's/\(.*\)/\1/')
 DHCPNETMASK=$(ifconfig | grep 255 | sed '$d' | cut -c37- | cut -d b -f1)
 SUBNETNETWORK=$(echo "$IP" | {
@@ -138,7 +139,7 @@ cat <<EOF
 ${GREEN}Samba AD/DC Setup${TEXTRESET}
 EOF
 read -p "Please provide the FQDN of this host to use (i.e. format-hostname.domain.com): " HOSTNAME
-read -p "Please provide the Samba REALM you would like to use (CAPS PREFERRED i.e. $ADREALM)  " REALM
+read -p "Please provide the Samba REALM you would like to use (CAPS PREFERRED i.e. $DOMAIN)  " REALM
 read -p "Please provide the Samba DOMAIN name you would like to use (CAPS PREFERRED i.e. $ADDOMAIN): " DOMAIN
 read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
