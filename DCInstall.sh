@@ -311,19 +311,21 @@ EOF
 
 #Run tests to validate Samba Install 
 cat <<EOF
-Now we are going to do some testing
-These tests came from:
+${GREEN} Validation ${TEXTRESET}
+The server will now test 
+  -Kerberos (Ticket)
+  -DNS SRV Records 
+  -Anonymous Logins
+  -Authenticated Logins
 
-${RED}https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_Domain_Controller#Troubleshooting${TEXTRESET}
 
-If you would like, please following along from that link
+The Installer will continue in a moment or Press Ctrl-C to Exit
 EOF
-echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
 sleep 15s
 clear
 
 cat <<EOF
-First, We will check Kerberos and get a ticket
+${GREEN}Kerberos${TEXTRESET}
 Login with the Administrator password you created earlier for the domain
 EOF
 kinit Administrator
@@ -338,7 +340,6 @@ cat <<EOF
 ${GREEN}Checking DNS SRV Records${TEXTRESET}
 
 Testing _ldap._tcp
-
 Example Result:
 ${YELLOW}_ldap._tcp.samdom.example.com has SRV record 0 100 389 dc1.samdom.example.com.${TEXTRESET}
 
@@ -350,7 +351,6 @@ echo ${TEXTRESET}
 
 cat <<EOF
 Testing _udp kerberos
-
 Example Result:
 ${YELLOW}_kerberos._udp.samdom.example.com has SRV record 0 100 88 dc1.samdom.example.com.${TEXTRESET}
 
