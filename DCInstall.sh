@@ -192,7 +192,7 @@ chronyc tracking
 cat <<EOF
 ${GREEN}We should be syncing time${TEXTRESET}
 
-The Installer will continue in a moment or Press Ctrl-C to Exit"
+The Installer will continue in a moment or Press Ctrl-C to Exit
 EOF
 sleep 5s
 clear
