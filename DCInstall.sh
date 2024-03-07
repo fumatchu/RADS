@@ -175,18 +175,18 @@ cat <<EOF >/etc/dhcp/dhcpd.conf
 
 authoritative;
 allow unknown-clients;
-option ntp-servers $IP;
-option time-servers $IP;
-option domain-name-servers $IP;
-option domain-name "$DHCPNSNAME";
-option domain-search "$DHCPNSNAME";
+option ntp-servers ${IP};
+option time-servers ${IP};
+option domain-name-servers ${IP};
+option domain-name "${DHCPNSNAME}";
+option domain-search "${DHCPNSNAME}";
 
 
 #$SUBNETDESC
-subnet $SUBNETNETWORK netmask $DHCPNETMASK {
-        range $DHCPBEGIP $DHCPENDIP;
-        option subnet-mask $DHCPNETMASK;
-        option routers $DHCPDEFGW;
+subnet ${SUBNETNETWORK} netmask ${DHCPNETMASK} {
+        range ${DHCPBEGIP} ${DHCPENDIP};
+        option subnet-mask ${DHCPNETMASK};
+        option routers ${DHCPDEFGW};
 }
 EOF
 
