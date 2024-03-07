@@ -240,18 +240,8 @@ setsebool -P samba_create_home_dirs=on \
 cat <<EOF
 Updating Firewall Rules
 EOF
-firewall-cmd --zone=public --add-port=53/tcp --add-port=53/udp --permanent
-firewall-cmd --zone=public --add-port=88/tcp --add-port=88/udp --permanent
-firewall-cmd --zone=public --add-port=123/udp --permanent
-firewall-cmd --zone=public --add-port=135/tcp --permanent
-firewall-cmd --zone=public --add-port=389/tcp --add-port=389/udp --permanent
-firewall-cmd --zone=public --add-port=445/tcp --permanent
-firewall-cmd --zone=public --add-port=464/tcp --add-port=464/udp --permanent
-firewall-cmd --zone=public --add-port=636/tcp --permanent
-firewall-cmd --zone=public --add-port=3268/tcp --permanent
-firewall-cmd --zone=public --add-port=3269/tcp --permanent
-firewall-cmd --zone=public --add-port=50000-51000/tcp --permanent
-firewall-cmd --zone=public --add-port=49152-65535/tcp --permanent
+firewall-cmd --permanent --add-service samba-dc
+firewall-cmd --permanent --add-service ntp
 firewall-cmd --complete-reload
 systemctl restart firewalld
 clear
