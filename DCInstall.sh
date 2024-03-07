@@ -147,7 +147,6 @@ clear
 #OPTIONAL DHCP Installation
 cat <<EOF
 ${GREEN}DHCP Server Setup${TEXTRESET}
-cat <<EOF
 
 This server can be a DHCP server to service clients.
 The installer will prompt you to create a default declaration for its interface
