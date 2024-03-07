@@ -144,22 +144,59 @@ read -p "Please provide the Samba DOMAIN name you would like to use (in ${YELLOW
 read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
 clear
-
+#OPTIONAL DHCP Installation
 cat <<EOF
 ${GREEN}DHCP Server Setup${TEXTRESET}
-${RED}Only a scope is being created. DHCP is DISABLED by default${TEXTRESET}
-You can enable it with Server Management after install if needed
+cat <<EOF
 
+This server can be a DHCP server to service clients.
+The installer will prompt you to create a default declaration for its interface
+If you want to add additional scopes, use Server Management after installation
 
 EOF
+
+read -r -p "Would you like to install/enable DHCP and create a default scope? [y/N]" -n 1
+echo # (optional) move to a new line
+if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+  echo "Installing DHCP Server"
+  sleep 1
+  dnf -y install dhcp-server
+  firewall-cmd --zone=public --add-service dhcp --permanent
+clear
 
 read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
 read -p "Please provdie the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
 read -p "Please provide the default gateway for clients: " DHCPDEFGW
 read -p "Please provide a description for this subnet: " SUBNETDESC
+
+#Configure DHCP
+mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
+
+cat <<EOF >/etc/dhcp/dhcpd.conf
+
+authoritative;
+allow unknown-clients;
+option ntp-servers $IP;
+option time-servers $IP;
+option domain-name-servers $IP;
+option domain-name "$DHCPNSNAME";
+option domain-search "$DHCPNSNAME";
+
+
+#$SUBNETDESC
+subnet $SUBNETNETWORK netmask $DHCPNETMASK {
+        range $DHCPBEGIP $DHCPENDIP;
+        option subnet-mask $DHCPNETMASK;
+        option routers $DHCPDEFGW;
+}
+EOF
+
+systemctl enable dhcpd
+systemctl start dhcpd
+
+fi
+
 clear
-
-
 cat <<EOF
 ${GREEN}Deploying the server with these settings${TEXTRESET}
 
@@ -169,9 +206,7 @@ REALM: ${GREEN}$REALM${TEXTRESET}
 DOMAIN: ${GREEN}$DOMAIN${TEXTRESET}
 Administrator Password: ${GREEN}$ADMINPASS${TEXTRESET}
 NTP Client Scope: ${GREEN}$NTPCIDR${TEXTRESET}
-DHCP Beginning and Ending Address: ${GREEN}$DHCPBEGIP to $DHCPENDIP${TEXTRESET}
-DHCP Default Gateway: ${GREEN}$DHCPDEFGW${TEXTRESET}
-DHCP Description: ${GREEN}$SUBNETDESC${TEXTRESET}
+
 
 
 EOF
@@ -218,7 +253,6 @@ firewall-cmd --zone=public --add-port=3268/tcp --permanent
 firewall-cmd --zone=public --add-port=3269/tcp --permanent
 firewall-cmd --zone=public --add-port=50000-51000/tcp --permanent
 firewall-cmd --zone=public --add-port=49152-65535/tcp --permanent
-firewall-cmd --zone=public --add-service dhcp --permanent
 firewall-cmd --complete-reload
 systemctl restart firewalld
 clear
@@ -284,27 +318,6 @@ chmod 700 /root/ADDCInstaller/samba-dnf-pkg-update
 \cp /root/ADDCInstaller/samba-dnf-pkg-update /usr/bin
 systemctl enable samba --now
 clear
-
-#Configure DHCP
-mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
-
-cat <<EOF >/etc/dhcp/dhcpd.conf
-
-authoritative;
-allow unknown-clients;
-option ntp-servers $IP;
-option time-servers $IP;
-option domain-name-servers $IP;
-option domain-name "$DHCPNSNAME";
-option domain-search "$DHCPNSNAME";
-
-
-#$SUBNETDESC
-subnet $SUBNETNETWORK netmask $DHCPNETMASK {
-        range $DHCPBEGIP $DHCPENDIP;
-        option routers $DHCPDEFGW;
-}
-EOF
 
 #Update /etc/issue so we can see the hostname and IP address Before logging in
 rm -r -f /etc/issue
