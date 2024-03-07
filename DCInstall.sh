@@ -158,7 +158,7 @@ EOF
 read -r -p "Would you like to install/enable DHCP and create a default scope? [y/N]" -n 1
 echo # (optional) move to a new line
 if [[ "$REPLY" =~ ^[Yy]$ ]]; then
-  echo "Installing DHCP Server"
+  echo ${GREEN}"Installing DHCP Server${TEXTRESET}"
   sleep 1
   dnf -y install dhcp-server
   firewall-cmd --zone=public --add-service dhcp --permanent
