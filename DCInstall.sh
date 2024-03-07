@@ -372,7 +372,7 @@ cat <<EOF
 
 Testing A Record of Domain Controller
 Example Result:
-${YELLOW}"dc1.samdom.example.com has address 10.99.0.1${TEXTRESET}
+${YELLOW}dc1.samdom.example.com has address 10.99.0.1${TEXTRESET}
 
 The actual result is:
 EOF
