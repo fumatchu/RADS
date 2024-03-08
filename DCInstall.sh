@@ -255,7 +255,7 @@ ${GREEN}Downloading and compiling the Samba source from Rocky --with dc${TEXTRES
 ${YELLOW}This may take approximately 20-30 minutes${TEXTRESET}
 EOF
 sleep 4s
-dnf -y install ntsysv open-vm-tools cockpit cockpit-storaged dhcp-server net-tools nano
+dnf -y install ntsysv open-vm-tools cockpit cockpit-storaged net-tools nano
 dnf -y update
 # Initial build
 dnf install epel-release createrepo -y
