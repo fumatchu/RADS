@@ -22,7 +22,7 @@ MAJOROS=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 MINOROS=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
 USER=$(whoami)
 DHCPNSNAME=$(hostname | sed 's/...//' | sed -e 's/\(.*\)/\1/')
-DHCPNETMASK=$(ifconfig | grep 255 | sed '$d' | cut -c37- | cut -d b -f1)
+DHCPNETMASK=$(ifconfig | grep 255 | sed '$d' | cut -c36- | cut -d b -f1)
 SUBNETNETWORK=$(echo "$IP" | {
   IFS=. read q1 q2 q3 q4
   echo "$q1.$q2.$q3.0"
