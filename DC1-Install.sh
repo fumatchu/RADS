@@ -182,7 +182,6 @@ ${GREEN}Deploying the server with these settings${TEXTRESET}
 The installer will deploy Samba AD with the following information:
 Hostname:${GREEN}$HOSTNAME${TEXTRESET}
 DOMAIN to Join: ${GREEN}$DOMAIN${TEXTRESET}
-Administrator Password: ${GREEN}$ADMINPASS${TEXTRESET}
 NTP Client Scope: ${GREEN}$NTPCIDR${TEXTRESET}
 
 
