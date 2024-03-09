@@ -44,6 +44,25 @@ EOF
 
 sleep 1
 
+ *********************************************
+
+ This script was created for ${GREEN}Rocky 9.x${TEXTRESET}
+ This will install a Samba AD/DC Server and provision it.
+
+ What this script does:
+ 1. Apply appropriate SELinux context and Firewall rules
+ 2. Install the REPO(s) needed and dependencies needed
+ 3. Compile Samba RPMS
+ 4. Configure the DC
+ 5. Test for kerberos ticket and DNS
+ 6. Install Server Management Tools
+
+ *********************************************"
+ This will take 20-25 minutes depending on your Internet connection
+ and processor speed/memory
+EOF
+read -p "Press Any Key to Continue or Ctrl-C to exit the Installer"
+
 mkdir /root/ADDCInstaller
 
 git clone https://github.com/fumatchu/RADS.git /root/ADDCInstaller
