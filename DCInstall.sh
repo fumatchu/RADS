@@ -96,6 +96,7 @@ clear
 
 cat <<EOF
 *********************************************
+${GREEN}This will Install the FIRST AD Server and build a new Forest/Domain${TEXTRESET}
 Checklist:
 Before the Installer starts, please make sure you have the following information
 
