@@ -423,7 +423,7 @@ EOF
 sleep 3
 
 #Cleanup RADS Install Files
-sed -i '/DC1Install.sh/d' /root/.bash_profile
+sed -i '/DC1-Install.sh/d' /root/.bash_profile
 rm -r -f /root/DC-Installer.sh
 rm -r -f /root/ADDCInstaller
 rm -f /root/samba*.src.rpm
