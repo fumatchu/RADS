@@ -43,7 +43,7 @@ Retrieving Files from GitHub
 EOF
 
 sleep 1
-
+cat <<EOF
  *********************************************
 
  This script was created for ${GREEN}Rocky 9.x${TEXTRESET}
@@ -60,6 +60,7 @@ sleep 1
  *********************************************"
  This will take 20-25 minutes depending on your Internet connection
  and processor speed/memory
+
 EOF
 read -p "Press Any Key to Continue or Ctrl-C to exit the Installer"
 
