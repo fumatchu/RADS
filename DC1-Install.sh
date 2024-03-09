@@ -62,7 +62,7 @@ if [ "$DETECTIP" = "ipv4.method:                            auto" ]; then
   read -p "Please provide a Default Gateway Address: " GW
   read -p "Please provide the FQDN of this machine (i.e. machine.domain.com) " HOSTNAME
   read -p "Please provide the domain search name (i.e. domain.com): " DNSSEARCH
-  read -p "Please provide the IP address of your Primary AD Controller: " DNSSERVER
+  read -p "Please provide the IP address of your Primary AD server: " DNSSERVER
   clear
   cat <<EOF
 The following changes to the system will be configured:
