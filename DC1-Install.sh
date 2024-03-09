@@ -393,7 +393,7 @@ clear
 
 
 
-
+cat <<EOF
 ${GREEN}********************************
     Server Installation Complete
 ********************************${TEXTRESET}
