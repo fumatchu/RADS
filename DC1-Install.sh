@@ -259,7 +259,7 @@ mv -f /etc/samba/smb.conf /etc/samba/smb.bak.orig
 #Provision Domain
 cat <<EOF
 Joining the Domain
-Please enter the Doman Admin Password:
+
 EOF
 samba-tool domain join ${DOMAIN} DC -U "${ADDOMAIN}\administrator"
 read -p "Press Any Key"
