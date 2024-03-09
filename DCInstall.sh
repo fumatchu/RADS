@@ -93,9 +93,7 @@ else
   echo ${GREEN}"Interface $INTERFACE is using a static IP address ${TEXTRESET}"
 fi
 clear
-cat <<EOF
 
-clear
 cat <<EOF
 *********************************************
 Checklist:
