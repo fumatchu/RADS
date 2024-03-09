@@ -86,7 +86,7 @@ If using SSH, please use the IP Address: $IPADDR
 EOF
   read -p "Press Any Key to Continue"
   clear
-  echo "/root/ADDCInstaller/DC1Install.sh" >>/root/.bash_profile
+  echo "/root/ADDCInstaller/DC1-Install.sh" >>/root/.bash_profile
   reboot
   exit
 else
