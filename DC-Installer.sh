@@ -56,7 +56,7 @@ cat <<EOF
  *********************************************
 
  This script was created for ${GREEN}Rocky 9.x${TEXTRESET}
- This will install a primary Samba AD/DC Server OR additional AD server and provision it.
+ This will install a primary Samba AD/DC Server OR an additional AD server and provision it.
 
  What this script does:
  1. Apply appropriate SELinux context and Firewall rules
