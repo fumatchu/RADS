@@ -106,7 +106,7 @@ cat <<EOF
  3. Compile Samba RPMS
  4. Configure the DC
  5. Test for kerberos ticket and DNS
- 6. Once that is complete we will restart the server
+ 6. Install Server Management Tools
 
  *********************************************"
  This will take 20-25 minutes depending on your Internet connection
