@@ -43,11 +43,20 @@ Retrieving Files from GitHub
 EOF
 
 sleep 1
+
+mkdir /root/ADDCInstaller
+
+git clone https://github.com/fumatchu/RADS.git /root/ADDCInstaller
+
+chmod 700 /root/ADDCInstaller/DC*
+clear
+
+clear
 cat <<EOF
  *********************************************
 
  This script was created for ${GREEN}Rocky 9.x${TEXTRESET}
- This will install a Samba AD/DC Server and provision it.
+ This will install a primary Samba AD/DC Server OR additional AD server and provision it.
 
  What this script does:
  1. Apply appropriate SELinux context and Firewall rules
@@ -62,13 +71,12 @@ cat <<EOF
  and processor speed/memory
 
 EOF
-read -p "Press Any Key to Continue or Ctrl-C to exit the Installer"
 
-mkdir /root/ADDCInstaller
-
-git clone https://github.com/fumatchu/RADS.git /root/ADDCInstaller
-
-chmod 700 /root/ADDCInstaller/DC*
-clear
-
-/root/ADDCInstaller/DCInstall.sh
+while true; do
+    read -p "Is this the First AD Server you are installing? " yn
+    case $yn in
+        [Yy]* ) /root/ADDCInstaller/DCInstall.sh; break;;
+        [Nn]* ) /root/ADDCInstaller/DC1-Install.sh;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
