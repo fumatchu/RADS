@@ -97,6 +97,8 @@ fi
 clear
 cat <<EOF
 *********************************************
+${GREEN}This will Install another AD Server to a pre-existing Forest/Domain${TEXTRESET}
+
 Checklist:
 Before the Installer starts, please make sure you have the following information
 
