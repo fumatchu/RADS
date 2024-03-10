@@ -146,7 +146,7 @@ if [[ "$REPLY" =~ ^[Yy]$ ]]; then
 clear
 
 read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
-read -p "Please provdie the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
+read -p "Please provide the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
 read -p "Please provide the default gateway for clients: " DHCPDEFGW
 read -p "Please provide a description for this subnet: " SUBNETDESC
 
