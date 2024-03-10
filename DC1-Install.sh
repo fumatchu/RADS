@@ -59,10 +59,10 @@ fi
 if [ "$DETECTIP" = "ipv4.method:                            auto" ]; then
   echo ${RED}"Interface $INTERFACE is using DHCP${TEXTRESET}"
   read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
-  read -p "Please provide a Default Gateway Address: " GW
-  read -p "Please provide the FQDN of this machine (i.e. machine.domain.com) " HOSTNAME
-  read -p "Please provide the domain search name (i.e. domain.com): " DNSSEARCH
-  read -p "Please provide the IP address of your Primary AD server: " DNSSERVER
+  read -p "Please provide a default gateway address: " GW
+  read -p "Please provide the FQDN of this machine: " HOSTNAME
+  read -p "Please provide the domain search: " DNSSEARCH
+  read -p "Please provide the IP address of the primary AD server: " DNSSERVER
   clear
   cat <<EOF
 The following changes to the system will be configured:
