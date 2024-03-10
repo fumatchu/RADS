@@ -78,10 +78,11 @@ EOF
   nmcli con mod $INTERFACE ipv4.dns-search $DNSSEARCH
   nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
   hostnamectl set-hostname $HOSTNAME
+  IPRESULT=($IPADDR |cut -d/ -f1)
   cat <<EOF
 The System must reboot for the changes to take effect. ${RED}Please log back in as root.${TEXTRESET}
 The installer will continue when you log back in.
-If using SSH, please use the IP Address: $IPADDR |cut -d/ -f1
+If using SSH, please use the IP Address: ${IPRESULT}
 EOF
   read -p "Press Any Key to Continue"
   clear
