@@ -81,7 +81,7 @@ EOF
   cat <<EOF
 The System must reboot for the changes to take effect. ${RED}Please log back in as root.${TEXTRESET}
 The installer will continue when you log back in.
-If using SSH, please use the IP Address: $IPADDR
+If using SSH, please use the IP Address: $IPADDR |cut -d/ -f1
 EOF
   read -p "Press Any Key to Continue"
   clear
@@ -126,9 +126,6 @@ clear
 cat <<EOF
 ${GREEN}Samba AD/DC Setup${TEXTRESET}
 EOF
-read -p "Please provide the FQDN of this host to use (i.e. format-hostname.domain.com): " HOSTNAME
-read -p "Please provide the Samba REALM you would like to use (in ${YELLOW}CAPS${TEXTRESET} i.e. $DOMAIN):  " REALM
-read -p "Please provide the Samba DOMAIN name you would like to use (in ${YELLOW}CAPS${TEXTRESET} i.e. $ADDOMAIN): " DOMAIN
 read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
 clear
@@ -262,8 +259,8 @@ dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
 mv -f /etc/samba/smb.conf /etc/samba/smb.bak.orig
 #Provision Domain
 samba-tool domain provision \
- --realm="$REALM" \
- --domain="$DOMAIN" \
+ --realm="$DOMAIN" \
+ --domain="$ADDOMAIN" \
  --adminpass="$ADMINPASS"
 
 #Copy KDC:
@@ -344,7 +341,7 @@ ${YELLOW}_ldap._tcp.samdom.example.com has SRV record 0 100 389 dc1.samdom.examp
 The actual result is:
 EOF
 echo ${GREEN}
-host -t SRV _ldap._tcp.$REALM.
+host -t SRV _ldap._tcp.${DOMAIN}.
 echo ${TEXTRESET}
 
 cat <<EOF
@@ -355,7 +352,7 @@ ${YELLOW}_kerberos._udp.samdom.example.com has SRV record 0 100 88 dc1.samdom.ex
 The actual result is:
 EOF
 echo ${GREEN}
-host -t SRV _kerberos._udp.$REALM.
+host -t SRV _kerberos._udp.${DOMAIN}.
 echo ${TEXTRESET}
 
 cat <<EOF
