@@ -92,7 +92,14 @@ EOF
 else
   echo ${GREEN}"Interface $INTERFACE is using a static IP address ${TEXTRESET}"
 fi
+if [ "$FQDN" = "localhost.localdomain" ]; then
+cat <<EOF
+${RED}This system is still using the default hostname (localhost.localdomain)${TEXTRESET}
 
+EOF
+read -p "Please provide a valid FQDN for this machine: " HOSTNAME
+hostnamectl set-hostname $HOSTNAME
+fi
 
 clear
 cat <<EOF
