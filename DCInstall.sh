@@ -12,7 +12,6 @@ FQDN=$(hostname)
 IP=$(hostname -I)
 DOMAIN=$(hostname | sed 's/^[^.:]*[.:]//' |sed -e 's/\(.*\)/\U\1/')
 ADDOMAIN=$(hostname | sed 's/^[^.:]*[.:]//' |cut -d. -f1 | sed -e 's/\(.*\)/\U\1/')
-FQDN=$(hostname)
 REVERSE=$(echo "$IP" | {
   IFS=. read q1 q2 q3 q4
   echo "$q3.$q2.$q1"
