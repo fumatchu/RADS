@@ -451,7 +451,7 @@ ${YELLOW}Getting Ready to install Server Management${TEXTRESET}
 
 EOF
 
-sleep 3
+sleep 5
 
 #Cleanup RADS Install Files
 sed -i '/DCInstall.sh/d' /root/.bash_profile
