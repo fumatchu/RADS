@@ -184,8 +184,8 @@ ${GREEN}Deploying the server with these settings${TEXTRESET}
 
 The installer will deploy Samba AD with the following information:
 Hostname:${GREEN}$HOSTNAME${TEXTRESET}
-REALM: ${GREEN}$REALM${TEXTRESET}
-DOMAIN: ${GREEN}$DOMAIN${TEXTRESET}
+REALM: ${GREEN}$DOMAIN${TEXTRESET}
+DOMAIN: ${GREEN}$ADDOMAIN${TEXTRESET}
 Administrator Password: ${GREEN}$ADMINPASS${TEXTRESET}
 NTP Client Scope: ${GREEN}$NTPCIDR${TEXTRESET}
 
