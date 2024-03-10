@@ -61,7 +61,7 @@ if [ "$DETECTIP" = "ipv4.method:                            auto" ]; then
   read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
   read -p "Please provide a default gateway address: " GW
   read -p "Please provide the FQDN for this machine: " HOSTNAME
-  read -p "Please provide the domain search: " DNSSEARCH
+  read -p "Please provide the search domain: " DNSSEARCH
   read -p "Please provide an upstream DNS IP for resolution: " DNSSERVER
   clear
   cat <<EOF
