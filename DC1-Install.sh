@@ -403,6 +403,13 @@ EOF
 smbclient //localhost/netlogon -UAdministrator -c 'ls'
 sleep 8
 clear
+cat <<EOF
+${GREEN}Providing replication Status${TEXTRESET}
+EOF
+samba-tool drs showrepl | more
+sleep 1s
+clear
+
 echo "If all tests returned valid, installation is successful"
 sleep 4
 clear
