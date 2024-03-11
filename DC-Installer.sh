@@ -73,7 +73,7 @@ cat <<EOF
 EOF
 
 while true; do
-  read -p "Is this the First AD Server you are installing?(y/n) " yn
+  read -p ${YELLOW}"Is this the First AD Server you are installing?(y/n) "${TEXTRESET} yn
   case $yn in
   [Yy]*)
     /root/ADDCInstaller/DCInstall.sh
