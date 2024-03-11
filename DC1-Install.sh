@@ -141,7 +141,7 @@ clear
 cat <<EOF
 ${GREEN}Samba AD/DC Setup${TEXTRESET}
 EOF
-read -p "Please provide the AD Server FQDN that we will use to join the pre-existing domain: " ADDC
+read -p "Please provide the (pre-existing) AD Server FQDN that we will use to join the (pre-existing) domain: " ADDC
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
 clear
 #OPTIONAL DHCP Installation
