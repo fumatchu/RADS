@@ -110,7 +110,7 @@ If using SSH, please use the IP Address: ${NMCLIIP}
 EOF
   read -p "Press Any Key to Continue"
   clear
-  echo "/root/ADDCInstaller/DCInstall.sh" >>/root/.bash_profile
+  echo "/root/ADDCInstaller/DC1-Install.sh" >>/root/.bash_profile
   reboot
   exit
 fi
