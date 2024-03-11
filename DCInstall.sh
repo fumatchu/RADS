@@ -100,6 +100,7 @@ ${RED}This system is still using the default hostname (localhost.localdomain)${T
 EOF
   read -p "Please provide a valid FQDN for this machine: " HOSTNAME
   hostnamectl set-hostname $HOSTNAME
+  systemctl restart NetworkManager
 fi
 cat <<EOF
 *********************************************
