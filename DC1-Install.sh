@@ -126,7 +126,6 @@ clear
 cat <<EOF
 ${GREEN}Samba AD/DC Setup${TEXTRESET}
 EOF
-read -p "Please provide the FQDN of this host to use (i.e. format-hostname.domain.com): " HOSTNAME
 read -p "Please provide the AD Server FQDN that we will use to join the pre-existing domain: " ADDC
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
 clear
@@ -186,7 +185,7 @@ cat <<EOF
 ${GREEN}Deploying the server with these settings${TEXTRESET}
 
 The installer will deploy Samba AD with the following information:
-Hostname:${GREEN}$HOSTNAME${TEXTRESET}
+
 DOMAIN to Join: ${GREEN}$DOMAIN${TEXTRESET}
 NTP Client Scope: ${GREEN}$NTPCIDR${TEXTRESET}
 
@@ -196,8 +195,7 @@ EOF
 read -p "Press any Key to continue or Ctrl-C to Exit"
 clear
 
-#Set hostname
-hostnamectl set-hostname $HOSTNAME
+
 #If this server got DHCP, and there is an NTP server option, we must change it to a pool
 sed -i "/pool /c\server ${ADDC} iburst" /etc/chrony.conf
 sed -i "/server /c\server ${ADDC} iburst" /etc/chrony.conf
