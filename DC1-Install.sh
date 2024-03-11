@@ -109,12 +109,12 @@ Checklist:
 Before the Installer starts, please make sure you have the following information
 
     1. ${YELLOW}An FQDN${TEXTRESET} that you want to use for this AD server.
-    2. ${YELLOW}THE FQDN of the Pre-existing DC ${TEXTRESET} that you will be joining
+    2. ${YELLOW}THE FQDN of the Pre-existing DC ${TEXTRESET}
     3. ${YELLOW}An Administrator password${TEXTRESET} that you will use to join the domain
     4. ${YELLOW}An NTP Subnet${TEXTRESET} that you will be allowing for your clients. This server will provide syncronized time
-    6. The ${YELLOW}beginning and ending lease range${TEXTRESET} for DHCP
-    7. The ${YELLOW}client default gateway IP Address${TEXTRESET} for the DHCP Scope
-    8. A ${YELLOW}Friendly name${TEXTRESET} as a description to the DHCP scope created
+    6. The ${YELLOW}beginning and ending lease range${TEXTRESET} for DHCP (optional)
+    7. The ${YELLOW}client default gateway IP Address${TEXTRESET} for the DHCP Scope (optional)
+    8. A ${YELLOW}Friendly name${TEXTRESET} as a description to the DHCP scope created (optional
 
 
 
