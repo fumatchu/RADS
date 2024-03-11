@@ -409,7 +409,7 @@ clear
 
 cat <<EOF
 ${GREEN}********************************
-    Server Installation Complete
+  Server Installation Complete
 ********************************${TEXTRESET}
 
 The Installer will continue in a moment
