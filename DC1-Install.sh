@@ -26,6 +26,7 @@ SUBNETNETWORK=$(echo "$IP" | {
   IFS=. read q1 q2 q3 q4
   echo "$q1.$q2.$q3.0"
 })
+NMCLIIP=$(nmcli | grep inet4 | sed '$d'| cut -c7- |cut -d / -f1)
 
 #Checking for user permissions
 if [ "$USER" = "root" ]; then
@@ -98,6 +99,16 @@ ${RED}This system is still using the default hostname (localhost.localdomain)${T
 EOF
   read -p "Please provide a valid FQDN for this machine: " HOSTNAME
   hostnamectl set-hostname $HOSTNAME
+  cat <<EOF
+The System must reboot for the changes to take effect. ${RED}Please log back in as root.${TEXTRESET}
+The installer will continue when you log back in.
+If using SSH, please use the IP Address: ${NMCLIIP}
+EOF
+  read -p "Press Any Key to Continue"
+  clear
+  echo "/root/ADDCInstaller/DCInstall.sh" >>/root/.bash_profile
+  reboot
+  exit
 fi
 
 clear
