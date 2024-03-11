@@ -81,9 +81,11 @@ EOF
   hostnamectl set-hostname $HOSTNAME
 
   cat <<EOF
-The System must reboot for the changes to take effect. ${RED}Please log back in as root.${TEXTRESET}
+The System must reboot for the changes to take effect. 
+${RED}Please log back in as root.${TEXTRESET}
 The installer will continue when you log back in.
 If using SSH, please use the IP Address: $IPADDR 
+
 EOF
   read -p "Press Any Key to Continue"
   clear
@@ -102,9 +104,11 @@ EOF
   read -p "Please provide a valid FQDN for this machine: " HOSTNAME
   hostnamectl set-hostname $HOSTNAME
    cat <<EOF
-The System must reboot for the changes to take effect. ${RED}Please log back in as root.${TEXTRESET}
+The System must reboot for the changes to take effect. 
+${RED}Please log back in as root.${TEXTRESET}
 The installer will continue when you log back in.
 If using SSH, please use the IP Address: ${NMCLIIP}
+
 EOF
   read -p "Press Any Key to Continue"
   clear
