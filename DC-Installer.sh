@@ -9,14 +9,14 @@ MAJOROS=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 
 #Checking for user permissions
 if [ "$USER" = "root" ]; then
-echo " "
+  echo " "
 else
   echo ${RED}"This program must be run as root ${TEXTRESET}"
   echo "Exiting"
 fi
 #Checking for version Information
 if [ "$MAJOROS" = "9" ]; then
-echo " "
+  echo " "
 else
   echo ${RED}"Sorry, but this installer only works on Rocky 9.X ${TEXTRESET}"
   echo "Please upgrade to ${GREEN}Rocky 9.x${TEXTRESET}"
@@ -73,10 +73,13 @@ cat <<EOF
 EOF
 
 while true; do
-    read -p "Is this the First AD Server you are installing?(y/n) " yn
-    case $yn in
-        [Yy]* ) /root/ADDCInstaller/DCInstall.sh; break;;
-        [Nn]* ) /root/ADDCInstaller/DC1-Install.sh;;
-        * ) echo "Please answer yes or no.";;
-    esac
+  read -p "Is this the First AD Server you are installing?(y/n) " yn
+  case $yn in
+  [Yy]*)
+    /root/ADDCInstaller/DCInstall.sh
+    break
+    ;;
+  [Nn]*) /root/ADDCInstaller/DC1-Install.sh ;;
+  *) echo "Please answer yes or no." ;;
+  esac
 done

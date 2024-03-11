@@ -10,8 +10,8 @@ INTERFACE=$(nmcli | grep "connected to" | cut -c22-)
 DETECTIP=$(nmcli -f ipv4.method con show $INTERFACE)
 FQDN=$(hostname)
 IP=$(hostname -I)
-DOMAIN=$(hostname | sed 's/^[^.:]*[.:]//' |sed -e 's/\(.*\)/\U\1/')
-ADDOMAIN=$(hostname | sed 's/^[^.:]*[.:]//' |cut -d. -f1 | sed -e 's/\(.*\)/\U\1/')
+DOMAIN=$(hostname | sed 's/^[^.:]*[.:]//' | sed -e 's/\(.*\)/\U\1/')
+ADDOMAIN=$(hostname | sed 's/^[^.:]*[.:]//' | cut -d. -f1 | sed -e 's/\(.*\)/\U\1/')
 REVERSE=$(echo "$IP" | {
   IFS=. read q1 q2 q3 q4
   echo "$q3.$q2.$q1"
@@ -29,14 +29,14 @@ SUBNETNETWORK=$(echo "$IP" | {
 
 #Checking for user permissions
 if [ "$USER" = "root" ]; then
-echo " "
+  echo " "
 else
   echo ${RED}"This program must be run as root ${TEXTRESET}"
   echo "Exiting"
 fi
 #Checking for version Information
 if [ "$MAJOROS" = "9" ]; then
-echo " "
+  echo " "
 else
   echo ${RED}"Sorry, but this installer only works on Rocky 9.X ${TEXTRESET}"
   echo "Please upgrade to ${GREEN}Rocky 9.x${TEXTRESET}"
@@ -78,7 +78,7 @@ EOF
   nmcli con mod $INTERFACE ipv4.dns-search $DNSSEARCH
   nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
   hostnamectl set-hostname $HOSTNAME
-  
+
   cat <<EOF
 The System must reboot for the changes to take effect. ${RED}Please log back in as root.${TEXTRESET}
 The installer will continue when you log back in.
@@ -94,12 +94,12 @@ else
 fi
 clear
 if [ "$FQDN" = "localhost.localdomain" ]; then
-cat <<EOF
+  cat <<EOF
 ${RED}This system is still using the default hostname (localhost.localdomain)${TEXTRESET}
 
 EOF
-read -p "Please provide a valid FQDN for this machine: " HOSTNAME
-hostnamectl set-hostname $HOSTNAME
+  read -p "Please provide a valid FQDN for this machine: " HOSTNAME
+  hostnamectl set-hostname $HOSTNAME
 fi
 cat <<EOF
 *********************************************
@@ -145,17 +145,17 @@ if [[ "$REPLY" =~ ^[Yy]$ ]]; then
   sleep 1
   dnf -y install dhcp-server
   firewall-cmd --zone=public --add-service dhcp --permanent
-clear
+  clear
 
-read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
-read -p "Please provide the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
-read -p "Please provide the default gateway for clients: " DHCPDEFGW
-read -p "Please provide a description for this subnet: " SUBNETDESC
+  read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
+  read -p "Please provide the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
+  read -p "Please provide the default gateway for clients: " DHCPDEFGW
+  read -p "Please provide a description for this subnet: " SUBNETDESC
 
-#Configure DHCP
-mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
+  #Configure DHCP
+  mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
 
-cat <<EOF >/etc/dhcp/dhcpd.conf
+  cat <<EOF >/etc/dhcp/dhcpd.conf
 
 authoritative;
 allow unknown-clients;
@@ -174,8 +174,8 @@ subnet ${SUBNETNETWORK} netmask ${DHCPNETMASK} {
 }
 EOF
 
-systemctl enable dhcpd
-systemctl start dhcpd
+  systemctl enable dhcpd
+  systemctl start dhcpd
 
 fi
 
@@ -258,9 +258,9 @@ dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
 mv -f /etc/samba/smb.conf /etc/samba/smb.bak.orig
 #Provision Domain
 samba-tool domain provision \
- --realm="$DOMAIN" \
- --domain="$ADDOMAIN" \
- --adminpass="$ADMINPASS"
+  --realm="$DOMAIN" \
+  --domain="$ADDOMAIN" \
+  --adminpass="$ADMINPASS"
 
 #Copy KDC:
 \cp -rf /var/lib/samba/private/krb5.conf /etc/krb5.conf
@@ -302,7 +302,7 @@ Hostname: \n
 IP Address: \4
 EOF
 
-#Run tests to validate Samba Install 
+#Run tests to validate Samba Install
 cat <<EOF
 ${GREEN}Validation${TEXTRESET}
 
