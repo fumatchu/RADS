@@ -271,8 +271,8 @@ dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
 mv -f /etc/samba/smb.conf /etc/samba/smb.bak.orig
 
 #Create KDC:
-sed -i '12i \       \ dns_lookup_kdc = true' /etc/krb5.conf
-sed -i "s/#    default_realm = EXAMPLE.COM/default_realm = ${DOMAIN}/" /etc/krb5.conf
+#sed -i '12i \       \ dns_lookup_kdc = true' /etc/krb5.conf
+#sed -i "s/#    default_realm = EXAMPLE.COM/default_realm = ${DOMAIN}/" /etc/krb5.conf
 
 #Provision Domain
 cat <<EOF
