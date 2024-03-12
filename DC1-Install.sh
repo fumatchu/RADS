@@ -27,6 +27,8 @@ SUBNETNETWORK=$(echo "$IP" | {
   echo "$q1.$q2.$q3.0"
 })
 NMCLIIP=$(nmcli | grep inet4 | sed '$d'| cut -c7- |cut -d / -f1)
+HWKVM=$(dmidecode | grep -i -e manufacturer -e product -e vendor | grep KVM | cut -c16-)
+HWVMWARE=$(dmidecode | grep -i -e manufacturer -e product -e vendor | grep Manufacturer | grep "VMware, Inc." | cut -c16- | cut -d , -f1)
 
 #Checking for user permissions
 if [ "$USER" = "root" ]; then
