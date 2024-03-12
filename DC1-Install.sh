@@ -286,6 +286,9 @@ read -p "Press Any Key"
 nmcli con mod $INTERFACE ipv4.dns $IP
 systemctl restart NetworkManager
 
+#Copy KDC:
+\cp -rf /var/lib/samba/private/krb5.conf /etc/krb5.conf
+
 #Add support for FreeRADIUS
 sed -i '7i \       \ #Added for FreeRADIUS Support' /etc/samba/smb.conf
 sed -i '8i \       \ ntlm auth = mschapv2-and-ntlmv2-only' /etc/samba/smb.conf
