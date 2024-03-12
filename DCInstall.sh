@@ -28,6 +28,7 @@ SUBNETNETWORK=$(echo "$IP" | {
 })
 NMCLIIP=$(nmcli | grep inet4 | sed '$d'| cut -c7- |cut -d / -f1)
 
+
 #Checking for user permissions
 if [ "$USER" = "root" ]; then
   echo " "
@@ -256,6 +257,7 @@ ${YELLOW}This may take approximately 20-30 minutes${TEXTRESET}
 EOF
 sleep 4s
 dnf -y install ntsysv nano dmidecode
+
 dnf -y update
 # Initial build
 dnf install epel-release createrepo -y
