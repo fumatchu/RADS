@@ -166,8 +166,17 @@ clear
 cat <<EOF
 ${GREEN}Samba AD/DC Setup${TEXTRESET}
 EOF
-read -p "Please provide the (pre-existing) AD Server FQDN that we will use to join the (pre-existing) domain: " ADDC
+ read -p "Please provide the (pre-existing) AD Server FQDN that we will use to join the (pre-existing) domain: " ADDC
+  while [ -z "$ADDC" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+     read -p "Please provide the (pre-existing) AD Server FQDN that we will use to join the (pre-existing) domain: " ADDC
+  done
+
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
+while [ -z "$NTPCIDR" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+     read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
+  done
 clear
 #OPTIONAL DHCP Installation
 cat <<EOF
