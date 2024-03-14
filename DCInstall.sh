@@ -151,12 +151,11 @@ ${GREEN}This will Install the FIRST AD Server and build a new Forest/Domain${TEX
 Checklist:
 Before the Installer starts, please make sure you have the following information
 
-    1. ${YELLOW}An FQDN${TEXTRESET} that you want to use for this AD server.
-    4. ${YELLOW}An Administrator password${TEXTRESET} that you want to use for the DOMAIN
-    5. ${YELLOW}An NTP Subnet${TEXTRESET} that you will be allowing for your clients. This server will provide syncronized time
-    6. The ${YELLOW}beginning and ending lease range${TEXTRESET} for DHCP (optional)
-    7. The ${YELLOW}client default gateway IP Address${TEXTRESET} for the DHCP Scope (optional)
-    8. A ${YELLOW}Friendly name${TEXTRESET} as a description to the DHCP scope created (optional)
+    1. ${YELLOW}An Administrator password${TEXTRESET} that you want to use for the new DOMAIN
+    2. ${YELLOW}An NTP Subnet${TEXTRESET} for your clients. This server will provide syncronized time
+    3. The ${YELLOW}beginning and ending lease range${TEXTRESET} for DHCP (optional)
+    4. The ${YELLOW}client default gateway IP Address${TEXTRESET} for the DHCP Scope (optional)
+    5. A ${YELLOW}Friendly name${TEXTRESET} as a description to the DHCP scope created (optional)
     
      
 
