@@ -60,11 +60,31 @@ fi
 
 if [ "$DETECTIP" = "ipv4.method:                            auto" ]; then
   echo ${RED}"Interface $INTERFACE is using DHCP${TEXTRESET}"
-  read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
-  read -p "Please provide a default gateway address: " GW
+ read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
+  while [ -z "$IPADDR" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
+  done
+  read -p "Please Provide a Default Gateway Address: " GW
+  while [ -z "$GW" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    read -p "Please Provide a Default Gateway Address: " GW
+  done
   read -p "Please provide the FQDN for this machine: " HOSTNAME
-  read -p "Please provide the domain search: " DNSSEARCH
+  while [ -z "$HOSTNAME" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    read -p "Please provide the FQDN for this machine: " HOSTNAME
+  done
   read -p "Please provide the IP address of the primary AD server: " DNSSERVER
+  while [ -z "$DNSSERVER" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    read -p "Please provide the IP address of the primary AD server: " DNSSERVER
+  done
+  read -p "Please provide the domain search name: " DNSSEARCH
+  while [ -z "$DNSSEARCH" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    read -p "Please provide the domain search name: " DNSSEARCH
+  done
   clear
   cat <<EOF
 The following changes to the system will be configured:
@@ -102,6 +122,10 @@ ${RED}This system is still using the default hostname (localhost.localdomain)${T
 
 EOF
   read -p "Please provide a valid FQDN for this machine: " HOSTNAME
+  while [ -z "$HOSTNAME" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    read -p "Please provide a valid FQDN for this machine: " HOSTNAME
+  done
   hostnamectl set-hostname $HOSTNAME
   cat <<EOF
 The System must reboot for the changes to take effect. 
@@ -165,10 +189,29 @@ if [[ "$REPLY" =~ ^[Yy]$ ]]; then
   firewall-cmd --zone=public --add-service dhcp --permanent
   clear
 
-  read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
+   read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
+  while [ -z "$DHCPBEGIP" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
+  done
+
   read -p "Please provide the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
+  while [ -z "$DHCPENDIP" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    read -p "Please provide the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
+  done
+  
   read -p "Please provide the default gateway for clients: " DHCPDEFGW
+  while [ -z "$DHCPDEFGW" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    read -p "Please provide the default gateway for clients: " DHCPDEFGW
+  done
+
   read -p "Please provide a description for this subnet: " SUBNETDESC
+  while [ -z "$SUBNETDESC" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+     read -p "Please provide a description for this subnet: " SUBNETDESC
+  done
 
   #Configure DHCP
   mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
