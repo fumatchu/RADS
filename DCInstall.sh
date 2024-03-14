@@ -477,7 +477,7 @@ fi
 
 clear
 cat <<EOF
-${GREEN} Setting up Your First User ${TEXTRESET}
+${GREEN}Setting up Your First User ${TEXTRESET}
 To setup your first user, use the Active Directory Management Module in Server Management
 This will be installed in the next step
 EOF
