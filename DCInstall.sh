@@ -409,9 +409,9 @@ The server will now test
   -Authenticated Logins
 
 
-The Installer will continue in a moment or Press Ctrl-C to Exit
+
 EOF
-sleep 15s
+read -p "Press any key to continue"
 clear
 
 cat <<EOF
