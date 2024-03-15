@@ -29,7 +29,8 @@ SUBNETNETWORK=$(echo "$IP" | {
 NMCLIIP=$(nmcli | grep inet4 | sed '$d'| cut -c7- |cut -d / -f1)
 HWKVM=$(dmidecode | grep -i -e manufacturer -e product -e vendor | grep KVM | cut -c16-)
 HWVMWARE=$(dmidecode | grep -i -e manufacturer -e product -e vendor | grep Manufacturer | grep "VMware, Inc." | cut -c16- | cut -d , -f1)
-
+n='([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
+m='([0-9]|[12][0-9]|3[012])'
 
 #Checking for user permissions
 if [ "$USER" = "root" ]; then
@@ -66,6 +67,9 @@ read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24)
     echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
     read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
   done
+  while [[ ! $IPADDR =~ ^$n(\.$n){3}/$m$ ]]; do
+    read -p ${RED}"The entry is not in valid CIDR notation. Please Try again:${TEXTRESET} " IPADDR
+done
   read -p "Please Provide a Default Gateway Address: " GW
   while [ -z "$GW" ]; do
     echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
