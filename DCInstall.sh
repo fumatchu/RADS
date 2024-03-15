@@ -183,7 +183,7 @@ while [ -z "$NTPCIDR" ]; do
      read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
   done
   while [[ ! $IPADDR =~ ^$n(\.$n){3}/$m$ ]]; do
-    read -p ${RED}"The entry is not in valid CIDR notation. Please Try again:${TEXTRESET} " IPADDR
+    read -p ${RED}"The entry is not in valid CIDR notation. Please Try again:${TEXTRESET} " NTPCIDR
 done
 clear
 #OPTIONAL DHCP Installation
