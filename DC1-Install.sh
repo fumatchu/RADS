@@ -359,6 +359,7 @@ cat <<EOF
 Joining the Domain
 
 EOF
+read -p "Press Any Key when Ready"
 samba-tool domain join ${DOMAIN} DC -U "${ADDOMAIN}\administrator"
 read -p "Press Any Key"
 
