@@ -276,7 +276,7 @@ echo ${GREEN}"Installing VMGuest${TEXTRESET}"
 if [ "$HWKVM" = "KVM" ]; then
   echo ${GREEN}"KVM Platform detected ${TEXTRESET}"
   echo "Installing qemu-guest-agent"
-  sleep1
+  sleep 1
   dnf -y install qemu-guest-agent
 else
   echo "Not KVM Platform"
@@ -286,7 +286,7 @@ fi
 if [ "$HWVMWARE" = "VMware" ]; then
   echo ${GREEN}"VMWARE Platform detected ${TEXTRESET}"
   echo "Installing open-vm-tools"
-  sleep1
+  sleep 1
   dnf -y install open-vm-tools
 else
   echo "Not VMware Platform"
