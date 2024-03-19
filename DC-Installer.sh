@@ -84,7 +84,7 @@ cat <<EOF
 
 EOF
 
-read -p "Press Any Key"
+read -p "Press Any Key to Continue"
 
 
 items=(1 "Install First AD Server/Create Domain"
