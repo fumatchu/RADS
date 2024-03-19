@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #DC-Installer.sh #Bootstrap to GIT REPO
 TEXTRESET=$(tput sgr0)
 RED=$(tput setaf 1)
@@ -34,7 +34,7 @@ ${YELLOW}Installing wget and git${TEXTRESET}
 EOF
 sleep 1
 
-dnf -y install wget git
+dnf -y install wget git dialog
 
 cat <<EOF
 ${YELLOW}*****************************
@@ -72,14 +72,20 @@ cat <<EOF
 
 EOF
 
-while true; do
-  read -p ${YELLOW}"Is this the First AD Server you are deploying (New Domain/Forest)?(y/n) "${TEXTRESET} yn
-  case $yn in
-  [Yy]*)
-    /root/ADDCInstaller/DCInstall.sh
-    break
-    ;;
-  [Nn]*) /root/ADDCInstaller/DC1-Install.sh ;;
-  *) echo "Please answer yes or no." ;;
-  esac
+read -p "Press Any Key"
+
+
+items=(1 "Install First AD Server/Create Domain"
+    2 "Install Secondary/Tertiary AD Server"
+)
+
+while choice=$(dialog --title "$TITLE" \
+    --backtitle "Server Install" \
+    --menu "Please select" 25 50 3 "${items[@]}" \
+    2>&1 >/dev/tty); do
+    case $choice in
+    1) /root/ADDCInstaller/DCInstall.sh ;;
+    2) /root/ADDCInstaller/DC1-Install.sh ;;
+    esac
 done
+clear # clear after user pressed Cancel
