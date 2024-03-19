@@ -508,7 +508,7 @@ clear
 
 #If this is a Lab, reduce password complexity
 cat <<EOF
-${GREEN} Relax Passwords if in Lab Setting ${TEXTRESET}
+${GREEN}Relax Passwords if in Lab Setting${TEXTRESET}
 
 You may want to reduce the password requirements 
 for this system if you are using it in a lab. 
