@@ -62,16 +62,21 @@ cat <<EOF
  *********************************************
 
  This script was created for ${GREEN}Rocky 9.x${TEXTRESET}
- This will install a primary Samba AD/DC Server OR an additional AD server and provision it.
- This script can also provision and intergrate a FreeRADIUS server
- ${RED}Each Server must be installed on a separate server instance${TEXTRESET}
+ This will install 
+ 1. A primary Samba AD/DC (and crceate the Forest/Domain)
+                       ${YELLOW}-OR-${TEXTRESET}
+ 2. An additional AD server and provision it.
+                       ${YELLOW}-OR-${TEXTRESET}                    
+ 3. Provision and intergrate a FreeRADIUS server
+ 
+ ${RED}Each Server must be installed on a separate server (VM/Hardware) instance${TEXTRESET}
  
  What this script does:
  1. Apply appropriate SELinux context and Firewall rules
  2. Install the REPO(s) needed and dependencies needed
- 3. Compile Samba RPMS
- 4. Configure the system as needed
- 5. Provide testing for the ocnfigured platform
+ 3. Compile Samba RPMS (If deploying AD)
+ 4. Configure the system as needed, based on your answers
+ 5. Provide testing for the configured platform
  6. Install Server Management Tools
 
  *********************************************"
