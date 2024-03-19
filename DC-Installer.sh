@@ -55,7 +55,6 @@ mkdir /root/ADDCInstaller
 git clone https://github.com/fumatchu/RADS.git /root/ADDCInstaller
 
 chmod 700 /root/ADDCInstaller/DC*
-clear
 
 clear
 cat <<EOF
