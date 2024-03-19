@@ -79,7 +79,7 @@ cat <<EOF
  5. Provide testing for the configured platform
  6. Install Server Management Tools
 
- *********************************************"
+ *********************************************
  
 
 EOF
