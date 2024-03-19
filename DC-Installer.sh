@@ -63,18 +63,19 @@ cat <<EOF
 
  This script was created for ${GREEN}Rocky 9.x${TEXTRESET}
  This will install a primary Samba AD/DC Server OR an additional AD server and provision it.
-
+ This script can also provision and intergrate a FreeRADIUS server
+ ${RED}Each Server must be installed on a separate server instance${TEXTRESET}
+ 
  What this script does:
  1. Apply appropriate SELinux context and Firewall rules
  2. Install the REPO(s) needed and dependencies needed
  3. Compile Samba RPMS
- 4. Configure the DC
- 5. Test for kerberos ticket and DNS
+ 4. Configure the system as needed
+ 5. Provide testing for the ocnfigured platform
  6. Install Server Management Tools
 
  *********************************************"
- This will take 20-25 minutes depending on your Internet connection
- and processor speed/memory
+ 
 
 EOF
 
@@ -83,15 +84,17 @@ read -p "Press Any Key"
 
 items=(1 "Install First AD Server/Create Domain"
     2 "Install Secondary/Tertiary AD Server"
+    3 "Install FreeRADIUS Server"
 )
 
 while choice=$(dialog --title "$TITLE" \
-    --backtitle "Server Install" \
+    --backtitle "Server Installer" \
     --menu "Please select" 25 50 3 "${items[@]}" \
     2>&1 >/dev/tty); do
     case $choice in
     1) /root/ADDCInstaller/DCInstall.sh ;;
     2) /root/ADDCInstaller/DC1-Install.sh ;;
+    3) /root/FR-Installer/install.sh ;;
     esac
 done
 clear # clear after user pressed Cancel
