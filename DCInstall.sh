@@ -568,5 +568,5 @@ EOF
 cd /root/
 dnf -y install wget
 wget https://raw.githubusercontent.com/fumatchu/RADS-SM/main/RADS-SMInstaller.sh
-chmod 700 ./RADS-Firstinstaller.sh
-/root/RADS-Firstinstaller.sh
+chmod 700 ./RADS-FirstInstaller.sh
+/root/RADS-FirstInstaller.sh
