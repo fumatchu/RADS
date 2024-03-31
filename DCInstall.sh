@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #DC-install.sh
 #This script installs the FIRST Samba AD with DC support using mock from Upstream Rocky REPO via src.rpm
 clear

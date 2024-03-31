@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #DC1-install.sh
 #This script installs ANY ADDITIONAL INSTANCE of Samba AD (Secondary/Tertiary Server) with DC support using mock from Upstream Rocky REPO via src.rpm
 clear
