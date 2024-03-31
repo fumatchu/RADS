@@ -491,7 +491,7 @@ clear
 cat <<EOF
 ${GREEN}Providing replication Status${TEXTRESET}
 EOF
-sleep 1
+sleep 2
 samba-tool drs showrepl | more
 sleep 1s
 clear
