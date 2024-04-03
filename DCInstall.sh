@@ -335,7 +335,7 @@ ${GREEN}Downloading and compiling the Samba source from Rocky --with dc${TEXTRES
 ${YELLOW}This may take approximately 20-30 minutes${TEXTRESET}
 EOF
 sleep 4s
-dnf -y install ntsysv nano dmidecode
+dnf -y install ntsysv nano
 
 dnf -y update
 # Initial build
