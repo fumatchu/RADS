@@ -403,9 +403,9 @@ fi
 cat <<EOF >/etc/samba/smb.tmp
 
 #Create a writable share to be used by an AD group
-#Make sure that before you enable the share, you use chown, recursively
+#Make sure that before you enable the share, you chown, recursively
 #(i.e.) chown -R root."${ADDOMAIN}\domain users" /path/to/share 
-#Also change your permissions for the files.. default is RWX for Users and Groups
+#Also change your permissions for the files/directories. Default is RWX(770) for Users and Groups
 # chmod -R 770 /path/to/share
 #Remember to uncomment all the lines below 
 #[SHARE_NAME]
