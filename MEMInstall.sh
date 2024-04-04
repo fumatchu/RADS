@@ -108,7 +108,7 @@ If using SSH, please use the IP Address: $IPADDR
 EOF
   read -p "Press Any Key to Continue"
   clear
-  echo "/root/ADDCInstaller/MEMinstall.sh" >>/root/.bash_profile
+  echo "/root/ADDCInstaller/MEMInstall.sh" >>/root/.bash_profile
   reboot
   exit
 else
@@ -136,7 +136,7 @@ If using SSH, please use the IP Address: ${NMCLIIP}
 EOF
   read -p "Press Any Key to Continue"
   clear
-  echo "/root/ADDCInstaller/MEMinstall.sh" >>/root/.bash_profile
+  echo "/root/ADDCInstaller/MEMInstall.sh" >>/root/.bash_profile
   reboot
   exit
 fi
