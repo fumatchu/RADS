@@ -268,7 +268,7 @@ if [[ "$REPLY" =~ ^[Yy]$ ]]; then
 
     echo ${YELLOW}"Your cockpit instance can be accessed at ${FQDN}:9090"${TEXTRESET}
     sleep 5
-    dnf -y install cockpit-navigator cockpit cockpit-storaged
+    dnf -y install cockpit cockpit-storaged
     systemctl enable cockpit.socket
     systemctl start cockpit.socket
 fi
