@@ -234,6 +234,8 @@ dnf -y install dnf-plugins-core
 dnf config-manager --set-enabled crb
 dnf -y update
 dnf -y install ntsysv wget oddjob oddjob-mkhomedir samba-winbind samba-winbind-clients samba-common-tools realmd bind-utils samba
+systemctl enable winbind
+systemctl start winbind
 
 clear
 
