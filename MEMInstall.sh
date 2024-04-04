@@ -442,6 +442,11 @@ ${GREEN}********************************
 
 ${YELLOW}An example share has been included in the smb.conf file${TEXTRESET}
 
+${RED}SELinux has been set to PERMISSIVE MODE.${TEXTRESET}
+Please make sure that you apply the correct 
+Contexts and Booleans for your directories, and set SELinux to enabled
+(Cockpit can help you do this if you are unfamiliar) 
+
 The Server will reboot now
 
 EOF
