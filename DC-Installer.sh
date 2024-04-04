@@ -66,8 +66,10 @@ cat <<EOF
  1. A primary Samba AD/DC (and crceate the Forest/Domain)
                        ${YELLOW}-OR-${TEXTRESET}
  2. An additional AD server and provision it.
-                       ${YELLOW}-OR-${TEXTRESET}                    
- 3. Provision and intergrate a FreeRADIUS server
+                       ${YELLOW}-OR-${TEXTRESET} 
+ 3. A Member Server to a Domain for File/Print Services
+                       ${YELLOW}-OR-${TEXTRESET}
+ 4. Provision and integrate a FreeRADIUS server
  
  ${RED}Each Server must be installed on a separate server (VM/Hardware) instance${TEXTRESET}
  
