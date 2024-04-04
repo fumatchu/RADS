@@ -94,7 +94,7 @@ items=(1 "Install First AD Server/Create Domain"
 
 while choice=$(dialog --title "$TITLE" \
   --backtitle "Server Installer" \
-  --menu "Please select the install type" 25 50 3 "${items[@]}" \
+  --menu "Please select the install type" 15 65 3 "${items[@]}" \
   2>&1 >/dev/tty); do
   case $choice in
   1) /root/ADDCInstaller/DCInstall.sh ;;
