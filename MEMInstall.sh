@@ -285,8 +285,8 @@ cat <<EOF
 Joining server to Domain $ADDOMAIN
 ${RED}The screen may look frozen for up to a minute after the password is entered... Please wait${TEXTRESET}
 EOF
-read -p "Press any Key to continue or Ctrl-C to Exit"
-realm join -U $DOMAINADMIN --client-software=winbind $ADDOMAIN
+
+realm join -U $DOMAINADMIN --client-software=winbind $DOMAIN
 
 clear
 
