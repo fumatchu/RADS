@@ -440,13 +440,13 @@ ${GREEN}********************************
    Server Installation Complete
 ********************************${TEXTRESET}
 
-An example share has been included in the smb.conf file
+${YELLOW}An example share has been included in the smb.conf file${TEXTRESET}
 
 The Server will reboot now
 
 EOF
 
-read -p "Press Any Key to Continue"
+read -p "Press Any Key to reboot"
 echo ${RED}"Rebooting${TEXTRESET}"
 sleep 1
 reboot
