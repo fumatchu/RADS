@@ -441,9 +441,9 @@ ${GREEN}********************************
 An example share has been included in the smb.conf file
 
 The Server will reboot now
+
 EOF
 
-cho " "
 read -p "Press Any Key to Continue"
 echo ${RED}"Rebooting${TEXTRESET}"
 sleep 1
