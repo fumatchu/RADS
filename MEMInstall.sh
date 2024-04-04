@@ -18,8 +18,7 @@ MAJOROS=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 DETECTIP=$(nmcli -f ipv4.method con show $INTERFACE)
 NMCLIIP=$(nmcli | grep inet4 | sed '$d' | cut -c7- | cut -d / -f1)
 HWKVM=$(dmidecode | grep -i -e manufacturer -e product -e vendor | grep KVM | cut -c16-)
-HWVMWARE=$(dmidecode | grep -i -e manufacturer -e product -e vendor | grep Manufacturer | grep "VMware, Inc." | cut -c16-
-| cut -d , -f1)
+HWVMWARE=$(dmidecode | grep -i -e manufacturer -e product -e vendor | grep Manufacturer | grep "VMware, Inc." | cut -c16- | cut -d , -f1)
 n='([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
 m='([0-9]|[12][0-9]|3[012])'
 
