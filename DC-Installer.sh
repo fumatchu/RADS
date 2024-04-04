@@ -88,17 +88,19 @@ read -p "Press Any Key to Continue"
 
 items=(1 "Install First AD Server/Create Domain"
   2 "Install Secondary/Tertiary AD Server"
-  3 "Install FreeRADIUS Server"
+  3 "Install a Member Server for File/Print Services"
+  4 "Install FreeRADIUS Server"
 )
 
 while choice=$(dialog --title "$TITLE" \
   --backtitle "Server Installer" \
-  --menu "Please select" 25 50 3 "${items[@]}" \
+  --menu "Please select the install type" 25 50 3 "${items[@]}" \
   2>&1 >/dev/tty); do
   case $choice in
   1) /root/ADDCInstaller/DCInstall.sh ;;
   2) /root/ADDCInstaller/DC1-Install.sh ;;
-  3) /root/FR-Installer/install.sh ;;
+  3) /root/ADDCInstaller/MEMInstall.sh ;;
+  4) /root/FR-Installer/install.sh ;;
   esac
 done
 clear # clear after user pressed Cancel
