@@ -406,6 +406,8 @@ cat <<EOF >/etc/samba/smb.tmp
 #(i.e.) chown -R root."${ADDOMAIN}\domain users" /path/to/share 
 #Also change your permissions for the files/directories. Default is RWX(770) for Users and Groups
 # chmod -R 770 /path/to/share
+#SELinux also comes into play:
+#chcon -t samba_share_t /path/to/top directory/ -R
 #Remember to uncomment all the lines below 
 #[SHARE_NAME]
 #writeable = yes
@@ -443,7 +445,10 @@ ${YELLOW}An example share has been included in the smb.conf file${TEXTRESET}
 
 ${RED}SELinux has been set to PERMISSIVE MODE.${TEXTRESET}
 Please make sure that you apply the correct 
-Contexts and Booleans for your directories, and set SELinux to enabled
+Please adjust, and set SELinux to enabled
+Something as easy as:
+${YELLOW} chcon -t samba_share_t /path/to/top directory/ -R${TEXTRESET}
+Should be good
 (Cockpit can help you do this if you are unfamiliar) 
 
 The Server will reboot now
