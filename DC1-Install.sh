@@ -22,7 +22,6 @@ MAJOROS=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 MINOROS=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
 USER=$(whoami)
 DHCPNSNAME=$(hostname | sed 's/^[^.:]*[.:]//')
-DHCPNETMASK=$(ifconfig | grep 255 | sed '$d' | cut -c36- | cut -d b -f1)
 SUBNETNETWORK=$(echo "$IP" | {
   IFS=. read q1 q2 q3 q4
   echo "$q1.$q2.$q3.0"
@@ -215,7 +214,11 @@ if [[ "$REPLY" =~ ^[Yy]$ ]]; then
     echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
     read -p "Please provide the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
   done
-  
+   read -p "Please provide the netmask for clients: " DHCPNETMASK
+  while [ -z "$DHCPNETMASK" ]; do
+    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    read -p "Please provide the default netmask for clients: " DHCPNETMASK
+  done
   read -p "Please provide the default gateway for clients: " DHCPDEFGW
   while [ -z "$DHCPDEFGW" ]; do
     echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
