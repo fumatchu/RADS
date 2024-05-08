@@ -1,5 +1,8 @@
 (R)ocky (A)ctive (D)irectory (S)cript Builder
 
+A walk-through can also be seen here:
+https://youtu.be/daaX67Ovegk
+
 This is a script to allow a Rocky (RHEL) Server (9.x) to become an AD/DC Server from Samba Source. 
 Yes, there are others that build RPMS, but why not build it yourself?
 I took this approach because there is not one binary that this script modifies and therefore can be a trusted source. 
