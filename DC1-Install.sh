@@ -31,7 +31,8 @@ HWKVM=$(dmidecode | grep -i -e manufacturer -e product -e vendor | grep KVM | cu
 HWVMWARE=$(dmidecode | grep -i -e manufacturer -e product -e vendor | grep Manufacturer | grep "VMware, Inc." | cut -c16- | cut -d , -f1)
 n='([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
 m='([0-9]|[12][0-9]|3[012])'
-
+#Bracketed pasting...yuck!
+sed -i '8i set enable-bracketed-paste off' /etc/inputrc
 #Checking for user permissions
 if [ "$USER" = "root" ]; then
   echo " "
