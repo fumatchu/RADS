@@ -408,8 +408,9 @@ cat <<EOF >/etc/samba/smb.tmp
 #Also change your permissions for the files/directories. Default is RWX(770) for Users and Groups
 # chmod -R 770 /path/to/share
 #SELinux also comes into play:
-#chcon -t samba_share_t /path/to/top directory/ -R
-#Remember to uncomment all the lines below 
+#(top directory-root of share)
+#chcon -t samba_share_t /path/to/share/ -R
+#Remember to uncomment and modify the lines below 
 #[SHARE_NAME]
 #writeable = yes
 #write list = @"${ADDOMAIN}\domain users"
