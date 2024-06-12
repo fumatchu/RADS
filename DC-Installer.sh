@@ -63,7 +63,7 @@ cat <<EOF
 
  This script was created for ${GREEN}Rocky 9.x${TEXTRESET}
  This will install 
- 1. A primary Samba AD/DC (and crceate the Forest/Domain)
+ 1. A primary Samba AD/DC (and create the Forest/Domain)
                        ${YELLOW}-OR-${TEXTRESET}
  2. An additional AD server and provision it.
                        ${YELLOW}-OR-${TEXTRESET} 
