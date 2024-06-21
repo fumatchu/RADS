@@ -10,8 +10,8 @@ else
    echo "Running Program"
 fi
 #In the event a samba update arrives from Rocky Linux, rebuild Samba packages
-dnflocal=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '1d')
-dnfremote=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '$d')
+dnfremote=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '1d')
+dnflocal=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '$d')
 mocksmbver=$(dnf provides samba | grep samba | sed '2,4d' | cut -d: -f1 | cut -dx -f1)
 majoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 minoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
