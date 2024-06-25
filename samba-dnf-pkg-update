@@ -2,7 +2,8 @@
 #samba-dnf-pkg-update
 user=$(whoami)
 DNSSERVER=208.67.222.222
-
+IP=$(hostname -I)
+INTERFACE=$(nmcli | grep "connected to" | cut -c22-)
 #Checking for user permissions
 if [ "$user" != "root" ]; then
    echo ${red}"This program must be run as root ${textreset}"
@@ -45,15 +46,19 @@ while true; do
       rm -rf /root/.samba/*.rpm
       # user external dns if AD broken
       nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
-      
+      systemctl restart NetworkManager
       dnf download samba --source
       mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc "$mocksmbver"src.rpm
       cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/.samba
       createrepo /root/.samba
       dnf -y update --nogpgcheck --repofrompath=samba,/root/.samba
-
+      #Reset MTOD
       sed -i d /etc/motd
+      #Set DNS back to AD 
+      nmcli con mod $INTERFACE ipv4.dns $IP
+      systemctl restart NetworkManager
       systemctl enable samba.service
+      systemctl start samba.service
       
 
       break
