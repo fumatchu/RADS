@@ -6,7 +6,7 @@
 #If a match is NOT resolved between files, a messages will be sent to MOTD and upon netc login the (root) User should run "samba-dnf-pkg-update"
 
 dnf makecache
-dnflocal=$(dnf provides samba | grep Provide | sed 's/.dc//' | cut -c -38 |sed '1d')
+dnflocal=$(dnf provides samba | grep Provide | sed 's/.dc//' |sed '1d')
 dnfremote=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '$d')
 
 if [ "$dnflocal" == "$dnfremote" ]; then
