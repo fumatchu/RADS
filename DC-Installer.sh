@@ -93,7 +93,7 @@ items=(1 "Install First AD Server/Create Domain"
   3 "Install a Member Server for File/Print Services"
   4 "Install FreeRADIUS Server"
   5 "----------------------------------------------"
-  6 "Install First AD Server/Create Domain (DEBUG MODE)"
+  
 )
 
 while choice=$(dialog --title "$TITLE" \
@@ -106,7 +106,7 @@ while choice=$(dialog --title "$TITLE" \
   3) /root/ADDCInstaller/MEMInstall.sh ;;
   4) /root/FR-Installer/install.sh ;;
   5) clear ;;
-  6) /root/ADDCInstaller/debug.sh | tee /root/debug.log
+ 
   esac
 done
 clear # clear after user pressed Cancel
