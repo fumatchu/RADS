@@ -554,25 +554,12 @@ if [[ "$REPLY" =~ ^[Yy]$ ]]; then
 fi
 
 clear
-cat <<EOF
-${GREEN}Setting up Your First User ${TEXTRESET}
-To setup your first user, use the Active Directory Management Module in Server Management
-This will be installed in the next step
-EOF
-sleep 3
-cat <<EOF
+
 
 ${GREEN}********************************
     Server Installation Complete
 ********************************${TEXTRESET}
 
-The Installer will continue in a moment
-
-${YELLOW}Getting Ready to install Server Management${TEXTRESET}
-
-EOF
-
-sleep 5
 
 #Cleanup RADS Install Files
 sed -i '/DCInstall.sh/d' /root/.bash_profile
@@ -588,9 +575,3 @@ Installing Server Management
 ******************************${TEXTRESET}
 
 EOF
-
-cd /root/
-dnf -y install wget
-wget https://raw.githubusercontent.com/fumatchu/RADS-SM/main/RADS-FirstInstaller.sh
-chmod 700 ./RADS-FirstInstaller.sh
-/root/RADS-FirstInstaller.sh
