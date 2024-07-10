@@ -568,10 +568,3 @@ rm -r -f /root/ADDCInstaller
 rm -f /root/samba*.src.rpm
 rm -r -f /root/FR-Installer
 rm -r -f /root/FR-Installer.sh
-
-cat <<EOF
-${GREEN}******************************
-Installing Server Management
-******************************${TEXTRESET}
-
-EOF
