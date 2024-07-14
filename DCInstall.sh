@@ -171,6 +171,14 @@ clear
 
 cat <<EOF
 ${GREEN}Samba AD/DC Setup${TEXTRESET}
+
+The Administrator Domain Password should meet the following requirements:
+-At least 8 characters
+-(1) Special Character
+-(1) Upper-Case Letter
+-(1) Lower-Case Letter
+-(1) Number
+
 EOF
 while :
 do
