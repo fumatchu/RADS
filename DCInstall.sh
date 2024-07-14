@@ -216,6 +216,7 @@ while [ -z "$ADMINPASS" ]; do
 if [ "${ADMINPASS}" = "${VERIFYPASS}" ]
 then
  echo "${GREEN}Saving Password${TEXTRESET}"
+ sleep 1
  break;
 fi 
 echo "${RED}Password does not match.${TEXTRESET} Please try again."
