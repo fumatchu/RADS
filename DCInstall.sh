@@ -172,11 +172,49 @@ clear
 cat <<EOF
 ${GREEN}Samba AD/DC Setup${TEXTRESET}
 EOF
+while :
+do
 read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
 while [ -z "$ADMINPASS" ]; do
     echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
      read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
   done
+# Check password length
+  if [ ${#ADMINPASS} -lt 8 ]; then
+    echo "${RED}Weak:${TEXTRESET} Password is too short (less than 8 characters)"
+   read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
+  fi
+  # Check for the presence of numbers
+  if ! [[ "$ADMINPASS" =~ [0-9] ]]; then
+    echo "${RED}Weak:${TEXTRESET} Password must contain at least one number"
+   read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
+  fi
+  # Check for the presence of special characters
+  if ! [[ "$ADMINPASS" =~ [!@#\$%^*] ]]; then
+    echo "${RED}Weak:${TEXTRESET} Password must contain at least one special character (!@#\$%^&*)"
+  read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
+  fi
+  # Check for uppercase and lowercase letters
+  if ! [[ "$ADMINPASS" =~ [a-z] && "$ADMINPASS" =~ [A-Z] ]]; then
+    echo "${RED}Weak:${TEXTRESET} Password must contain both uppercase and lowercase letters"
+    read -p "Please provide the Administrator Password to use for AD/DC Provisioning: " ADMINPASS
+  fi
+  read -p "Please provide the password again for AD/DC Provisioning: " VERIFYPASS
+ while [ -z "$VERIFYPASS" ]; do
+     echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+      read -p "Please provide the password again for AD/DC Provisioning: " VERIFYPASS
+   done
+
+if [ "${ADMINPASS}" = "${VERIFYPASS}" ]
+then
+ echo "${GREEN}Saving Password${TEXTRESET}"
+ break;
+fi 
+echo "${RED}Password does not match.${TEXTRESET} Please try again."
+sleep 1
+done
+
+clear
 
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
 while [ -z "$NTPCIDR" ]; do
