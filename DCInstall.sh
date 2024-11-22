@@ -416,7 +416,7 @@ mock -r rocky-"$MAJOROS"-x86_64 --enablerepo=devel --define 'dist .el'"$MAJOROS"
 mkdir /root/.samba
 cp /var/lib/mock/rocky-"$MAJOROS"-x86_64/result/*.rpm /root/.samba
 createrepo /root/.samba
-dnf config-manager --add-repo /root/.samba
+#dnf config-manager --add-repo /root/.samba
 dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
   --repofrompath=samba,/root/.samba \
   --enablerepo=samba
