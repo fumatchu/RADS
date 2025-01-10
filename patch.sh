@@ -8,7 +8,7 @@ while choice=$(dialog --title "$TITLE" \
   --menu "Please select the install type" 15 65 3 "${items[@]}" \
   2>&1 >/dev/tty); do
   case $choice in
-  1) /root/ADDCInstaller/patches/patch-samba-dnf-pkg-update ;;
+  1) cd /root &&  bash <(wget -qO- https://raw.githubusercontent.com/fumatchu/RADS/main/patches/samba-dnf-update-patch.sh) ;;
 
  
   esac
