@@ -4,4 +4,4 @@
 #After the GUI install: 
 #(Just copy and paste the following line on the Rocky terminal or remote SSH terminal- remote suggested)
 
-dnf -y install wget && cd /root &&  bash <(wget -qO- https://raw.githubusercontent.com/fumatchu/RADS/main/DC-Installer.sh)
+dnf -y install wget && cd /root &&  bash <(wget -qO- https://raw.githubusercontent.com/fumatchu/RADS/main/patch.sh)
