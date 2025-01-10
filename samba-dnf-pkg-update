@@ -18,6 +18,10 @@ if [ "$user" != "root" ]; then
 else
    echo "Running Program"
 fi
+
+#Cleanup
+rm -f /root/samba*.rpm
+
 echo ${GREEN}"Restarting NetworkManager"${TEXTRESET}
 systemctl restart NetworkManager
 sleep 5
