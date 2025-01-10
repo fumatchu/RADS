@@ -3,7 +3,7 @@ echo "This is the patch file"
 read -p "Press Enter"
 
 # Define the file to check for and the URL to download
-CHECK_FILE="samba-dnf-pkg-update"
+CHECK_FILE="/usr/bin/samba-dnf-pkg-update"
 DOWNLOAD_URL="https://raw.githubusercontent.com/fumatchu/RADS/main/patches/samba-dnf-update-patch.sh"
 DOWNLOAD_DEST="/root/samba-dnf-update-patch.sh"
 
