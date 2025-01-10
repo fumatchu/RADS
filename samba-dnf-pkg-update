@@ -24,10 +24,8 @@ minoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
 cat <<EOF
 This Utility is going to update your compiled Samba version to a newer version
 
-The current local version on the system is:
-$dnflocal
 
-And the Version in the upstream repository is:
+The Version in the upstream repository is:
 $dnfremote
 
 This process will:
