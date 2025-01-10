@@ -94,10 +94,6 @@ else
     # Continue with the script or exit as needed
 fi
 
-
-
-
-
 #In the event a samba update arrives from Rocky Linux, rebuild Samba packages
 dnfremote=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '1d')
 dnflocal=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '$d')
