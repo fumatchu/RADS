@@ -1,5 +1,6 @@
 #!/bin/bash
 #samba-dnf-pkg-update
+systemctl restart NetworkManager
 user=$(whoami)
 DNSSERVER=208.67.222.222
 IP=$(hostname -I)
@@ -12,6 +13,7 @@ if [ "$user" != "root" ]; then
 else
    echo "Running Program"
 fi
+
 #In the event a samba update arrives from Rocky Linux, rebuild Samba packages
 dnfremote=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '1d')
 dnflocal=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '$d')
@@ -52,6 +54,7 @@ while true; do
       cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/.samba
       createrepo /root/.samba
       dnf -y update --nogpgcheck --repofrompath=samba,/root/.samba
+      dnf -y update samba-dc
       #Reset MTOD
       sed -i d /etc/motd
       #Set DNS back to AD 
