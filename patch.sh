@@ -8,7 +8,7 @@ while choice=$(dialog --title "$TITLE" \
   --menu "Please select the install type" 15 65 3 "${items[@]}" \
   2>&1 >/dev/tty); do
   case $choice in
-  1) clear && cd /root && wget -qO samba-dnf-update-patch.sh https://raw.githubusercontent.com/fumatchu/RADS/main/patches/samba-dnf-update-patch.sh && chmod 700 /root/samba-dnf-update-patch.sh && /root/samba-dnf-update-patch.sh;;
+ # 1) clear && cd /root && wget -qO samba-dnf-update-patch.sh https://raw.githubusercontent.com/fumatchu/RADS/main/patches/samba-dnf-update-patch.sh && chmod 700 /root/samba-dnf-update-patch.sh && /root/samba-dnf-update-patch.sh;;
 
  
   esac
