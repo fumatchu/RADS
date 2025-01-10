@@ -1,7 +1,7 @@
 (R)ocky (A)ctive (D)irectory (S)cript Builder
 
 ###############################################
-RADS is SUPPORTED FOR 9.5 ON A FRESH INSTALL- AN UPGRADE IS NOT CURRENTLY SUPPORTED AND A RE-WORK IS COMING TO FIX IT
+RADS is NOW FULLY SUPPORTED ON 9.5 for a fresh install and also upgrades from previous versions of Samba
 ###############################################
 A walk-through can also be seen here:
 https://youtu.be/daaX67Ovegk
