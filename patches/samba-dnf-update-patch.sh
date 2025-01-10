@@ -20,4 +20,4 @@ if [ -f "$CHECK_FILE" ]; then
 else
     echo "File $CHECK_FILE not found. Exiting."
 fi
-rm -f /root/samba-dnf-pkg-update.sh
+
