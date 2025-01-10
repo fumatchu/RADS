@@ -1,4 +1,5 @@
 #!/bin/bash
+clear
 echo "This is the patch file"
 clear
 # Define the file to check for and the URL to download
@@ -10,7 +11,7 @@ FOLDER="/usr/bin/"
 if [ -f "$CHECK_FILE" ]; then
     # Download the script to the root directory
     echo "Found samba-dnf-pkg-update"
-    echo "Downloading Patch
+    echo "Downloading Patch"
     wget -O "$DOWNLOAD_DEST" "$DOWNLOAD_URL"
     
     # Change permissions to make it executable
