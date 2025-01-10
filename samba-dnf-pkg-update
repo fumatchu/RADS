@@ -23,7 +23,7 @@ systemctl restart NetworkManager
 sleep 5
 
 #Set DNS to Something other than itself(Use ODNS)
-echo ${YELLOW}"Setting DNS to OpenDNS Server (Temporarily) for Name Resolution since AD is probably Broken"${TEXTRESET}
+echo ${YELLOW}"Setting DNS to OpenDNS Server (Temporarily) for Name Resolution"${TEXTRESET}
 nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
 systemctl restart NetworkManager
 sleep 1
