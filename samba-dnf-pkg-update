@@ -1,10 +1,15 @@
 #!/bin/bash
 #samba-dnf-pkg-update
-systemctl restart NetworkManager
+TEXTRESET=$(tput sgr0)
+RED=$(tput setaf 1)
+YELLOW=$(tput setaf 3)
+GREEN=$(tput setaf 2)
+DOMAIN=$(hostname | sed 's/^[^.:]*[.:]//' | sed -e 's/\(.*\)/\U\1/')
+FQDN=$(hostname)
 user=$(whoami)
 DNSSERVER=208.67.222.222
 IP=$(hostname -I)
-INTERFACE=$(nmcli | grep "connected to" | cut -c22-)
+INTERFACE=$(nmcli | grep "connected to" | cut -d " " -f4)
 #Checking for user permissions
 if [ "$user" != "root" ]; then
    echo ${red}"This program must be run as root ${textreset}"
@@ -13,11 +18,90 @@ if [ "$user" != "root" ]; then
 else
    echo "Running Program"
 fi
+echo ${GREEN}"Restarting NetworkManager"${TEXTRESET}
+systemctl restart NetworkManager
+sleep 5
+
+#Set DNS to Something other than itself(Use ODNS)
+echo ${YELLOW}"Setting DNS to OpenDNS Server (Temporarily) for Name Resolution since AD is probably Broken"${TEXTRESET}
+nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
+systemctl restart NetworkManager
+sleep 1
+
+
+#Check for Network Connectivity
+echo "Checking for Internet Connectivity"
+echo " "
+sleep 3
+# Function to check DNS resolution
+check_dns_resolution() {
+    local domain=$1
+    ping -c 1 $domain &> /dev/null
+    return $?
+}
+
+# Function to ping an address
+ping_address() {
+    local address=$1
+    ping -c 1 $address &> /dev/null
+    return $?
+}
+
+# Flag to track if any test fails
+test_failed=false
+
+# Check DNS resolution for google.com
+echo "Checking DNS resolution for google.com via ping..."
+if check_dns_resolution "google.com"; then
+    echo "DNS resolution for google.com is successful."
+else
+    echo "DNS resolution for google.com failed."
+    test_failed=true
+fi
+
+# Ping 8.8.8.8
+echo "Trying to ping 8.8.8.8..."
+if ping_address "8.8.8.8"; then
+    echo "Successfully reached 8.8.8.8."
+else
+    echo "Cannot reach 8.8.8.8."
+    test_failed=true
+fi
+
+# Provide final results summary
+echo
+echo "===== TEST RESULTS ====="
+echo "DNS Resolution for google.com: $(if check_dns_resolution "google.com"; then echo "${GREEN}Passed"${TEXTRESET}; else echo "${RED}Failed"${TEXTRESET}; fi)"
+echo "Ping to 8.8.8.8: $(if ping_address "8.8.8.8"; then echo "${GREEN}Passed"${TEXTRESET}; else echo "${RED}Failed"${TEXTRESET}; fi)"
+echo "========================"
+echo
+
+# Prompt the user only if any test fails
+if $test_failed; then
+    read -p "One or more tests failed. Please make sure you can resolve DNS names before Proceeding. Do you want to continue the script? (y/n): " user_input
+    if [[ $user_input == "y" || $user_input == "Y" ]]; then
+        echo "Continuing the script with failures"
+        sleep 1
+        # Place additional script logic here
+    else
+        echo "Please make sure that you have full Connectivty to the Internet Before Proceeding."
+        exit 1
+    fi
+else
+    echo "All tests passed successfully."
+    echo " "
+    sleep 3
+    # Continue with the script or exit as needed
+fi
+
+
+
+
 
 #In the event a samba update arrives from Rocky Linux, rebuild Samba packages
 dnfremote=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '1d')
 dnflocal=$(dnf provides samba | grep Provide | sed 's/.dc//' | sed '$d')
-mocksmbver=$(dnf provides samba | grep samba | sed '2,4d' | cut -d: -f1 | cut -dx -f1)
+mocksmbver=$(dnf provides samba | grep 'Provide' | awk -F' = ' '{print $2}' | sort -V | tail -n 1)
 majoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '$d')
 minoros=$(cat /etc/redhat-release | grep -Eo "[0-9]" | sed '1d')
 
@@ -43,25 +127,19 @@ while true; do
    case $yn in
    [yY])
       # delete all packages
+      dnf -y update
+      dnf -y install bind-utils
       rm -rf /root/.samba/*.rpm
-      # user external dns if AD broken
-      nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
-      systemctl restart NetworkManager
       dnf download samba --source
-      mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc "$mocksmbver"src.rpm
+      mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc samba-"$mocksmbver".src.rpm
       cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/.samba
       createrepo /root/.samba
+      dnf config-manager --add-repo /root/.samba
       dnf -y update --nogpgcheck --repofrompath=samba,/root/.samba
-      dnf -y update samba-dc
+      dnf -y install --nogpgcheck samba-dc
       #Reset MTOD
       sed -i d /etc/motd
-      #Set DNS back to AD 
-      nmcli con mod $INTERFACE ipv4.dns $IP
-      systemctl restart NetworkManager
-      systemctl enable samba.service
-      systemctl start samba.service
       
-
       break
       ;;
    [nN])
@@ -72,4 +150,96 @@ while true; do
    esac
 
 done
-exit 1
+
+#Cleanup
+rm -f /root/samba*.rpm
+
+#Set DNS back to AD
+echo ${YELLOW}"Setting DNS entry back to the local interface from OPENDNS to AD"${TEXTRESET}
+      nmcli con mod $INTERFACE ipv4.dns $IP
+echo " "
+sleep 1
+echo ${GREEN}"Restarting NetworkManager"${TEXTRESET}
+      systemctl restart NetworkManager
+echo ${GREEN}"Attempting to enable samba.service"${TEXTRESET}      
+sleep 1
+systemctl enable samba.service
+echo " "
+echo ${GREEN}"Attempting to start samba.service"${TEXTRESET}
+systemctl start samba.service
+sleep 1
+#return status
+# Check the status of the samba service
+SERVICE="samba"
+STATUS=$(systemctl is-active "$SERVICE")
+
+# Provide feedback based on the service status
+if [ "$STATUS" = "active" ]; then
+    echo ${GREEN}"The $SERVICE service is running."${TEXTRESET}
+else
+    echo ${RED}"The $SERVICE service is not running."${TEXTRESET}
+fi
+
+#Validate that the server can resolve SRV records
+echo ${GREEN}"Setting up Query for SRV records"${TEXTRESET}
+sleep 1
+
+host -t SRV _ldap._tcp.${DOMAIN}.
+host -t SRV _kerberos._udp.${DOMAIN}.
+host -t A ${FQDN}.
+
+# Extract hostname from FQDN
+hostname_part=$(echo "$FQDN" | cut -d '.' -f 1)
+
+# Function to extract the target hostnames from SRV records
+get_srv_hostnames() {
+  local srv_records=$1
+  echo "$srv_records" | awk '{print $NF}' | cut -d '.' -f 1 # Get the last field and extract the hostname part
+}
+
+# Get SRV records for LDAP and Kerberos
+ldap_srv=$(host -t SRV _ldap._tcp."$DOMAIN")
+kerberos_srv=$(host -t SRV _kerberos._udp."$DOMAIN")
+
+# Extract target hostnames from SRV records
+ldap_hostnames=$(get_srv_hostnames "$ldap_srv")
+kerberos_hostnames=$(get_srv_hostnames "$kerberos_srv")
+
+# Function to check if at least one hostname matches
+check_any_hostnames_match() {
+  local hostnames=$1
+  local hostname=$2
+  for hn in $hostnames; do
+    if [ "$hn" == "$hostname" ]; then
+      echo "At least one hostname matches: ${GREEN}$hn"${TEXTRESET}
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Check if any LDAP or Kerberos hostnames match the hostname part of FQDN
+if check_any_hostnames_match "$ldap_hostnames" "$hostname_part" || check_any_hostnames_match "$kerberos_hostnames" "$hostname_part"; then
+  echo "${GREEN}Success:${TEXTRESET}Hostname from SRV record matches.."
+  echo "AD is resolvable"
+  exit_status=0
+else
+  echo ${RED}"Error:${TEXTRESET} No hostnames from SRV records match the hostname part of FQDN. The samba service has failed to start or DNS is not configured correctly."
+  echo "AD Failed to resolve"
+  exit_status=1
+read -p "Press Enter"
+fi
+
+# Handle exit status
+if [ $exit_status -eq 0 ]; then
+  read -p "It is reccomended to restart the server. Would you like to do that now? (y/n): " user_input
+  if [ "$user_input" == "y" ] || [ "$user_input" == "Y" ]; then
+    echo ${RED}"Restarting the server..."${TEXTRESET}
+    sleep 2
+    sudo shutdown -r now
+  else
+    echo "Server restart canceled."
+  fi
+else
+  exit 1
+fi
