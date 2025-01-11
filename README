@@ -55,10 +55,6 @@ Please see the EASY_INSTALL File
 #https://rockylinux.org/download/
 #Make sure you specify the domain name you want to use for AD.
 #After the GUI install: 
-#(Just copy and paste the following lines on the Rocky terminal)
+#(Just copy and paste the following line on the Rocky terminal)
 
-cd /root/
-dnf -y install wget 
-wget https://raw.githubusercontent.com/fumatchu/RADS/main/DC-Installer.sh
-chmod 700 ./DC-Installer.sh
-/root/DC-Installer.sh
+dnf -y install wget && cd /root &&  bash <(wget -qO- https://raw.githubusercontent.com/fumatchu/RADS/main/DC-Installer.sh)
