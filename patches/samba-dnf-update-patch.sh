@@ -1,52 +1,35 @@
 #!/bin/bash
-clear
-echo "This is the patch file"
-clear
 cd /root/
-# Define the file to check for and the URL to download
-CHECK_FILE="/usr/bin/samba-dnf-pkg-update"
-DOWNLOAD_URL="https://raw.githubusercontent.com/fumatchu/RADS/main/patches/samba-dnf-pkg-update"
-DOWNLOAD_DEST="/root/samba-dnf-update-patch.sh"
-FOLDER="/usr/bin/"
-DOWNLOAD_FINAL_FILE="samba-dnf-pkg-update"
-# Check if the file exists
-if [ -f "$CHECK_FILE" ]; then
-    # Download the script to the root directory
-    echo "Found samba-dnf-pkg-update"
-    wget -O "$DOWNLOAD_DEST" "$DOWNLOAD_URL"
-    
-    # Change permissions to make it executable
-    chmod 700 "$DOWNLOAD_DEST"    
-else
-    echo "File $CHECK_FILE not found. Exiting."
-fi
 
-# Specify the file path
-FILE_PATH="/root/samba-dnf-pkg-update"
-DEST_PATH="/usr/bin/samba-dnf-pkg-update"
+# Define file paths
+CURRENT_FILE="/usr/bin/samba-dnf-pkg-update"
+PATCH_FILE="/root/RADSPatch/patches/samba-dnf-update"
+DESTINATION_FILE="/usr/bin/samba-dnf-update"
 
-# Check if the file contains the line #Patch1.0
-if grep -q "#Patch1.0" "$FILE_PATH"; then
-    # Move the file to the destination
-    mv "$FILE_PATH" "$DEST_PATH"
-    echo "The file was successfully moved to $DEST_PATH."
-#Cleanup
-rm -r -f /root/RADSpatch/
-rm -f /root/samba*
-    # Ask the user if they want to run the file
-    read -p "Do you want to run the file? (yes/no): " response
+# Check if the line #Patch1.0 is present in the current file
+if ! grep -q "#Patch1.0" "$CURRENT_FILE"; then
+    echo "The file is an older version and will be updated"
+    sleep 2
 
-    # Convert the response to lowercase
-    response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
+    # Move the patch file to the destination
+    if mv "$PATCH_FILE" "$DESTINATION_FILE"; then
+        echo "The patch file was successfully moved to $DESTINATION_FILE."
+        sleep 2
+        # Ask the user if they want to run the file
+        read -p "Do you want to run the file samba-dnf-pkg-update now (This will start the samba update using mock)? (yes/no): " response
 
-    # Run the file if the user agrees
-    if [ "$response" = "yes" ]; then
-        bash "$DEST_PATH"
+        # Convert the response to lowercase
+        response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
+
+        # Run the file if the user agrees
+        if [ "$response" = "yes" ]; then
+            bash "$DESTINATION_FILE"
+        else
+            echo "The file was not run."
+        fi
     else
-        echo "The file was not run."
+        echo "The file was not successfully moved."
     fi
 else
-    echo "The file was not successfully moved because #Patch1.0 was not found."
+    echo "The file already contains #Patch1.0."
 fi
-echo "Complete"
-read -p "Press Any Key"
