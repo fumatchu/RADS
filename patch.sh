@@ -56,7 +56,8 @@ UPDATE_OUTPUT=$(dnf check-update | grep -v '^Last metadata expiration check:')
 if echo "$UPDATE_OUTPUT" | grep -q '^[[:alnum:]]'; then
   echo ${RED}"There are new packages available for update."${TEXTRESET}
   echo "Updating Server"
-  
+  dnf -y update
+  echo ${GREEN}"Restarting NetworkManager"${TEXTRESET}
   systemctl restart NetworkManager
   sleep 5
   echo "The DNF process has run. Please restart the patch process"
