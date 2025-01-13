@@ -17,15 +17,37 @@ if [ -f "$CHECK_FILE" ]; then
     wget -O "$DOWNLOAD_DEST" "$DOWNLOAD_URL"
     
     # Change permissions to make it executable
-    chmod 700 "$DOWNLOAD_DEST"
-    
-    #Move the file to /usr/bin/
-    mv -v "$DOWNLOAD_FINAL_FILE" "$FOLDER"
-
-    
-    
+    chmod 700 "$DOWNLOAD_DEST"    
 else
     echo "File $CHECK_FILE not found. Exiting."
+fi
+
+#!/bin/bash
+
+# Specify the file path
+FILE_PATH="path/to/your/file.sh"
+DEST_PATH="/desired/destination/file.sh"
+
+# Check if the file contains the line #Patch1.0
+if grep -q "#Patch1.0" "$FILE_PATH"; then
+    # Move the file to the destination
+    mv "$FILE_PATH" "$DEST_PATH"
+    echo "The file was successfully moved to $DEST_PATH."
+
+    # Ask the user if they want to run the file
+    read -p "Do you want to run the file? (yes/no): " response
+
+    # Convert the response to lowercase
+    response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
+
+    # Run the file if the user agrees
+    if [ "$response" = "yes" ]; then
+        bash "$DEST_PATH"
+    else
+        echo "The file was not run."
+    fi
+else
+    echo "The file was not successfully moved because #Patch1.0 was not found."
 fi
 echo "Complete"
 read -p "Press Any Key"
