@@ -113,9 +113,12 @@ This Utility is going to update your compiled Samba version to a newer version
 The Version in the upstream repository is:
 $dnfremote
 
+EOF
 echo ${YELLOW}"The Last log entry for the Smaba replication log is:${TEXTRESET}"
 tail -1 /var/log/dnf-smb-mon.log
 echo " "
+
+cat <<EOF
 This process will:
         -Remove local packages
         -Download the new samba source
