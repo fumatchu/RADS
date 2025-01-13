@@ -1,3 +1,18 @@
+#Please make sure you have manually set your DNS to something other than the Samba service before attempting to run this file
+for example, use 
+
+nmtui 
+
+to edit the interface and then:
+
+systemctl restart NetworkManager 
+ 
+then, 
+
+nmcli 
+
+to validate that the dns is updated
+
 This is a patch script for any new bugs. It will display a dialog script and allow the End user to choose the patch to apply
 
 #Current patches:
