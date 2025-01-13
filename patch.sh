@@ -48,6 +48,23 @@ mkdir /root/RADSPatch
 
 git clone https://github.com/fumatchu/RADS.git /root/RADSPatch
 
+#Check that Pacakges are up to date on the server.
+# Run dnf check-update and capture the output, ignoring the metadata expiration line
+UPDATE_OUTPUT=$(dnf check-update | grep -v '^Last metadata expiration check:')
+
+# Check if there are any lines in the output indicating available updates
+if echo "$UPDATE_OUTPUT" | grep -q '^[[:alnum:]]'; then
+  echo ${RED}"There are new packages available for update."${TEXTRESET}
+  echo "Please run "dnf -y update" from the command line before proceeding"
+  Exiting patch...
+  sleep 2
+  exit
+else
+  echo "No new packages available."
+  echo "proceeding..."
+  sleep 2
+fi
+
 items=(1 "Patch samba-dnf-pkg-update"
 )
 
