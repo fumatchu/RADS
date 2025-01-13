@@ -1,8 +1,8 @@
-This is a patch script for any new bugs. It will dispaly a dialog script and allow the End user to choose the patch to apply
+This is a patch script for any new bugs. It will display a dialog script and allow the End user to choose the patch to apply
 
 #Current patches:
 
-#Samba-dnf-pkgupdate- If Rocky was installed before January 2025, pkg update would not install dc rpm on upgrade. corrected.
+#Samba-dnf-pkgupdate- If Rocky was installed before January 11 2025, pkg update would not install dc rpm on upgrade. corrected.
 
 #(Just copy and paste the following line on the Rocky terminal or remote SSH terminal- remote suggested)
 dnf -y install wget && cd /root &&  bash <(wget -qO- https://raw.githubusercontent.com/fumatchu/RADS/main/patch.sh)
