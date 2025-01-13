@@ -242,6 +242,8 @@ if [ $exit_status -eq 0 ]; then
   read -p "It is reccomended to restart the server. Would you like to do that now? (y/n): " user_input
   if [ "$user_input" == "y" ] || [ "$user_input" == "Y" ]; then
     echo ${RED}"Restarting the server..."${TEXTRESET}
+    #Cleanup
+    rm -r -f /root/RADSPatch/
     sleep 2
     sudo shutdown -r now
   else
