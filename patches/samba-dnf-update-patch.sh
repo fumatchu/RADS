@@ -1,4 +1,11 @@
 #!/bin/bash
+TEXTRESET=$(tput sgr0)
+RED=$(tput setaf 1)
+YELLOW=$(tput setaf 3)
+GREEN=$(tput setaf 2)
+USER=$(whoami)
+
+
 cd /root/
 
 # Define file paths
