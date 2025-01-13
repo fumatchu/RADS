@@ -60,8 +60,8 @@ if echo "$UPDATE_OUTPUT" | grep -q '^[[:alnum:]]'; then
   sleep 2
   exit
 else
-  echo "No new packages available."
-  echo "proceeding..."
+  echo ${GREEN}"No new packages available."${TEXTRESET}
+  echo "Proceeding..."
   sleep 2
 fi
 
