@@ -11,7 +11,7 @@ If you receieve the error of:
 Unable to save connection:           
 802-3-ethernet.mac-address-denylist:
 unknown property
-
+(In nmtui)
 you must "systemctl restart NetworkManager" 
 Modify the DNS entry to the DNS other than AD,  
 then restart NetworkManager again before downloading the script 
