@@ -129,9 +129,6 @@ while true; do
    [yY])
       dnf -y update
       dnf -y install bind-utils
-      echo ${GREEN}"Restarting NetworkManager"${TEXTRESET}
-      systemctl restart NetworkManager
-      sleep 5
       # delete all packages
       rm -rf /root/.samba/*.rpm
       dnf download samba --source
