@@ -127,9 +127,12 @@ while true; do
 
    case $yn in
    [yY])
-      # delete all packages
       dnf -y update
       dnf -y install bind-utils
+      echo ${GREEN}"Restarting NetworkManager"${TEXTRESET}
+      systemctl restart NetworkManager
+      sleep 5
+      # delete all packages
       rm -rf /root/.samba/*.rpm
       dnf download samba --source
       mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc samba-"$mocksmbver".src.rpm
