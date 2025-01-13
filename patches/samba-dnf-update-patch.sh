@@ -13,7 +13,6 @@ DOWNLOAD_FINAL_FILE="samba-dnf-pkg-update"
 if [ -f "$CHECK_FILE" ]; then
     # Download the script to the root directory
     echo "Found samba-dnf-pkg-update"
-    echo "Downloading Patch"
     wget -O "$DOWNLOAD_DEST" "$DOWNLOAD_URL"
     
     # Change permissions to make it executable
@@ -22,18 +21,18 @@ else
     echo "File $CHECK_FILE not found. Exiting."
 fi
 
-#!/bin/bash
-
 # Specify the file path
-FILE_PATH="path/to/your/file.sh"
-DEST_PATH="/desired/destination/file.sh"
+FILE_PATH="/root/samba-dnf-pkg-update"
+DEST_PATH="/usr/bin/samba-dnf-pkg-update"
 
 # Check if the file contains the line #Patch1.0
 if grep -q "#Patch1.0" "$FILE_PATH"; then
     # Move the file to the destination
     mv "$FILE_PATH" "$DEST_PATH"
     echo "The file was successfully moved to $DEST_PATH."
-
+#Cleanup
+rm -r -f /root/RADSpatch/
+rm -f /root/samba*
     # Ask the user if they want to run the file
     read -p "Do you want to run the file? (yes/no): " response
 
