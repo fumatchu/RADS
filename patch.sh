@@ -44,7 +44,7 @@ EOF
 
 sleep 1
 #Clone FR
-mkdir /root/RADSPatch
+mkdir -p /root/RADSPatch
 
 git clone https://github.com/fumatchu/RADS.git /root/RADSPatch
 
