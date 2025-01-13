@@ -62,6 +62,7 @@ if echo "$UPDATE_OUTPUT" | grep -q '^[[:alnum:]]'; then
   systemctl restart NetworkManager
   sleep 5
   echo "The DNF process has run. Please restart the patch process"
+  echo "Use "
   echo "Exiting patch..."
   sleep 2
   read -p "Press Enter"
