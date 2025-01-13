@@ -73,6 +73,7 @@ else
 fi
 
 items=(1 "Patch samba-dnf-pkg-update"
+2 "Exit Patch Management"
 )
 
 while choice=$(dialog --title "$TITLE" \
@@ -81,7 +82,7 @@ while choice=$(dialog --title "$TITLE" \
   2>&1 >/dev/tty); do
   case $choice in
  1) clear && cd /root && chmod 700 /root/RADSPatch/patches/samba-dnf-update-patch.sh && /root/RADSPatch/patches/samba-dnf-update-patch.sh;;
-
+ 2) exit ;;
  
   esac
 done
