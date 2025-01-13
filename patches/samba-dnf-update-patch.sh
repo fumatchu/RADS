@@ -13,6 +13,7 @@ if ! grep -q "#Patch1.0" "$CURRENT_FILE"; then
 
     # Move the patch file to the destination
     if mv "$PATCH_FILE" "$DESTINATION_FILE"; then
+        chmod 700 "$DESTINATION_FILE"
         echo "The patch file was successfully moved to $DESTINATION_FILE."
         sleep 2
         # Ask the user if they want to run the file
@@ -33,3 +34,4 @@ if ! grep -q "#Patch1.0" "$CURRENT_FILE"; then
 else
     echo "The file already contains #Patch1.0."
 fi
+read -p "Press Enter"
