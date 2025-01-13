@@ -1,17 +1,14 @@
 #Please make sure you have manually set your DNS to something other than the Samba service before attempting to run this file
-for example, use 
+for example, use "nmtui" to edit the interface and then run the commnad "systemctl restart NetworkManager", followed by nmci to validate that the settings took effect.
 
-nmtui 
+If you receieve the error of:
+Unable to save connection:           
+802-3-ethernet.mac-address-denylist:
+unknown property
 
-to edit the interface and then:
-
-systemctl restart NetworkManager 
- 
-then, 
-
-nmcli 
-
-to validate that the dns is updated
+you must "systemctl restart NetworkManager" 
+Modify the DNS entry to the DNS other than AD,  
+then restart NetworkManager again before downloading the script 
 
 This is a patch script for any new bugs. It will display a dialog script and allow the End user to choose the patch to apply
 
