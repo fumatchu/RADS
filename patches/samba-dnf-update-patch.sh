@@ -52,7 +52,8 @@ if ! grep -q "#Patch1.0" "$CURRENT_FILE"; then
       sleep 5
       exit 1
     fi
-
+    #Cleanup
+    rm -r -f /root/RADSPatch/
     # Ask the user if they want to run the file
     read -p "Do you want to run the file samba-dnf-pkg-update now (This will start the samba update to latest version using mock)? (yes/no): " response
 
