@@ -159,9 +159,10 @@ rm -f /root/samba*.rpm
 echo ${YELLOW}"Setting DNS entry back to the local interface from OPENDNS to AD"${TEXTRESET}
       nmcli con mod $INTERFACE ipv4.dns $IP
 echo " "
-sleep 1
+sleep 2
 echo ${GREEN}"Restarting NetworkManager"${TEXTRESET}
       systemctl restart NetworkManager
+sleep 5
 echo ${GREEN}"Attempting to enable samba.service"${TEXTRESET}      
 sleep 1
 systemctl enable samba.service
