@@ -35,7 +35,6 @@ EOF
 sleep 1
 
 dnf -y install wget git dialog
-dnf -y update wget git dialog
 
 cat <<EOF
 ${YELLOW}*****************************
