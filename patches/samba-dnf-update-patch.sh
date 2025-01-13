@@ -3,8 +3,8 @@ cd /root/
 
 # Define file paths
 CURRENT_FILE="/usr/bin/samba-dnf-pkg-update"
-PATCH_FILE="/root/RADSPatch/patches/samba-dnf-update"
-DESTINATION_FILE="/usr/bin/samba-dnf-update"
+PATCH_FILE="/root/RADSPatch/samba-dnf-pkg-update"
+DESTINATION_FILE="/usr/bin/samba-dnf-pkg-update"
 
 # Check if the line #Patch1.0 is present in the current file
 if ! grep -q "#Patch1.0" "$CURRENT_FILE"; then
