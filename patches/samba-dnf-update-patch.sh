@@ -43,10 +43,11 @@ if ! grep -q "#Patch1.0" "$CURRENT_FILE"; then
     sleep 2
     
     # Compare the moved file with the original file
+    echo "${YELLOW}Comparing the Patch file to the file on the system" ${TEXTRESET}
     if diff -q "$DESTINATION_FILE" "$PATCH_FILE" > /dev/null; then
-      echo "${GREEN}The moved file matches the original file.${TEXTRESET}"
+      echo "${GREEN}The patch file matches the active file.${TEXTRESET}"
     else
-      echo "${RED}The moved file does not match the original file.${TEXTRESET}"
+      echo "${RED}The patch file does not match the active file.${TEXTRESET}"
       echo "Exiting the script."
       sleep 5
       exit 1
