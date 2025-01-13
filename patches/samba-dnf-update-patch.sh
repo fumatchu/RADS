@@ -52,6 +52,19 @@ if ! grep -q "#Patch1.0" "$CURRENT_FILE"; then
       sleep 5
       exit 1
     fi
+    #Update RADS-SM for the update script 
+    # Define the file path
+FILE_PATH="/root/.servman/SambaMan"
+
+# Use sed to replace the specific line
+sed -i 's|6) /root/.servman/SambaManager/sm-samba-dnf-pkg-update ;;|6) /usr/bin/samba-dnf-pkg-update ;;|' "$FILE_PATH"
+
+# Check if the operation was successful
+if [ $? -eq 0 ]; then
+  echo "The line was successfully updated in $FILE_PATH."
+else
+  echo "Failed to update the line in $FILE_PATH."
+fi
     #Cleanup
     rm -r -f /root/RADSPatch/
     # Ask the user if they want to run the file
