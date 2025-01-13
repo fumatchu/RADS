@@ -4,7 +4,7 @@ echo "This is the patch file"
 clear
 # Define the file to check for and the URL to download
 CHECK_FILE="/usr/bin/samba-dnf-pkg-update"
-DOWNLOAD_URL="https://raw.githubusercontent.com/fumatchu/RADS/main/patches/samba-dnf-update-patch.sh"
+DOWNLOAD_URL="https://raw.githubusercontent.com/fumatchu/RADS/main/patches/samba-dnf-pkg-update"
 DOWNLOAD_DEST="/root/samba-dnf-update-patch.sh"
 FOLDER="/usr/bin/"
 # Check if the file exists
@@ -16,6 +16,7 @@ if [ -f "$CHECK_FILE" ]; then
     
     # Change permissions to make it executable
     chmod 700 "$DOWNLOAD_DEST"
+    #Move the file to /use/sbin/
     
 else
     echo "File $CHECK_FILE not found. Exiting."
