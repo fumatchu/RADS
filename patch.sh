@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 #DC-Installer.sh #Bootstrap to GIT REPO
 TEXTRESET=$(tput sgr0)
 RED=$(tput setaf 1)
