@@ -37,7 +37,7 @@ if ! grep -q "#Patch1.0" "$CURRENT_FILE"; then
   sleep 2
   
   # Move the patch file to the destination
-  if mv "$PATCH_FILE" "$DESTINATION_FILE"; then
+  if \cp -f "$PATCH_FILE" "$DESTINATION_FILE"; then
     chmod 700 "$DESTINATION_FILE"
     echo "${GREEN}The patch file was successfully moved to $DESTINATION_FILE.${TEXTRESET}"
     sleep 2
@@ -48,6 +48,7 @@ if ! grep -q "#Patch1.0" "$CURRENT_FILE"; then
     else
       echo "${RED}The moved file does not match the original file.${TEXTRESET}"
       echo "Exiting the script."
+      sleep 5
       exit 1
     fi
 
