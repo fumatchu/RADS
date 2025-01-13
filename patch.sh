@@ -58,6 +58,7 @@ if echo "$UPDATE_OUTPUT" | grep -q '^[[:alnum:]]'; then
   echo "Please run "dnf -y update" from the command line before proceeding"
   Exiting patch...
   sleep 2
+  read -p "Press Enter"
   exit
 else
   echo ${GREEN}"No new packages available."${TEXTRESET}
