@@ -15,6 +15,8 @@ unknown property
 you must "systemctl restart NetworkManager"
 Modify the DNS entry to the DNS other than AD,  
 then restart NetworkManager again before downloading the script 
+
+Please keep in mind that this is also true if the script finds updates. YOU MAY run into this scenario above even if AD is operational and resolving
 ##END NOTE FOR SAMBA-DNF-PKG-UPDATE##
 
 #(Just copy and paste the following line on the Rocky terminal or remote SSH terminal- remote suggested)
