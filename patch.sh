@@ -56,20 +56,21 @@ Correct an issue when upgrading from 9.X to the latest version for the Samba src
 Correct an issue with mis-reporting samba sync between upstream repository and local install 
 Updated server-manager to check the sync logs before bringing up the main menu in dialog.
 
-The Patch has the following process:
-Check in with dnf first. If there are updates, download them and install them (a reboot is not necessary) 
+${GREEN}The Patch has the following process:${TEXTRESET}
+Check in with dnf first. If there are updates, download them and install them ${GREEN}(a reboot is not necessary)${TEXTRESET} 
 If there are no updates, the installer will continue to patch the system. 
 It will replace samaba-dnf-pkg-update, dnf-smb-mon, and server-manager 
-YOU MUST MAKE SURE YOU HAVE INTERNET CONNECTIVITY
+${YELLOW}YOU MUST MAKE SURE YOU HAVE INTERNET CONNECTIVITY${TEXTRESET}
 (Assuming you are reading this, you have changed your dns entry on this server to something other than the Samba local).
 If for some odd reason you still have internet connectivity you should do the following:
-Make sure you have set your DNS entry on this server to something else (8.8.8.8, 208.67.222.222)
-run the command systemctl restart NetworkManager
-run nmcli to validate that the DNS entry is updated to the external DNS. 
-After the patches are applied, the patch itself will ask you if you want to update sambs using mock (in most cases, you will want to do this)
+Make sure you have set your ${YELLOW}DNS entry on this server to something else (8.8.8.8, 208.67.222.222)${TEXTRESET}
+You can do this with ${YELLOW}nmtui${TEXTRESET}
+Run the command ${YELLOW}systemctl restart NetworkManager${TEXTRESET}
+Run ${YELLOW}nmcli${TEXTRESET} to validate that the DNS entry is updated to the ${YELLOW}external DNS.${TEXTRESET}
+After the patches are applied, the patch itself will ask you if you want to update samba using mock (in most cases, you will want to do this- This upgrades Samba to latest version)
 The patch will then compile samba to the latest version and validate the install.
 It will also change the External DNS entry back to the appropriate IP on your system. 
-After that, yes, you should reboot
+After that, yes, you should ${RED}reboot${TEXTRESET}
 
 EOF
 
