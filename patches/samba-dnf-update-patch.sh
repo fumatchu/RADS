@@ -1,5 +1,7 @@
 #!/bin/bash
-
+# This patch file will update dnf-update errors where dc rpm does not install
+# Updates dnf-smb-mon for makecache versions
+# puts a checker into server manager for motd content if dnf-smb-mon sees variance
 # Define colors for output
 TEXTRESET=$(tput sgr0)
 RED=$(tput setaf 1)
