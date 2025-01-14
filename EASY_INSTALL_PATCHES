@@ -5,14 +5,14 @@ This is a patch script for any new bugs. It will display a dialog script and all
 
 #Samba-dnf-pkgupdate- If Rocky was installed before January 11 2025, pkg update would not install dc rpm on upgrade. corrected.
 #Please make sure you have manually set your DNS to something other than the Samba service before attempting to run this file
-for example, use "nmtui" to edit the interface and then run the commnad "systemctl restart NetworkManager", followed by nmcli to validate that the settings took effect.
+for example, use "nmtui" to edit the dns interface to 208.67.222.222 (OpenDNS), save and then run the commnad "systemctl restart NetworkManager", followed by nmcli to validate that the settings took effect.
 
 If you receieve the error of:
 Unable to save connection:           
 802-3-ethernet.mac-address-denylist:
 unknown property
 (In nmtui)
-you must "systemctl restart NetworkManager" 
+you must "systemctl restart NetworkManager"
 Modify the DNS entry to the DNS other than AD,  
 then restart NetworkManager again before downloading the script 
 ##END NOTE FOR SAMBA-DNF-PKG-UPDATE##
