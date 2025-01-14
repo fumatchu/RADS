@@ -128,34 +128,52 @@ This process will:
 EOF
 
 while true; do
-
-   read -p "Would you like to update the system now? (y/n) " yn
-
-   case $yn in
-   [yY])
+  read -p "Would you like to update the system now? (y/n) " yn
+  case $yn in
+    [yY])
       dnf -y update
       dnf -y install bind-utils
-      # delete all packages
+      # Delete all packages
       rm -rf /root/.samba/*.rpm
-      dnf download samba --source
-      mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc samba-"$mocksmbver".src.rpm
-      cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/.samba
-      createrepo /root/.samba
-      dnf config-manager --add-repo /root/.samba
-      dnf -y update --nogpgcheck --repofrompath=samba,/root/.samba
-      dnf -y install --nogpgcheck samba-dc
-      #Reset MTOD
-      sed -i d /etc/motd
       
+      # Download Samba source package
+      dnf download samba --source
+      
+      # Validate the downloaded RPM file
+      if ls /root/samba-*.rpm 1> /dev/null 2>&1; then
+          echo ${GREEN}"Samba RPM file found. Continuing with the script..."${TEXTRESET}
+          
+          mock -r rocky-"$majoros"-x86_64 --enablerepo=devel --define 'dist .el'"$majoros"'_'"$minoros"'.dc' --with dc samba-"$mocksmbver".src.rpm
+          cp /var/lib/mock/rocky-"$majoros"-x86_64/result/*.rpm /root/.samba
+          createrepo /root/.samba
+          dnf config-manager --add-repo /root/.samba
+          dnf -y update --nogpgcheck --repofrompath=samba,/root/.samba
+          dnf -y install --nogpgcheck samba-dc
+          # Reset MOTD
+          sed -i d /etc/motd
+      else
+          echo ${RED}"The Samba source rpm file did not download correctly. Please check your network settings."${TEXTRESET}
+          
+          # Check DNS resolution
+          if nslookup google.com > /dev/null 2>&1; then
+              echo ${GREEN}"DNS is operational."${TEXTRESET}
+          else
+              echo ${RED}"DNS is not operational. Please check your DNS settings."${TEXTRESET}
+          fi
+          
+          exit 1
+      fi
+
       break
       ;;
-   [nN])
-      echo exiting...
+    [nN])
+      echo "Exiting..."
       exit
       ;;
-   *) echo invalid response ;;
-   esac
-
+    *)
+      echo "Invalid response"
+      ;;
+  esac
 done
 
 #Cleanup
