@@ -61,14 +61,12 @@ if echo "$UPDATE_OUTPUT" | grep -q '^[[:alnum:]]'; then
   echo ${GREEN}"Restarting NetworkManager"${TEXTRESET}
   systemctl restart NetworkManager
   sleep 5
-  echo "The DNF process has run. Please restart the patch process"
+  echo "The OS update is complete, but the patch has ${RED}NOT been installed"${TEXTRESET}
   echo " "
   echo "Make sure your server can resolve via external DNS first. It should not be pointed to your AD DNS."
   echo "This can be accomplished using nmtui, editing the dns server, then running systemctl restart NetworkManager"
   echo "After that is complete, restart the patch process with this link here:"
   echo "dnf -y install wget && cd /root &&  bash <(wget -qO- https://raw.githubusercontent.com/fumatchu/RADS/main/patch.sh)"
-  echo "Patch complete"
-  sleep 2
   read -p "Press Enter"
   exit
 else
