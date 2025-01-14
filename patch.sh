@@ -48,13 +48,53 @@ mkdir -p /root/RADSPatch
 
 git clone https://github.com/fumatchu/RADS.git /root/RADSPatch
 
+clear 
+cat << EOF
+${GREEN}Patch update${TEXTRESET}
+This patch will do the following:
+Correct an issue when upgrading from 9.X to the latest version for the Samba src. rpm
+Correct an issue with mis-reporting samba sync between upstream repository and local install 
+Updated server-manager to check the sync logs before bringing up the main menu in dialog.
+
+The Patch has the following process:
+Check in with dnf first. If there are updates, download them and install them (a reboot is not necessary) 
+If there are no updates, the installer will continue to patch the system. 
+It will replace samaba-dnf-pkg-update, dnf-smb-mon, and server-manager 
+YOU MUST MAKE SURE YOU HAVE INTERNET CONNECTIVITY
+(Assuming you are reading this, you have changed your dns entry on this server to something other than the Samba local).
+If for some odd reason you still have internet connectivity you should do the following:
+Make sure you have set your DNS entry on this server to something else (8.8.8.8, 208.67.222.222)
+run the command systemctl restart NetworkManager
+run nmcli to validate that the DNS entry is updated to the external DNS. 
+After the patches are applied, the patch itself will ask you if you want to update sambs using mock (in most cases, you will want to do this)
+The patch will then compile samba to the latest version and validate the install.
+It will also change the External DNS entry back to the appropriate IP on your system. 
+After that, yes, you should reboot
+
+EOF
+
+# Prompt the user
+read -p "Do you want to proceed with patching? (y/n): " choice
+
+# Convert input to lowercase
+choice=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
+
+# Check the user's choice
+if [[ "$choice" == "y" || "$choice" == "yes" ]]; then
+    echo "Continuing with the script..."
+    # Add your script logic here
+    echo ${GREEN}"Proceeding..."${TEXTRESET}
+else
+    echo ${RED}"Exiting the script."${TEXTRESET}
+    exit 0
+fi
 #Check that Pacakges are up to date on the server.
 # Run dnf check-update and capture the output, ignoring the metadata expiration line
 UPDATE_OUTPUT=$(dnf check-update | grep -v '^Last metadata expiration check:')
 
 # Check if there are any lines in the output indicating available updates
 if echo "$UPDATE_OUTPUT" | grep -q '^[[:alnum:]]'; then
-  echo ${RED}"There are new packages available for update."${TEXTRESET}
+  echo ${YELLOW}"There are new packages available for update."${TEXTRESET}
   echo "Updating Server"
   sleep 5
   dnf -y update
