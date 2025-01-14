@@ -69,9 +69,11 @@ else
 fi
     #Cleanup
     rm -r -f /root/RADSPatch/
+    
 
-    #UPDATE server-manager for smb-mon
-    # Define the path for the server-manager script
+#UPDATE server-manager for smb-mon
+# Define the path for the server-manager script
+echo ${GREEN}"Updating Server-Manager"${TEXTRESET}
 SERVER_MANAGER_PATH="/usr/bin/server-manager"
 
 # Remove the existing server-manager file if it exists
@@ -166,7 +168,76 @@ else
     echo "Error: The contents of $SERVER_MANAGER_PATH could not be verified."
 fi
     
-    
+#UPDATE smb-mon
+
+echo ${GREEN}"Updating smb-mon"${TEXTRESET}
+# Define the file path
+FILE_PATH="/usr/bin/dnf-smb-mon"
+
+# Remove the existing file, if it exists
+if [ -f "$FILE_PATH" ]; then
+    rm -f "$FILE_PATH"
+    echo "Removed existing file at $FILE_PATH"
+fi
+
+# Create a new file and add the specified content
+cat << 'EOF' > "$FILE_PATH"
+#!/bin/bash
+#Patch 1.0
+#dnf_smb_mon
+#Monitoring script that will compare the @System Repository with the Upstream Repository for Samba DC
+#If a match between the files are resolved, there will be no update
+#If a match is NOT resolved between files, a message will be sent to MOTD and upon next login
+#the (root) User should run "samba-dnf-pkg-update"
+
+#Update the DNF cache
+dnf makecache
+
+#Get the Samba versions from the provides output
+VERSIONS=$(dnf provides samba | grep -oP 'samba = \K[0-9]+.[0-9]+.[0-9]+-[0-9]+')
+
+#Convert the versions to an array
+VERSION_ARRAY=($VERSIONS)
+
+#Check if two versions were found
+if [ ${#VERSION_ARRAY[@]} -lt 2 ]; then
+ echo "Not enough version information found. Please check your DNF configuration."
+ exit 1
+fi
+
+#Extract the first and second versions
+VERSION1=${VERSION_ARRAY[0]}
+VERSION2=${VERSION_ARRAY[1]}
+
+#Compare the versions
+if [ "$VERSION1" == "$VERSION2" ]; then
+ logger -s "dnf-smb-mon: The Samba versions match: $VERSION1. Repositories are in sync." 2>>/var/log/dnf-smb-mon.log
+else
+ cat <<EOM > /etc/motd
+ATTENTION!
+dnf_smb_mon sees a difference between the @System dnf repository
+for Samba and the dnf repository upstream. This probably means that
+the upstream Samba packages are a new version and the --dc packages
+are now out of date.
+Found versions: $VERSION1 and $VERSION2
+You should probably run the command samba-dnf-pkg-update from the cli
+or samba service management --> samba update (from server-manager).
+EOM
+ logger -s "dnf-smb-mon: Repositories are NOT in sync. Found versions: $VERSION1 and $VERSION2. Review and run samba-dnf-pkg-update." 2>>/var/log/dnf-smb-mon.log
+fi
+EOF
+
+# Make the new file executable with 700 permissions
+chmod 700 "$FILE_PATH"
+echo "Created new file at $FILE_PATH with 700 permissions"
+
+# Validate the file was updated
+if [ -f "$FILE_PATH" ]; then
+    echo "File $FILE_PATH successfully created and updated."
+else
+    echo "Failed to create or update $FILE_PATH."
+    exit 1
+fi
     
     
     
