@@ -229,13 +229,13 @@ EOF
 
 # Make the new file executable with 700 permissions
 chmod 700 "$FILE_PATH"
-echo "Created new file at $FILE_PATH with 700 permissions"
+echo ${GREEN}"Created new file at $FILE_PATH with 700 permissions"${TEXTRESET}
 
 # Validate the file was updated
 if [ -f "$FILE_PATH" ]; then
-    echo "File $FILE_PATH successfully created and updated."
+    echo ${GREEN}"File $FILE_PATH successfully created and updated."${TEXTRESET}
 else
-    echo "Failed to create or update $FILE_PATH."
+    echo ${RED}"Failed to create or update $FILE_PATH."${TEXTRESET}
     exit 1
 fi
     
