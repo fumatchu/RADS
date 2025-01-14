@@ -103,10 +103,10 @@ if echo "$UPDATE_OUTPUT" | grep -q '^[[:alnum:]]'; then
   sleep 5
   echo "The OS update is complete, but the patch has ${RED}NOT been installed"${TEXTRESET}
   echo " "
-  echo "Make sure your server can resolve via external DNS first. It should not be pointed to your AD DNS."
-  echo "This can be accomplished using nmtui, editing the dns server, then running systemctl restart NetworkManager"
+  echo ${YELLOW}"Make sure your server can resolve via external DNS first.${TEXTRESET} ${RED}It should not be pointed to your AD DNS."${TEXTRESET}
+  echo "This can be accomplished using ${YELLOW}nmtui${TEXTRESET}, editing the ${YELLOW}dns server${TEXTRESET}, then running ${YELLOW}systemctl restart NetworkManager"${TEXTRESET}
   echo "After that is complete, restart the patch process with this link here:"
-  echo "dnf -y install wget && cd /root &&  bash <(wget -qO- https://raw.githubusercontent.com/fumatchu/RADS/main/patch.sh)"
+  echo ${YELLOW}"dnf -y install wget && cd /root &&  bash <(wget -qO- https://raw.githubusercontent.com/fumatchu/RADS/main/patch.sh)"${TEXTRESET}
   read -p "Press Enter"
   exit
 else
