@@ -22,7 +22,7 @@ the upstream Samba packages are a new version and the --dc packages
 are now out of date.
 
 
-You should probably run the command samba-dnf-pkg-update.
+You should probably run the command samba-dnf-pkg-update from the cli or samba service management--> samba update (from server-manager).
 EOF
     logger -s "dnf-smb-mon reports changes -Repositories are NOT in sync. Review and run samba-dnf-pkg-update" 2>>/var/log/dnf-smb-mon.log
 fi
