@@ -2,6 +2,7 @@
 This is a patch script for any new bugs. It will display a dialog script and allow the End user to choose the patch to apply
 
 #Current patches:
+v1.0.1
 
 #Samba-dnf-pkgupdate- If Rocky was installed before January 11 2025, pkg update would not install dc rpm on upgrade. corrected.
 #Please make sure you have manually set your DNS to something other than the Samba service before attempting to run this file
