@@ -482,73 +482,84 @@ isValidNetmask() {
     return 1
 }
 
-# Prompt user for beginning IP address and validate
-while true; do
-  read -p "Please provide the beginning IP address in the lease range (based on the network $NETWORK): " DHCPBEGIP
-  if [ -z "$DHCPBEGIP" ]; then
-    echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
-  elif ! isValidIP "$DHCPBEGIP"; then
-    echo -e "${RED}Invalid IP format. Please provide a valid IP address.${TEXTRESET}"
-  elif ! isIPInRange "$DHCPBEGIP"; then
-    echo -e "${RED}IP is not within the network range $NETWORK/$DHCPCIDR. Please provide a valid IP address.${TEXTRESET}"
-  else
-    break
-  fi
-done
+# Function to validate the user inputs
+validate_input() {
+  # Prompt user for beginning IP address and validate
+  while true; do
+     echo ${GREEN}Configure DHCP Scope${TEXTRESET}
+     read -p "Please provide the beginning IP address in the lease range (based on the network $NETWORK): " DHCPBEGIP
+    if [ -z "$DHCPBEGIP" ]; then
+      echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
+    elif ! isValidIP "$DHCPBEGIP"; then
+      echo -e "${RED}Invalid IP format. Please provide a valid IP address.${TEXTRESET}"
+    elif ! isIPInRange "$DHCPBEGIP"; then
+      echo -e "${RED}IP is not within the network range $NETWORK/$DHCPCIDR. Please provide a valid IP address.${TEXTRESET}"
+    else
+      break
+    fi
+  done
 
-# Prompt user for ending IP address and validate
-while true; do
-  read -p "Please provide the ending IP address in the lease range (based on the network $NETWORK): " DHCPENDIP
-  if [ -z "$DHCPENDIP" ]; then
-    echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
-  elif ! isValidIP "$DHCPENDIP"; then
-    echo -e "${RED}Invalid IP format. Please provide a valid IP address.${TEXTRESET}"
-  elif ! isIPInRange "$DHCPENDIP"; then
-    echo -e "${RED}IP is not within the network range $NETWORK/$DHCPCIDR. Please provide a valid IP address.${TEXTRESET}"
-  else
-    break
-  fi
-done
+  # Prompt user for ending IP address and validate
+  while true; do
+    read -p "Please provide the ending IP address in the lease range (based on the network $NETWORK): " DHCPENDIP
+    if [ -z "$DHCPENDIP" ]; then
+      echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
+    elif ! isValidIP "$DHCPENDIP"; then
+      echo -e "${RED}Invalid IP format. Please provide a valid IP address.${TEXTRESET}"
+    elif ! isIPInRange "$DHCPENDIP"; then
+      echo -e "${RED}IP is not within the network range $NETWORK/$DHCPCIDR. Please provide a valid IP address.${TEXTRESET}"
+    else
+      break
+    fi
+  done
 
-# Prompt user for netmask and validate
-while true; do
+  # Prompt user for netmask and validate
+  while true; do
     read -p "Please provide the netmask for clients: " DHCPNETMASK
     if [ -z "$DHCPNETMASK" ]; then
-        echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
+      echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
     elif ! isValidNetmask "$DHCPNETMASK"; then
-        echo -e "${RED}Invalid netmask format. Please provide a valid netmask (e.g., 255.255.255.0).${TEXTRESET}"
+      echo -e "${RED}Invalid netmask format. Please provide a valid netmask (e.g., 255.255.255.0).${TEXTRESET}"
     else
-        break
+      break
     fi
-done
+  done
 
-# Prompt user for default gateway and validate
-while true; do
+  # Prompt user for default gateway and validate
+  while true; do
     read -p "Please provide the default gateway for clients: " DHCPDEFGW
     if [ -z "$DHCPDEFGW" ]; then
-        echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
+      echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
     elif ! isValidIP "$DHCPDEFGW"; then
-        echo -e "${RED}Invalid IP format. Please provide a valid IP address.${TEXTRESET}"
+      echo -e "${RED}Invalid IP format. Please provide a valid IP address.${TEXTRESET}"
     else
-        break
+      break
     fi
-done
+  done
 
-# Prompt user for subnet description and ensure it's not blank
-while true; do
+  # Prompt user for subnet description and ensure it's not blank
+  while true; do
     read -p "Please provide a description for this subnet: " SUBNETDESC
     if [ -z "$SUBNETDESC" ]; then
-        echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
+      echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
     else
-        break
+      break
     fi
-done
+  done
+}
 
-cat <<EOF
+# Main loop to ask for settings and confirmation
+while true; do
+  # Gather user input
+  validate_input
 
+  # Display the configuration
+clear
+  cat <<EOF
 The script will configure DHCP with these settings:
-SUBNET:${GREEN}$NETWORK${TEXTRESET}
-BEGINNING IP RANGE:${GREEN}$DHCPBEGIP${TEXTRESET}
+
+SUBNET: ${GREEN}$NETWORK${TEXTRESET}
+BEGINNING IP RANGE: ${GREEN}$DHCPBEGIP${TEXTRESET}
 ENDING IP RANGE: ${GREEN}$DHCPENDIP${TEXTRESET}
 NETMASK: ${GREEN}$DHCPNETMASK${TEXTRESET}
 DEFAULT GW: ${GREEN}$DHCPDEFGW${TEXTRESET}
@@ -556,8 +567,23 @@ SCOPE FRIENDLY NAME: ${GREEN}$SUBNETDESC${TEXTRESET}
 NTP: ${GREEN}${IP}${TEXTRESET}
 DOMAIN NAME: ${GREEN}${DHCPNSNAME}${TEXTRESET}
 DOMAIN SEARCH: ${GREEN}${DHCPNSNAME}${TEXTRESET}
+
 EOF
-read -p "Press Enter"
+
+  # Ask the user if the settings are okay
+  read -p "Are these settings correct? (yes/no): " CONFIRM
+  if [[ "$CONFIRM" =~ ^[Yy][Ee][Ss]$ || "$CONFIRM" =~ ^[Yy]$ ]]; then
+    echo " "
+    echo ${GREEN}"Deploying DHCP Server"${TEXTRESET}
+    sleep 1
+    break
+  else
+    echo " "
+    echo ${GREEN}"Re-Running DHCP Scope Creation"${TEXTRESET}
+    sleep 1
+    clear 
+  fi
+done
 
   #Configure DHCP
   mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
@@ -580,13 +606,35 @@ subnet ${SUBNETNETWORK} netmask ${DHCPNETMASK} {
         option routers ${DHCPDEFGW};
 }
 EOF
-
+echo ${GREEN}"Starting DHCP Services"${TEXTRESET}
   systemctl enable dhcpd
   systemctl start dhcpd
 
 fi
+# Define the service name
+SERVICE_NAME="dhcpd"
+
+# Function to check the status of the DHCP service
+check_dhcp_service() {
+  # Check if the service is active
+  if systemctl is-active --quiet "$SERVICE_NAME"; then
+    echo ${GREEN}"The DHCP service ($SERVICE_NAME) is running."${TEXTRESET}
+    return 0
+  else
+    echo ${RED}"The DHCP service ($SERVICE_NAME) is NOT running."${TEXTRESET}
+    echo "Please validate your configuration before expecting DHCP to Service clients"
+    read -p "Press Enter"
+    return 1
+  fi
+}
+
+# Execute the function
+check_dhcp_service
+
+sleep 2
 
 clear
+
 #Add option for cockpit install
 cat <<EOF
 ${GREEN}Install Cockpit${TEXTRESET}
