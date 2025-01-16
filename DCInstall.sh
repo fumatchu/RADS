@@ -1,12 +1,76 @@
 #!/bin/bash
 #DC-install.sh
 #This script installs the FIRST Samba AD with DC support using mock from Upstream Rocky REPO via src.rpm
-clear
-dnf -y install net-tools dmidecode
 TEXTRESET=$(tput sgr0)
 RED=$(tput setaf 1)
 YELLOW=$(tput setaf 3)
 GREEN=$(tput setaf 2)
+clear
+#Check for Network Connectivity
+echo "Checking for Internet Connectivity"
+echo " "
+sleep 3
+# Function to check DNS resolution
+check_dns_resolution() {
+    local domain=$1
+    ping -c 1 $domain &> /dev/null
+    return $?
+}
+
+# Function to ping an address
+ping_address() {
+    local address=$1
+    ping -c 1 $address &> /dev/null
+    return $?
+}
+
+# Flag to track if any test fails
+test_failed=false
+
+# Check DNS resolution for google.com
+echo "Checking DNS resolution for google.com via ping..."
+if check_dns_resolution "google.com"; then
+    echo "DNS resolution for google.com is successful."
+else
+    echo "DNS resolution for google.com failed."
+    test_failed=true
+fi
+
+# Ping 8.8.8.8
+echo "Trying to ping 8.8.8.8..."
+if ping_address "8.8.8.8"; then
+    echo "Successfully reached 8.8.8.8."
+else
+    echo "Cannot reach 8.8.8.8."
+    test_failed=true
+fi
+
+# Provide final results summary
+echo
+echo "===== TEST RESULTS ====="
+echo "DNS Resolution for google.com: $(if check_dns_resolution "google.com"; then echo "${GREEN}Passed"${TEXTRESET}; else echo "${RED}Failed"${TEXTRESET}; fi)"
+echo "Ping to 8.8.8.8: $(if ping_address "8.8.8.8"; then echo "${GREEN}Passed"${TEXTRESET}; else echo "${RED}Failed"${TEXTRESET}; fi)"
+echo "========================"
+echo
+
+# Prompt the user only if any test fails
+if $test_failed; then
+    read -p "One or more tests failed. Do you want to continue the script? (y/n): " user_input
+    if [[ $user_input == "y" || $user_input == "Y" ]]; then
+        echo "Continuing the script with failures"
+        sleep 1
+        # Place additional script logic here
+    else
+        echo "Please make sure that you have full Connectivty to the Internet Before Proceeding."
+        exit 1
+    fi
+else
+    echo "All tests passed successfully."
+    sleep 3
+    # Continue with the script or exit as needed
+fi
+clear
+dnf -y install net-tools dmidecode
 INTERFACE=$(nmcli | grep "connected to" | cut -d " " -f4)
 DETECTIP=$(nmcli -f ipv4.method con show $INTERFACE)
 FQDN=$(hostname)
@@ -50,6 +114,7 @@ else
   exit
 fi
 clear
+
 #Detect Static or DHCP (IF not Static, change it)
 cat <<EOF
 Checking for static IP Address
@@ -60,68 +125,104 @@ if [ -z "$INTERFACE" ]; then
   "Usage: $0 <interface>"
   exit 1
 fi
+# Function to validate IP address in CIDR notation
+validate_cidr() {
+  local cidr=$1
+  local n="(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])"
+  local m="(3[0-2]|[1-2]?[0-9])"
+  [[ $cidr =~ ^$n(\.$n){3}/$m$ ]]
+}
+
+# Function to validate an IP address in dotted notation
+validate_ip() {
+  local ip=$1
+  local n="(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])"
+  [[ $ip =~ ^$n(\.$n){3}$ ]]
+}
+
+# Function to validate FQDN
+validate_fqdn() {
+  local fqdn=$1
+  [[ $fqdn =~ ^([a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$ ]]
+}
 
 if [ "$DETECTIP" = "ipv4.method:                            auto" ]; then
-  echo ${RED}"Interface $INTERFACE is using DHCP${TEXTRESET}"
-read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
-  while [ -z "$IPADDR" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+  while true; do
+    echo -e "${RED}Interface $INTERFACE is using DHCP${TEXTRESET}"
+
+    # Validate IPADDR
     read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
-  done
-  while [[ ! $IPADDR =~ ^$n(\.$n){3}/$m$ ]]; do
-    read -p ${RED}"The entry is not in valid CIDR notation. Please Try again:${TEXTRESET} " IPADDR
-done
-  read -p "Please Provide a Default Gateway Address: " GW
-  while [ -z "$GW" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-    read -p "Please Provide a Default Gateway Address: " GW
-  done
-  read -p "Please provide the FQDN for this machine: " HOSTNAME
-  while [ -z "$HOSTNAME" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    while ! validate_cidr "$IPADDR"; do
+      echo -e "${RED}The entry is not in valid CIDR notation. Please Try again${TEXTRESET}"
+      read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
+    done
+
+    # Validate GW
+    read -p "Please provide a Default Gateway Address: " GW
+    while ! validate_ip "$GW"; do
+      echo -e "${RED}The entry is not a valid IP address. Please Try again${TEXTRESET}"
+      read -p "Please provide a Default Gateway Address: " GW
+    done
+
+    # Validate HOSTNAME
     read -p "Please provide the FQDN for this machine: " HOSTNAME
-  done
-  read -p "Please provide an upstream DNS IP for resolution: " DNSSERVER
-  while [ -z "$DNSSERVER" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    while ! validate_fqdn "$HOSTNAME"; do
+      echo -e "${RED}The entry is not a valid FQDN. Please Try again${TEXTRESET}"
+      read -p "Please provide the FQDN for this machine: " HOSTNAME
+    done
+
+    # Validate DNSSERVER
     read -p "Please provide an upstream DNS IP for resolution: " DNSSERVER
-  done
-  read -p "Please provide the domain search name: " DNSSEARCH
-  while [ -z "$DNSSEARCH" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+    while ! validate_ip "$DNSSERVER"; do
+      echo -e "${RED}The entry is not a valid IP address. Please Try again${TEXTRESET}"
+      read -p "Please provide an upstream DNS IP for resolution: " DNSSERVER
+    done
+
+    # Validate DNSSEARCH
     read -p "Please provide the domain search name: " DNSSEARCH
-  done
-  clear
-  cat <<EOF
+    while [ -z "$DNSSEARCH" ]; do
+      echo -e "${RED}The response cannot be blank. Please Try again${TEXTRESET}"
+      read -p "Please provide the domain search name: " DNSSEARCH
+    done
+
+    clear
+    cat <<EOF
 The following changes to the system will be configured:
 IP address: ${GREEN}$IPADDR${TEXTRESET}
 Gateway: ${GREEN}$GW${TEXTRESET}
 DNS Search: ${GREEN}$DNSSEARCH${TEXTRESET}
 DNS Server: ${GREEN}$DNSSERVER${TEXTRESET}
 HOSTNAME: ${GREEN}$HOSTNAME${TEXTRESET}
-EOF
-  read -p "Press any Key to Continue"
-  nmcli con mod $INTERFACE ipv4.address $IPADDR
-  nmcli con mod $INTERFACE ipv4.gateway $GW
-  nmcli con mod $INTERFACE ipv4.method manual
-  nmcli con mod $INTERFACE ipv4.dns-search $DNSSEARCH
-  nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
-  hostnamectl set-hostname $HOSTNAME
-
-  cat <<EOF
-The System must reboot for the changes to take effect. 
-${RED}Please log back in as root.${TEXTRESET}
-The installer will continue when you log back in.
-If using SSH, please use the IP Address: $IPADDR 
 
 EOF
-  read -p "Press Any Key to Continue"
-  clear
-  echo "/root/ADDCInstaller/DCInstall.sh" >>/root/.bash_profile
-  reboot
-  exit
+
+    # Ask the user to confirm the changes
+    read -p "Are these settings correct? (y/n): " CONFIRM
+    if [ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ]; then
+      nmcli con mod $INTERFACE ipv4.address $IPADDR
+      nmcli con mod $INTERFACE ipv4.gateway $GW
+      nmcli con mod $INTERFACE ipv4.method manual
+      nmcli con mod $INTERFACE ipv4.dns-search $DNSSEARCH
+      nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
+      hostnamectl set-hostname $HOSTNAME
+      echo "/root/ADDCInstaller/DCInstall.sh" >>/root/.bash_profile
+      echo "The System must reboot for the changes to take effect."
+      echo "${RED}Please log back in as root.${TEXTRESET}"
+      echo "The installer will continue when you log back in."
+      echo "If using SSH, please use the IP Address: $IPADDR"
+      echo "${RED}Rebooting${TEXTRESET}"
+      sleep 2
+      reboot
+      break
+    else
+      echo -e "${RED}Reconfiguring Interface${TEXTRESET}"
+      sleep 2
+      clear
+    fi
+  done
 else
-  echo ${GREEN}"Interface $INTERFACE is using a static IP address ${TEXTRESET}"
+  echo -e "${GREEN}Interface $INTERFACE is using a static IP address${TEXTRESET}"
+  sleep 2
 fi
 clear
 if [ "$FQDN" = "localhost.localdomain" ]; then
@@ -135,21 +236,22 @@ EOF
     read -p "Please provide a valid FQDN for this machine: " HOSTNAME
   done
   hostnamectl set-hostname $HOSTNAME
-   cat <<EOF
-The System must reboot for the changes to take effect. 
+  cat <<EOF
+The System must reboot for the changes to take effect.
 ${RED}Please log back in as root.${TEXTRESET}
 The installer will continue when you log back in.
 If using SSH, please use the IP Address: ${NMCLIIP}
 
 EOF
-  read -p "Press Any Key to Continue"
+  read -p "Press Enter to Continue"
   clear
   echo "/root/ADDCInstaller/DCInstall.sh" >>/root/.bash_profile
   reboot
   exit
-  
+
 fi
-cat <<EOF
+clear
+cat  <<EOF
 *********************************************
 ${GREEN}This will Install the FIRST AD Server and build a new Forest/Domain${TEXTRESET}
 
@@ -170,7 +272,7 @@ read -p "Press Any Key to Continue or Ctrl-C to exit the Installer"
 clear
 
 cat <<EOF
-${GREEN}Samba AD/DC Setup${TEXTRESET}
+${GREEN}Samba AD/DC Password Setup${TEXTRESET}
 
 The Administrator Domain Password should meet the following requirements:
 -At least 8 characters
@@ -224,13 +326,46 @@ sleep 1
 done
 
 clear
+# Function to validate CIDR format
+validate_cidr() {
+    local cidr="$1"
+    # Check if the input matches the CIDR format
+    if [[ $cidr =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
+        # Extract the IP part and the prefix length
+        local ip="${cidr%/*}"
+        local prefix="${cidr#*/}"
+        # Check if the IP is a valid network address (last octet should be 0 for /24, /16, etc.)
+        local oIFS="$IFS"
+        IFS='.' read -r -a octets <<< "$ip"
+        IFS="$oIFS"
+        # Calculate the subnet mask
+        local mask=$((0xFFFFFFFF << (32 - prefix) & 0xFFFFFFFF))
+        # Calculate the network address
+        local network=$(((octets[0] << 24) + (octets[1] << 16) + (octets[2] << 8) + octets[3]))
+        if (( (network & mask) == network )); then
+            return 0
+        fi
+    fi
+    return 1
+}
+cat <<EOF
+${GREEN}NTP Setup${TEXTRESET}
 
+EOF
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
-while [ -z "$NTPCIDR" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-     read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
-  done
+
+# Validate the input
+while ! validate_cidr "$NTPCIDR"; do
+    echo -e "${RED}Invalid input. Please enter a valid network address in CIDR format.${TEXTRESET}"
+    read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
+done
+echo "Valid network scope provided: $NTPCIDR"
+echo ${GREEN}Saving and Restarting Service${TEXTRESET}
+sed -i "/#allow /c\allow $NTPCIDR" /etc/chrony.conf
+systemctl restart chronyd
+sleep 2
 clear
+
 #OPTIONAL DHCP Installation
 cat <<EOF
 ${GREEN}DHCP Server Setup${TEXTRESET}
