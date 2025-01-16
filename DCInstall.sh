@@ -556,6 +556,7 @@ NTP: ${GREEN}${IP}${TEXTRESET}
 DOMAIN NAME: ${GREEN}${DHCPNSNAME}${TEXTRESET}
 DOMAIN SEARCH: ${GREEN}${DHCPNSNAME}${TEXTRESET}
 EOF
+read -p "Press Enter"
 
   #Configure DHCP
   mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
