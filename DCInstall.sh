@@ -545,7 +545,8 @@ while true; do
 done
 
 cat <<EOF
-The Install will configure DHCP with these settings:
+
+The script will configure DHCP with these settings:
 SUBNET:${GREEN}$NETWORK${TEXTRESET}
 BEGINNING IP RANGE:${GREEN}$DHCPBEGIP${TEXTRESET}
 ENDING IP RANGE: ${GREEN}$DHCPENDIP${TEXTRESET}
