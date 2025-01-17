@@ -749,7 +749,7 @@ setsebool -P samba_create_home_dirs=on \
   use_samba_home_dirs=on
 #Apply Firewall Rules
 cat <<EOF
-Updating Firewall Rules
+${GREEN}Updating Firewall Rules${TEXTRESET}
 EOF
 firewall-cmd --permanent --add-service samba-dc
 firewall-cmd --permanent --add-service ntp
