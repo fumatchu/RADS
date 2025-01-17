@@ -846,7 +846,7 @@ Kernel \r on an \m
 Hostname: \n
 IP Address: \4
 EOF
-
+read -p "Press Enter"
 #Run tests to validate Samba Install
 cat <<EOF
 ${GREEN}Validation${TEXTRESET}
