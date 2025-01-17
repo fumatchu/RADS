@@ -694,16 +694,52 @@ sed -i '/server /c\pool 2.rocky.pool.ntp.org iburst' /etc/chrony.conf
 sed -i "/#allow /c\allow $NTPCIDR" /etc/chrony.conf
 systemctl restart chronyd
 clear
-echo ${RED}"Syncronizing time, Please wait${TEXTRESET}"
+echo ${YELLOW}"Syncronizing time, Please wait${TEXTRESET}"
 sleep 10s
 clear
 chronyc tracking
-cat <<EOF
-${GREEN}We should be syncing time${TEXTRESET}
 
-The Installer will continue in a moment or Press Ctrl-C to Exit
-EOF
-sleep 5s
+# Function to check if the system time is synchronized
+check_time_sync() {
+  # Run the chronyc tracking command and capture the output
+  output=$(chronyc tracking)
+
+  # Check if the output indicates the time is synchronized
+  if echo "$output" | grep -q "Leap status     : Normal"; then
+    echo ${GREEN}"The system time is synchronized."${TEXTRESET}
+    return 0
+  else
+    echo ${RED}"The system time is NOT synchronized"${TEXTRESET}
+    return 1
+  fi
+}
+
+# Execute the function
+check_time_sync
+
+# Check the result and prompt the user if not synchronized
+if [ $? -ne 0 ]; then
+  echo ""
+  while true; do
+    read -p "Do you want to continue with the installation? (yes/no): " user_response
+    case $user_response in
+      [Yy][Ee][Ss]|[Yy])
+        echo ${GREEN}"Continuing with the installation..."${TEXTRESET}
+        break
+        ;;
+      [Nn][Oo]|[Nn])
+        echo ${RED}"Installation aborted due to unsynchronized time."${TEXTRESET}
+        exit 1
+        ;;
+      *)
+        echo "Please enter yes or no."
+        ;;
+    esac
+  done
+fi
+sleep 2
+
+
 clear
 #Set selinux contexts
 setsebool -P samba_create_home_dirs=on \
