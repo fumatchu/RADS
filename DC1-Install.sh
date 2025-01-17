@@ -231,7 +231,7 @@ EOF
       nmcli con mod $INTERFACE ipv4.dns-search $DNSSEARCH
       nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
       hostnamectl set-hostname $HOSTNAME
-      echo "/root/ADDCInstaller/DCInstall.sh" >>/root/.bash_profile
+      echo "/root/ADDCInstaller/DC1-Install.sh" >>/root/.bash_profile
       echo "The System must reboot for the changes to take effect."
       echo "${RED}Please log back in as root.${TEXTRESET}"
       echo "The installer will continue when you log back in."
@@ -298,7 +298,7 @@ If using SSH, please use the IP Address: ${NMCLIIP}
 EOF
   read -p "Press Enter to Continue"
   clear
-  echo "/root/ADDCInstaller/DCInstall.sh" >>/root/.bash_profile
+  echo "/root/ADDCInstaller/DC1-Install.sh" >>/root/.bash_profile
   reboot
   exit
 
