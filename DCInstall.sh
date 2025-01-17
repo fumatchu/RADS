@@ -399,9 +399,6 @@ if [ -n "$inet4_line" ]; then
   # Extract the IP and CIDR
   INET4=$(echo "$inet4_line" | cut -d'/' -f1)
   DHCPCIDR=$(echo "$inet4_line" | cut -d'/' -f2)
-  # Output the results
-  echo "INET4 Address: $INET4"
-  echo "DHCPCIDR: $DHCPCIDR"
 else
   echo "No inet4 address found for interface $active_interface."
   echo "Exiting"
