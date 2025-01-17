@@ -1,12 +1,77 @@
 #!/bin/bash
 #DC1-install.sh
 #This script installs ANY ADDITIONAL INSTANCE of Samba AD (Secondary/Tertiary Server) with DC support using mock from Upstream Rocky REPO via src.rpm
-clear
-dnf -y install net-tools dmidecode
 TEXTRESET=$(tput sgr0)
 RED=$(tput setaf 1)
 YELLOW=$(tput setaf 3)
 GREEN=$(tput setaf 2)
+clear
+#Check for Network Connectivity
+echo "Checking for Internet Connectivity"
+echo " "
+sleep 3
+# Function to check DNS resolution
+check_dns_resolution() {
+    local domain=$1
+    ping -c 1 $domain &> /dev/null
+    return $?
+}
+
+# Function to ping an address
+ping_address() {
+    local address=$1
+    ping -c 1 $address &> /dev/null
+    return $?
+}
+
+# Flag to track if any test fails
+test_failed=false
+
+# Check DNS resolution for google.com
+echo "Checking DNS resolution for google.com via ping..."
+if check_dns_resolution "google.com"; then
+    echo "DNS resolution for google.com is successful."
+else
+    echo "DNS resolution for google.com failed."
+    test_failed=true
+fi
+
+# Ping 8.8.8.8
+echo "Trying to ping 8.8.8.8..."
+if ping_address "8.8.8.8"; then
+    echo "Successfully reached 8.8.8.8."
+else
+    echo "Cannot reach 8.8.8.8."
+    test_failed=true
+fi
+
+# Provide final results summary
+echo
+echo "===== TEST RESULTS ====="
+echo "DNS Resolution for google.com: $(if check_dns_resolution "google.com"; then echo "${GREEN}Passed"${TEXTRESET}; else echo "${RED}Failed"${TEXTRESET}; fi)"
+echo "Ping to 8.8.8.8: $(if ping_address "8.8.8.8"; then echo "${GREEN}Passed"${TEXTRESET}; else echo "${RED}Failed"${TEXTRESET}; fi)"
+echo "========================"
+echo
+
+# Prompt the user only if any test fails
+if $test_failed; then
+    read -p "One or more tests failed. Do you want to continue the script? (y/n): " user_input
+    if [[ $user_input == "y" || $user_input == "Y" ]]; then
+        echo "Continuing the script with failures"
+        sleep 1
+        # Place additional script logic here
+    else
+        echo "Please make sure that you have full Connectivty to the Internet Before Proceeding."
+        exit 1
+    fi
+else
+    echo "All tests passed successfully."
+    sleep 3
+    # Continue with the script or exit as needed
+fi
+clear
+dnf -y install net-tools dmidecode ipcalc
+
 INTERFACE=$(nmcli | grep "connected to" | cut -d " " -f4)
 DETECTIP=$(nmcli -f ipv4.method con show $INTERFACE)
 FQDN=$(hostname)
