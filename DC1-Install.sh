@@ -198,14 +198,14 @@ done
 
 
     # Validate DNSSERVER
-    read -p "Please provide an upstream DNS IP for resolution: " DNSSERVER
+    read -p "Please provide the IP Address of your Pre-existing Domain Controller for name resolution: " DNSSERVER
     while ! validate_ip "$DNSSERVER"; do
       echo -e "${RED}The entry is not a valid IP address. Please Try again${TEXTRESET}"
       read -p "Please provide an upstream DNS IP for resolution: " DNSSERVER
     done
 
     # Validate DNSSEARCH
-    read -p "Please provide the domain search name: " DNSSEARCH
+    read -p "Please provide the domain search name of your Active Directory: " DNSSEARCH
     while [ -z "$DNSSEARCH" ]; do
       echo -e "${RED}The response cannot be blank. Please Try again${TEXTRESET}"
       read -p "Please provide the domain search name: " DNSSEARCH
