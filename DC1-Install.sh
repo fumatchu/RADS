@@ -333,13 +333,45 @@ EOF
     echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
      read -p "Please provide the (pre-existing) AD Server FQDN that we will use to join the (pre-existing) domain: " ADDC
   done
+clear
+# Function to validate CIDR format
+validate_cidr() {
+    local cidr="$1"
+    # Check if the input matches the CIDR format
+    if [[ $cidr =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
+        # Extract the IP part and the prefix length
+        local ip="${cidr%/*}"
+        local prefix="${cidr#*/}"
+        # Check if the IP is a valid network address (last octet should be 0 for /24, /16, etc.)
+        local oIFS="$IFS"
+        IFS='.' read -r -a octets <<< "$ip"
+        IFS="$oIFS"
+        # Calculate the subnet mask
+        local mask=$((0xFFFFFFFF << (32 - prefix) & 0xFFFFFFFF))
+        # Calculate the network address
+        local network=$(((octets[0] << 24) + (octets[1] << 16) + (octets[2] << 8) + octets[3]))
+        if (( (network & mask) == network )); then
+            return 0
+        fi
+    fi
+    return 1
+}
+cat <<EOF
+${GREEN}NTP Setup${TEXTRESET}
 
+EOF
 read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
-while [ -z "$NTPCIDR" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-     read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
-  done
-  
+
+# Validate the input
+while ! validate_cidr "$NTPCIDR"; do
+    echo -e "${RED}Invalid input. Please enter a valid network address in CIDR format.${TEXTRESET}"
+    read -p "Please provide the appropriate network scope in CIDR format (i.e 192.168.0.0/16) to allow NTP for clients: " NTPCIDR
+done
+echo "Valid network scope provided: $NTPCIDR"
+echo ${GREEN}Saving and Restarting Service${TEXTRESET}
+sed -i "/#allow /c\allow $NTPCIDR" /etc/chrony.conf
+systemctl restart chronyd
+sleep 2
 clear
 #OPTIONAL DHCP Installation
 cat <<EOF
@@ -360,33 +392,202 @@ if [[ "$REPLY" =~ ^[Yy]$ ]]; then
   firewall-cmd --zone=public --add-service dhcp --permanent
   clear
 
-   read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
-  while [ -z "$DHCPBEGIP" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-    read -p "Please provide the beginning IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPBEGIP
+# Get the first active network interface
+active_interface=$(nmcli -t -f DEVICE,STATE device status | grep ':connected' | cut -d: -f1 | head -n 1)
+if [ -z "$active_interface" ]; then
+  echo "No active network interface found."
+  echo "Exiting"
+  exit 1
+fi
+
+# Extract the inet4 address for the active interface
+inet4_line=$(nmcli -g IP4.ADDRESS device show "$active_interface" | head -n 1)
+if [ -n "$inet4_line" ]; then
+  # Extract the IP and CIDR
+  INET4=$(echo "$inet4_line" | cut -d'/' -f1)
+  DHCPCIDR=$(echo "$inet4_line" | cut -d'/' -f2)
+else
+  echo "No inet4 address found for interface $active_interface."
+  echo "Exiting"
+  exit
+fi
+
+# Function to calculate the network address
+calculateNetworkAddress() {
+  local ip=$1
+  local cidr=$2
+  local mask=$(( 0xFFFFFFFF << (32 - cidr) ))
+  local ipnum=$(ipToNumber "$ip")
+  local netnum=$(( ipnum & mask ))
+  echo "$(( (netnum >> 24) & 0xFF )).$(( (netnum >> 16) & 0xFF )).$(( (netnum >> 8) & 0xFF )).$(( netnum & 0xFF ))"
+}
+
+# Function to calculate the broadcast address
+calculateBroadcastAddress() {
+  local ip=$1
+  local cidr=$2
+  local mask=$(( 0xFFFFFFFF << (32 - cidr) ))
+  local ipnum=$(ipToNumber "$ip")
+  local broadcastnum=$(( ipnum | ~mask ))
+  echo "$(( (broadcastnum >> 24) & 0xFF )).$(( (broadcastnum >> 16) & 0xFF )).$(( (broadcastnum >> 8) & 0xFF )).$(( broadcastnum & 0xFF ))"
+}
+# Function to convert IP address to a number
+ipToNumber() {
+  local ip=$1
+  IFS=. read -r o1 o2 o3 o4 <<< "$ip"
+  echo $(( (o1 << 24) + (o2 << 16) + (o3 << 8) + o4 ))
+}
+# Calculate network and broadcast addresses
+NETWORK=$(calculateNetworkAddress "$INET4" "$DHCPCIDR")
+BROADCAST=$(calculateBroadcastAddress "$INET4" "$DHCPCIDR")
+
+# Function to check if an IP is within a network range
+isIPInRange() {
+  local ip=$1
+  local networknum=$(ipToNumber "$NETWORK")
+  local broadcastnum=$(ipToNumber "$BROADCAST")
+  local ipnum=$(ipToNumber "$ip")
+  [[ $ipnum -ge $networknum && $ipnum -le $broadcastnum ]]
+}
+  # Function to validate IP address format
+isValidIP() {
+    local ip=$1
+    # Regular expression to match valid IPv4 address
+    [[ $ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || return 1
+
+    # Check if each octet is less than or equal to 255
+    IFS=. read -r o1 o2 o3 o4 <<< "$ip"
+    (( o1 <= 255 && o2 <= 255 && o3 <= 255 && o4 <= 255 )) || return 1
+
+    return 0
+}
+# Function to validate netmask format
+isValidNetmask() {
+    local netmask=$1
+    # List of valid netmask values
+    local valid_netmasks=(
+        "255.255.255.255" "255.255.255.254" "255.255.255.252" "255.255.255.248"
+        "255.255.255.240" "255.255.255.224" "255.255.255.192" "255.255.255.128"
+        "255.255.255.0"   "255.255.254.0"   "255.255.252.0"   "255.255.248.0"
+        "255.255.240.0"   "255.255.224.0"   "255.255.192.0"   "255.255.128.0"
+        "255.255.0.0"     "255.254.0.0"     "255.252.0.0"     "255.248.0.0"
+        "255.240.0.0"     "255.224.0.0"     "255.192.0.0"     "255.128.0.0"
+        "255.0.0.0"       "254.0.0.0"       "252.0.0.0"       "248.0.0.0"
+        "240.0.0.0"       "224.0.0.0"       "192.0.0.0"       "128.0.0.0"
+        "0.0.0.0"
+    )
+    
+    for valid in "${valid_netmasks[@]}"; do
+        if [[ "$netmask" == "$valid" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# Function to validate the user inputs
+validate_input() {
+  # Prompt user for beginning IP address and validate
+  while true; do
+     echo ${GREEN}Configure DHCP Scope${TEXTRESET}
+     read -p "Please provide the beginning IP address in the lease range (based on the network $NETWORK): " DHCPBEGIP
+    if [ -z "$DHCPBEGIP" ]; then
+      echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
+    elif ! isValidIP "$DHCPBEGIP"; then
+      echo -e "${RED}Invalid IP format. Please provide a valid IP address.${TEXTRESET}"
+    elif ! isIPInRange "$DHCPBEGIP"; then
+      echo -e "${RED}IP is not within the network range $NETWORK/$DHCPCIDR. Please provide a valid IP address.${TEXTRESET}"
+    else
+      break
+    fi
   done
 
-  read -p "Please provide the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
-  while [ -z "$DHCPENDIP" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-    read -p "Please provide the ending IP address in the lease range (based on the network $SUBNETNETWORK): " DHCPENDIP
+  # Prompt user for ending IP address and validate
+  while true; do
+    read -p "Please provide the ending IP address in the lease range (based on the network $NETWORK): " DHCPENDIP
+    if [ -z "$DHCPENDIP" ]; then
+      echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
+    elif ! isValidIP "$DHCPENDIP"; then
+      echo -e "${RED}Invalid IP format. Please provide a valid IP address.${TEXTRESET}"
+    elif ! isIPInRange "$DHCPENDIP"; then
+      echo -e "${RED}IP is not within the network range $NETWORK/$DHCPCIDR. Please provide a valid IP address.${TEXTRESET}"
+    else
+      break
+    fi
   done
-   read -p "Please provide the netmask for clients: " DHCPNETMASK
-  while [ -z "$DHCPNETMASK" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-    read -p "Please provide the default netmask for clients: " DHCPNETMASK
+
+  # Prompt user for netmask and validate
+  while true; do
+    read -p "Please provide the netmask for clients: " DHCPNETMASK
+    if [ -z "$DHCPNETMASK" ]; then
+      echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
+    elif ! isValidNetmask "$DHCPNETMASK"; then
+      echo -e "${RED}Invalid netmask format. Please provide a valid netmask (e.g., 255.255.255.0).${TEXTRESET}"
+    else
+      break
+    fi
   done
-  read -p "Please provide the default gateway for clients: " DHCPDEFGW
-  while [ -z "$DHCPDEFGW" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+
+  # Prompt user for default gateway and validate
+  while true; do
     read -p "Please provide the default gateway for clients: " DHCPDEFGW
+    if [ -z "$DHCPDEFGW" ]; then
+      echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
+    elif ! isValidIP "$DHCPDEFGW"; then
+      echo -e "${RED}Invalid IP format. Please provide a valid IP address.${TEXTRESET}"
+    else
+      break
+    fi
   done
 
-  read -p "Please provide a description for this subnet: " SUBNETDESC
-  while [ -z "$SUBNETDESC" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-     read -p "Please provide a description for this subnet: " SUBNETDESC
+  # Prompt user for subnet description and ensure it's not blank
+  while true; do
+    read -p "Please provide a description for this subnet: " SUBNETDESC
+    if [ -z "$SUBNETDESC" ]; then
+      echo -e "${RED}The response cannot be blank. Please try again.${TEXTRESET}"
+    else
+      break
+    fi
   done
+}
+
+# Main loop to ask for settings and confirmation
+while true; do
+  # Gather user input
+  validate_input
+
+  # Display the configuration
+clear
+  cat <<EOF
+The script will configure DHCP with these settings:
+
+SUBNET: ${GREEN}$NETWORK${TEXTRESET}
+BEGINNING IP RANGE: ${GREEN}$DHCPBEGIP${TEXTRESET}
+ENDING IP RANGE: ${GREEN}$DHCPENDIP${TEXTRESET}
+NETMASK: ${GREEN}$DHCPNETMASK${TEXTRESET}
+DEFAULT GW: ${GREEN}$DHCPDEFGW${TEXTRESET}
+SCOPE FRIENDLY NAME: ${GREEN}$SUBNETDESC${TEXTRESET}
+NTP: ${GREEN}${IP}${TEXTRESET}
+DOMAIN NAME: ${GREEN}${DHCPNSNAME}${TEXTRESET}
+DOMAIN SEARCH: ${GREEN}${DHCPNSNAME}${TEXTRESET}
+
+EOF
+
+  # Ask the user if the settings are okay
+  read -p "Are these settings correct? (yes/no): " CONFIRM
+  if [[ "$CONFIRM" =~ ^[Yy][Ee][Ss]$ || "$CONFIRM" =~ ^[Yy]$ ]]; then
+    echo " "
+    echo ${GREEN}"Deploying DHCP Server"${TEXTRESET}
+    sleep 1
+    break
+  else
+    echo " "
+    echo ${GREEN}"Re-Running DHCP Scope Creation"${TEXTRESET}
+    sleep 1
+    clear 
+  fi
+done
 
   #Configure DHCP
   mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig
@@ -409,11 +610,32 @@ subnet ${SUBNETNETWORK} netmask ${DHCPNETMASK} {
         option routers ${DHCPDEFGW};
 }
 EOF
-
+echo ${GREEN}"Starting DHCP Services"${TEXTRESET}
   systemctl enable dhcpd
   systemctl start dhcpd
 
 fi
+# Define the service name
+SERVICE_NAME="dhcpd"
+
+# Function to check the status of the DHCP service
+check_dhcp_service() {
+  # Check if the service is active
+  if systemctl is-active --quiet "$SERVICE_NAME"; then
+    echo ${GREEN}"The DHCP service ($SERVICE_NAME) is running."${TEXTRESET}
+    return 0
+  else
+    echo ${RED}"The DHCP service ($SERVICE_NAME) is NOT running."${TEXTRESET}
+    echo "Please validate your configuration before expecting DHCP to Service clients"
+    read -p "Press Enter"
+    return 1
+  fi
+}
+
+# Execute the function
+check_dhcp_service
+
+sleep 2
 
 clear
 #Add option for cockpit install
