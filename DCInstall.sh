@@ -795,10 +795,23 @@ dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
 #Move smb.conf file
 mv -f /etc/samba/smb.conf /etc/samba/smb.bak.orig
 #Provision Domain
+# Function to check for "ERROR" in the output
+check_for_error() {
+  while IFS= read -r line; do
+    echo "$line"
+    if echo "$line" | grep -q "ERROR"; then
+      echo "Error detected in samba-tool output. Stopping the script."
+      exit 1
+    fi
+  done
+}
+
+# Run the samba-tool domain provision command and monitor for errors
 samba-tool domain provision \
   --realm="$DOMAIN" \
   --domain="$ADDOMAIN" \
-  --adminpass="$ADMINPASS"
+  --adminpass="$ADMINPASS" | check_for_error
+echo "Domain provisioned successfully. Continuing with the rest of the script."
 
 #Copy KDC:
 \cp -rf /var/lib/samba/private/krb5.conf /etc/krb5.conf
