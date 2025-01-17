@@ -165,11 +165,38 @@ if [ "$DETECTIP" = "ipv4.method:                            auto" ]; then
     done
 
     # Validate HOSTNAME
-    read -p "Please provide the FQDN for this machine: " HOSTNAME
-    while ! validate_fqdn "$HOSTNAME"; do
-      echo -e "${RED}The entry is not a valid FQDN. Please Try again${TEXTRESET}"
-      read -p "Please provide the FQDN for this machine: " HOSTNAME
-    done
+    validate_fqdn() {
+  local fqdn="$1"
+
+  # Check if the FQDN is valid using a regular expression
+  if [[ "$fqdn" =~ ^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$ ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+check_hostname_in_domain() {
+  local fqdn="$1"
+  local hostname="${fqdn%%.*}"
+  local domain="${fqdn#*.}"
+
+  # Check if the hostname is not the same as any part of the domain
+  if [[ "$domain" =~ (^|\.)"$hostname"(\.|$) ]]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
+read -p "Please provide the FQDN for this machine: " HOSTNAME
+
+while ! validate_fqdn "$HOSTNAME" || ! check_hostname_in_domain "$HOSTNAME"; do
+  echo -e "${RED}The entry is not a valid FQDN, or the hostname is repeated in the domain name. Please Try again${TEXTRESET}"
+  read -p "Please provide the FQDN for this machine: " HOSTNAME
+done
+
+echo "The FQDN is valid and does not have the hostname repeated in the domain."
 
     # Validate DNSSERVER
     read -p "Please provide an upstream DNS IP for resolution: " DNSSERVER
