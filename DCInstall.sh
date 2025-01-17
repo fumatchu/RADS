@@ -911,9 +911,10 @@ ${GREEN}Validation${TEXTRESET}
 
 The server will now test 
   -Kerberos (Ticket)
+  -Authenticated Logins
   -DNS SRV Records 
   -Anonymous Logins
-  -Authenticated Logins
+  
 
 
 
@@ -930,8 +931,42 @@ echo ${GREEN}
 klist
 echo ${TEXTRESET}
 echo "The Installer will continue in a moment or Press Ctrl-C to Exit"
-sleep 10s
+sleep 5s
 clear
+
+cat <<EOF
+${GREEN}Verifying Authentication Login:${TEXTRESET}
+EOF
+# Function to check the status of the Samba service
+check_samba_service() {
+  echo "Checking Samba service status..."
+  samba_status=$(systemctl is-active samba)
+  if [ "$samba_status" = "active" ]; then
+    echo "Samba service is running."
+    return 0
+  else
+    echo "${RED}Error:${TEXTRESET} Samba service is not running. Status: $samba_status"
+    return 1
+  fi
+}
+
+# Function to attempt connection using smbclient
+attempt_connection() {
+  echo "Attempting to connect to //localhost/netlogon with user Administrator..."
+  smbclient //localhost/netlogon -UAdministrator -c 'ls'
+  sleep 4
+}
+
+# Main script execution
+if check_samba_service; then
+  # If the service is running, prompt the user to attempt the connection
+  attempt_connection
+else
+  echo "${RED}Error:${TEXTRESET} Authenticated logins are not available because the Samba service is not running."
+  exit 1
+fi
+clear
+
 
 cat <<EOF
 ${GREEN}Checking DNS SRV Records${TEXTRESET}
@@ -1008,18 +1043,36 @@ clear
 
 cat <<EOF
 ${GREEN}Testing anonymous Logins to the server${TEXTRESET}
+
 EOF
-smbclient -L localhost -N
-sleep 8s
+# Run the smbclient command
+output=$(smbclient -L localhost -N 2>&1)
+
+# Check for success or specific failure
+if echo "$output" | grep -q "Anonymous login successful"; then
+  echo "${GREEN}Success:${TEXTRESET} Anonymous login successful."
+  sleep 5
+  # Continue with further operations if needed
+  # Add further operations or commands here
+else
+  echo "${RED}Error:${TEXTRESET} Anonymous logins are not available."
+  echo "Error details: $output"
+
+  # Check the status of the Samba service
+  echo "Checking Samba service status..."
+  samba_status=$(systemctl is-active samba)
+  if [ "$samba_status" = "active" ]; then
+    echo ${GREEN}"Samba service is running."${TEXTRESET}
+  else
+    echo ${YELLOW}"Samba service is not running.${TEXTRESET} Status: ${RED}$samba_status"${TEXTRESET}
+  fi
+
+  exit 1
+fi
 clear
 
-cat <<EOF
-${GREEN}Verifying Authentication Login:${TEXTRESET}
-EOF
-smbclient //localhost/netlogon -UAdministrator -c 'ls'
-sleep 8
-clear
-echo "If all tests returned valid, installation is successful"
+
+echo ${GREEN}"Installation is successful"${TEXTRESET}
 sleep 4
 clear
 
