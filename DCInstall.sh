@@ -936,43 +936,74 @@ clear
 cat <<EOF
 ${GREEN}Checking DNS SRV Records${TEXTRESET}
 
-Testing _ldap._tcp
-Example Result:
-${YELLOW}_ldap._tcp.samdom.example.com has SRV record 0 100 389 dc1.samdom.example.com.${TEXTRESET}
-
-The actual result is:
 EOF
-echo ${GREEN}
-host -t SRV _ldap._tcp.${DOMAIN}.
-echo ${TEXTRESET}
 
-cat <<EOF
-Testing _udp kerberos
-Example Result:
-${YELLOW}_kerberos._udp.samdom.example.com has SRV record 0 100 88 dc1.samdom.example.com.${TEXTRESET}
+# Validate that the server can resolve SRV records
+echo "${GREEN}Setting up Query for SRV records${TEXTRESET}"
+sleep 1
+host -t SRV _ldap._tcp."${DOMAIN}"
+host -t SRV _kerberos._udp."${DOMAIN}"
+host -t A "${FQDN}"
 
-The actual result is:
-EOF
-echo ${GREEN}
-host -t SRV _kerberos._udp.${DOMAIN}.
-echo ${TEXTRESET}
+# Extract hostname from FQDN
+hostname_part=$(echo "$FQDN" | cut -d '.' -f 1)
 
-cat <<EOF
+# Function to extract the target hostnames from SRV records
+get_srv_hostnames() {
+  local srv_records=$1
+  echo "$srv_records" | awk '{print $NF}' | cut -d '.' -f 1 # Get the last field and extract the hostname part
+}
 
-Testing A Record of Domain Controller
-Example Result:
-${YELLOW}dc1.samdom.example.com has address 10.99.0.1${TEXTRESET}
+# Get SRV records for LDAP and Kerberos
+ldap_srv=$(host -t SRV _ldap._tcp."$DOMAIN")
+kerberos_srv=$(host -t SRV _kerberos._udp."$DOMAIN")
 
-The actual result is:
-EOF
-echo ${GREEN}
-host -t A $FQDN.
-echo ${TEXTRESET}
-cat <<EOF
+# Extract target hostnames from SRV records
+ldap_hostnames=$(get_srv_hostnames "$ldap_srv")
+kerberos_hostnames=$(get_srv_hostnames "$kerberos_srv")
 
-The Installer will continue in a moment or Press Ctrl-C to Exit
-EOF
-sleep 20s
+# Function to check if at least one hostname matches
+check_any_hostnames_match() {
+  local hostnames=$1
+  local hostname=$2
+  for hn in $hostnames; do
+    if [ "$hn" == "$hostname" ]; then
+      echo "At least one hostname matches: ${GREEN}$hn${TEXTRESET}"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Check if any LDAP or Kerberos hostnames match the hostname part of FQDN
+if check_any_hostnames_match "$ldap_hostnames" "$hostname_part" || check_any_hostnames_match "$kerberos_hostnames" "$hostname_part"; then
+  echo "${GREEN}Success:${TEXTRESET} Hostname from SRV record matches.."
+  echo ${YELLOW}"AD is resolvable"${TEXTRESET}
+  echo "Proceeding..."
+  sleep 5
+  exit_status=0
+else
+  echo "${RED}Error:${TEXTRESET} No hostnames from SRV records match the hostname part of FQDN. The Samba service has failed to start or DNS is not configured correctly."
+  echo "AD Failed to resolve. Make sure the Samba service is running and that the DNS entry on this server is pointed to the local interface (Not loopback)."
+  
+  # Check the status of the Samba service
+  echo "Checking Samba service status..."
+  samba_status=$(systemctl is-active samba)
+  if [ "$samba_status" = "active" ]; then
+    echo ${GREEN}"Samba service is running."${TEXTRESET}
+  else
+    echo ${RED}"Samba service is not running. Status: $samba_status"${TEXTRESET}
+  fi
+
+  # Check DNS server entry
+  echo "Checking DNS server entry using nmcli..."
+  dns_entry=$(nmcli dev show | grep DNS)
+  echo "DNS server entries:"
+  echo ${YELLOW}"$dns_entry"${TEXTRESET}
+
+  exit 1
+fi
+
 clear
 
 cat <<EOF
