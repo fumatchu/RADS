@@ -365,7 +365,7 @@ while true; do
       continue
     fi
   else
-    echo -e "${GREEN}Ping successful. Continuing...${TEXTRESET}"
+    echo -e "${GREEN}Ping successful.${TEXTRESET}"
   fi
 
   # Extract the domain from the FQDN
@@ -376,7 +376,7 @@ while true; do
   if echo "$LDAP_SRV" | grep -q "$ADDC"; then
     echo -e "${GREEN}The server '$ADDC' is listed in the LDAP SRV records.${TEXTRESET}"
   else
-    echo -e "${RED}The server '$ADDC' is NOT listed in the LDAP SRV records.${TEXTRESET}"
+    echo -e "${GREEN}The server '$ADDC' is NOT listed in the LDAP SRV records.${TEXTRESET}"
     read -p "Would you like to try again? (y/n): " TRY_AGAIN
     if [[ "$TRY_AGAIN" != "y" ]]; then
       exit 1
@@ -402,6 +402,8 @@ while true; do
 #  clear
   break
 done
+sleep 2
+clear
 # Function to validate CIDR format
 validate_cidr() {
     local cidr="$1"
