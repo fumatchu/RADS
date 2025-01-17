@@ -773,7 +773,24 @@ dnf -y update
 dnf install epel-release createrepo -y
 crb enable
 dnf install mock -y
+
 dnf download samba --source
+# Validate the downloaded RPM file
+if ls /root/samba-*.rpm 1> /dev/null 2>&1; then
+          echo ${GREEN}"Samba RPM file found. Continuing with the script..."${TEXTRESET}
+else
+          echo ${RED}"The Samba source rpm file did not download correctly. Please check your network settings."${TEXTRESET}
+          
+# Check DNS resolution
+if nslookup google.com > /dev/null 2>&1; then
+        echo ${GREEN}"DNS is operational."${TEXTRESET}
+else
+         echo ${RED}"DNS is not operational. Please check your DNS settings."${TEXTRESET}
+fi
+          
+        exit 
+fi
+
 mock -r rocky-"$MAJOROS"-x86_64 --enablerepo=devel --define 'dist .el'"$MAJOROS"'_'"$MINOROS"'.dc' --with dc "$MOCKSMBVER"src.rpm
 mkdir /root/.samba
 cp /var/lib/mock/rocky-"$MAJOROS"-x86_64/result/*.rpm /root/.samba
