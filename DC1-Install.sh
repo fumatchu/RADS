@@ -125,93 +125,184 @@ if [ -z "$INTERFACE" ]; then
   "Usage: $0 <interface>"
   exit 1
 fi
+# Function to validate IP address in CIDR notation
+validate_cidr() {
+  local cidr=$1
+  local n="(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])"
+  local m="(3[0-2]|[1-2]?[0-9])"
+  [[ $cidr =~ ^$n(\.$n){3}/$m$ ]]
+}
+
+# Function to validate an IP address in dotted notation
+validate_ip() {
+  local ip=$1
+  local n="(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])"
+  [[ $ip =~ ^$n(\.$n){3}$ ]]
+}
+
+# Function to validate FQDN
+validate_fqdn() {
+  local fqdn=$1
+  [[ $fqdn =~ ^([a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$ ]]
+}
 
 if [ "$DETECTIP" = "ipv4.method:                            auto" ]; then
-  echo ${RED}"Interface $INTERFACE is using DHCP${TEXTRESET}"
- read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
-  while [ -z "$IPADDR" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+  while true; do
+    echo -e "${RED}Interface $INTERFACE is using DHCP${TEXTRESET}"
+
+    # Validate IPADDR
     read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
-  done
-  while [[ ! $IPADDR =~ ^$n(\.$n){3}/$m$ ]]; do
-    read -p ${RED}"The entry is not in valid CIDR notation. Please Try again:${TEXTRESET} " IPADDR
-done
-  read -p "Please Provide a Default Gateway Address: " GW
-  while [ -z "$GW" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-    read -p "Please Provide a Default Gateway Address: " GW
-  done
+    while ! validate_cidr "$IPADDR"; do
+      echo -e "${RED}The entry is not in valid CIDR notation. Please Try again${TEXTRESET}"
+      read -p "Please provide a static IP address in CIDR format (i.e 192.168.24.2/24): " IPADDR
+    done
+
+    # Validate GW
+    read -p "Please provide a Default Gateway Address: " GW
+    while ! validate_ip "$GW"; do
+      echo -e "${RED}The entry is not a valid IP address. Please Try again${TEXTRESET}"
+      read -p "Please provide a Default Gateway Address: " GW
+    done
+
+    # Validate HOSTNAME
+    validate_fqdn() {
+  local fqdn="$1"
+
+  # Check if the FQDN is valid using a regular expression
+  if [[ "$fqdn" =~ ^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$ ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+check_hostname_in_domain() {
+  local fqdn="$1"
+  local hostname="${fqdn%%.*}"
+  local domain="${fqdn#*.}"
+
+  # Check if the hostname is not the same as any part of the domain
+  if [[ "$domain" =~ (^|\.)"$hostname"(\.|$) ]]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
+read -p "Please provide the FQDN for this machine: " HOSTNAME
+
+while ! validate_fqdn "$HOSTNAME" || ! check_hostname_in_domain "$HOSTNAME"; do
+  echo -e "${RED}The entry is not a valid FQDN, or the hostname is repeated in the domain name (This is not Supported). Please Try again${TEXTRESET}"
   read -p "Please provide the FQDN for this machine: " HOSTNAME
-  while [ -z "$HOSTNAME" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-    read -p "Please provide the FQDN for this machine: " HOSTNAME
-  done
-  read -p "Please provide the IP address of the primary AD server: " DNSSERVER
-  while [ -z "$DNSSERVER" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-    read -p "Please provide the IP address of the primary AD server: " DNSSERVER
-  done
-  read -p "Please provide the domain search name: " DNSSEARCH
-  while [ -z "$DNSSEARCH" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
+done
+
+
+    # Validate DNSSERVER
+    read -p "Please provide an upstream DNS IP for resolution: " DNSSERVER
+    while ! validate_ip "$DNSSERVER"; do
+      echo -e "${RED}The entry is not a valid IP address. Please Try again${TEXTRESET}"
+      read -p "Please provide an upstream DNS IP for resolution: " DNSSERVER
+    done
+
+    # Validate DNSSEARCH
     read -p "Please provide the domain search name: " DNSSEARCH
-  done
-  clear
-  cat <<EOF
+    while [ -z "$DNSSEARCH" ]; do
+      echo -e "${RED}The response cannot be blank. Please Try again${TEXTRESET}"
+      read -p "Please provide the domain search name: " DNSSEARCH
+    done
+
+    clear
+    cat <<EOF
 The following changes to the system will be configured:
 IP address: ${GREEN}$IPADDR${TEXTRESET}
 Gateway: ${GREEN}$GW${TEXTRESET}
 DNS Search: ${GREEN}$DNSSEARCH${TEXTRESET}
 DNS Server: ${GREEN}$DNSSERVER${TEXTRESET}
 HOSTNAME: ${GREEN}$HOSTNAME${TEXTRESET}
-EOF
-  read -p "Press any Key to Continue"
-  nmcli con mod $INTERFACE ipv4.address $IPADDR
-  nmcli con mod $INTERFACE ipv4.gateway $GW
-  nmcli con mod $INTERFACE ipv4.method manual
-  nmcli con mod $INTERFACE ipv4.dns-search $DNSSEARCH
-  nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
-  hostnamectl set-hostname $HOSTNAME
-  cat <<EOF
-The System must reboot for the changes to take effect. 
-${RED}Please log back in as root.${TEXTRESET}
-The installer will continue when you log back in.
-If using SSH, please use the IP Address: $IPADDR
 
 EOF
-  read -p "Press Any Key to Continue"
-  clear
-  echo "/root/ADDCInstaller/DC1-Install.sh" >>/root/.bash_profile
-  reboot
-  exit
+
+    # Ask the user to confirm the changes
+    read -p "Are these settings correct? (y/n): " CONFIRM
+    if [ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ]; then
+      nmcli con mod $INTERFACE ipv4.address $IPADDR
+      nmcli con mod $INTERFACE ipv4.gateway $GW
+      nmcli con mod $INTERFACE ipv4.method manual
+      nmcli con mod $INTERFACE ipv4.dns-search $DNSSEARCH
+      nmcli con mod $INTERFACE ipv4.dns $DNSSERVER
+      hostnamectl set-hostname $HOSTNAME
+      echo "/root/ADDCInstaller/DCInstall.sh" >>/root/.bash_profile
+      echo "The System must reboot for the changes to take effect."
+      echo "${RED}Please log back in as root.${TEXTRESET}"
+      echo "The installer will continue when you log back in."
+      echo "If using SSH, please use the IP Address: $IPADDR"
+      echo "${RED}Rebooting${TEXTRESET}"
+      sleep 2
+      reboot
+      break
+    else
+      echo -e "${RED}Reconfiguring Interface${TEXTRESET}"
+      sleep 2
+      clear
+    fi
+  done
 else
-  echo ${GREEN}"Interface $INTERFACE is using a static IP address ${TEXTRESET}"
+  echo -e "${GREEN}Interface $INTERFACE is using a static IP address${TEXTRESET}"
+  sleep 2
 fi
+clear
 if [ "$FQDN" = "localhost.localdomain" ]; then
   cat <<EOF
 ${RED}This system is still using the default hostname (localhost.localdomain)${TEXTRESET}
 
 EOF
-  read -p "Please provide a valid FQDN for this machine: " HOSTNAME
-  while [ -z "$HOSTNAME" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-    read -p "Please provide a valid FQDN for this machine: " HOSTNAME
-  done
+  # Validate HOSTNAME
+    validate_fqdn() {
+  local fqdn="$1"
+
+  # Check if the FQDN is valid using a regular expression
+  if [[ "$fqdn" =~ ^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$ ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+check_hostname_in_domain() {
+  local fqdn="$1"
+  local hostname="${fqdn%%.*}"
+  local domain="${fqdn#*.}"
+
+  # Check if the hostname is not the same as any part of the domain
+  if [[ "$domain" =~ (^|\.)"$hostname"(\.|$) ]]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
+read -p "Please provide the FQDN for this machine: " HOSTNAME
+
+while ! validate_fqdn "$HOSTNAME" || ! check_hostname_in_domain "$HOSTNAME"; do
+  echo -e "${RED}The entry is not a valid FQDN, or the hostname is repeated in the domain name (This is not Supported). Please Try again${TEXTRESET}"
+  read -p "Please provide the FQDN for this machine: " HOSTNAME
+done
+
   hostnamectl set-hostname $HOSTNAME
   cat <<EOF
-The System must reboot for the changes to take effect. 
+The System must reboot for the changes to take effect.
 ${RED}Please log back in as root.${TEXTRESET}
 The installer will continue when you log back in.
 If using SSH, please use the IP Address: ${NMCLIIP}
 
 EOF
-  read -p "Press Any Key to Continue"
+  read -p "Press Enter to Continue"
   clear
-  echo "/root/ADDCInstaller/DC1-Install.sh" >>/root/.bash_profile
+  echo "/root/ADDCInstaller/DCInstall.sh" >>/root/.bash_profile
   reboot
   exit
-fi
 
+fi
 clear
 cat <<EOF
 *********************************************
