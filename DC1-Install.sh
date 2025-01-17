@@ -70,7 +70,7 @@ else
     # Continue with the script or exit as needed
 fi
 clear
-dnf -y install net-tools dmidecode ipcalc
+dnf -y install net-tools dmidecode ipcalc bind-utils
 
 INTERFACE=$(nmcli | grep "connected to" | cut -d " " -f4)
 DETECTIP=$(nmcli -f ipv4.method con show $INTERFACE)
