@@ -328,12 +328,80 @@ clear
 cat <<EOF
 ${GREEN}Samba AD/DC Setup${TEXTRESET}
 EOF
- read -p "Please provide the (pre-existing) AD Server FQDN that we will use to join the (pre-existing) domain: " ADDC
+
+while true; do
+  read -p "Please provide the (pre-existing) AD Server FQDN that we will use to join the (pre-existing) domain: " ADDC
+
   while [ -z "$ADDC" ]; do
-    echo ${RED}"The response cannot be blank. Please Try again${TEXTRESET}"
-     read -p "Please provide the (pre-existing) AD Server FQDN that we will use to join the (pre-existing) domain: " ADDC
+    echo -e "${RED}The response cannot be blank. Please try again${TEXTRESET}"
+    read -p "Please provide the (pre-existing) AD Server FQDN that we will use to join the (pre-existing) domain: " ADDC
   done
-clear
+
+  # Resolve the FQDN to an IP address
+  IP_ADDRESS=$(dig +short "$ADDC" | head -n 1)
+
+  # Check if we got an IP address
+  if [ -z "$IP_ADDRESS" ]; then
+    echo -e "${RED}Failed to resolve the FQDN to an IP address. Please check the server name and try again.${TEXTRESET}"
+    read -p "Would you like to try again? (y/n): " TRY_AGAIN
+    if [[ "$TRY_AGAIN" != "y" ]]; then
+      exit 1
+    else
+      continue
+    fi
+  else
+    echo -e "${GREEN}Name lookup successful. FQDN '$ADDC' resolved to IP address: $IP_ADDRESS${TEXTRESET}"
+  fi
+
+  # Ping the resolved IP address
+  ping -c 1 "$IP_ADDRESS" &> /dev/null
+
+  if [ $? -ne 0 ]; then
+    echo -e "${RED}Ping test failed. Please check that the server is online and operational.${TEXTRESET}"
+    read -p "Would you like to try again? (y/n): " TRY_AGAIN
+    if [[ "$TRY_AGAIN" != "y" ]]; then
+      exit 1
+    else
+      continue
+    fi
+  else
+    echo -e "${GREEN}Ping successful. Continuing...${TEXTRESET}"
+  fi
+
+  # Extract the domain from the FQDN
+  DOMAIN="${ADDC#*.}"
+
+  # Check SRV records for LDAP
+  LDAP_SRV=$(host -t SRV _ldap._tcp."${DOMAIN}")
+  if echo "$LDAP_SRV" | grep -q "$ADDC"; then
+    echo -e "${GREEN}The server '$ADDC' is listed in the LDAP SRV records.${TEXTRESET}"
+  else
+    echo -e "${RED}The server '$ADDC' is NOT listed in the LDAP SRV records.${TEXTRESET}"
+    read -p "Would you like to try again? (y/n): " TRY_AGAIN
+    if [[ "$TRY_AGAIN" != "y" ]]; then
+      exit 1
+    else
+      continue
+    fi
+  fi
+
+  # Check SRV records for Kerberos
+  KRB_SRV=$(host -t SRV _kerberos._udp."${DOMAIN}")
+  if echo "$KRB_SRV" | grep -q "$ADDC"; then
+    echo -e "${GREEN}The server '$ADDC' is listed in the Kerberos SRV records.${TEXTRESET}"
+  else
+    echo -e "${RED}The server '$ADDC' is NOT listed in the Kerberos SRV records.${TEXTRESET}"
+    read -p "Would you like to try again? (y/n): " TRY_AGAIN
+    if [[ "$TRY_AGAIN" != "y" ]]; then
+      exit 1
+    else
+      continue
+    fi
+  fi
+
+#  clear
+  break
+done
 # Function to validate CIDR format
 validate_cidr() {
     local cidr="$1"
