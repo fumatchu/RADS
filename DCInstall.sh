@@ -192,11 +192,10 @@ check_hostname_in_domain() {
 read -p "Please provide the FQDN for this machine: " HOSTNAME
 
 while ! validate_fqdn "$HOSTNAME" || ! check_hostname_in_domain "$HOSTNAME"; do
-  echo -e "${RED}The entry is not a valid FQDN, or the hostname is repeated in the domain name. Please Try again${TEXTRESET}"
+  echo -e "${RED}The entry is not a valid FQDN, or the hostname is repeated in the domain name (This is not Supported). Please Try again${TEXTRESET}"
   read -p "Please provide the FQDN for this machine: " HOSTNAME
 done
 
-echo "The FQDN is valid and does not have the hostname repeated in the domain."
 
     # Validate DNSSERVER
     read -p "Please provide an upstream DNS IP for resolution: " DNSSERVER
