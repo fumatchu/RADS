@@ -1126,16 +1126,34 @@ else
 fi
 
 if ! grep -q "tls keyfile" "$SMB_CONF"; then
-  echo "[*] Updating smb.conf with TLS settings..."
-  cat >> "$SMB_CONF" <<EOF
-
-# TLS configuration for LDAPS/StartTLS
-tls enabled = yes
-tls keyfile = $KEY
-tls certfile = $CERT
-tls cafile = $CA
-ldap server require strong auth = yes
-EOF
+  echo "[*] Updating smb.conf with TLS settings in [global] section..."
+  awk -v keyfile="$KEY" -v certfile="$CERT" -v cafile="$CA" '
+  BEGIN { inserted=0 }
+  /^\[global\]/ { print; in_global=1; next }
+  in_global && /^\[/ {
+    if (!inserted) {
+      print "    # TLS configuration for LDAPS/StartTLS"
+      print "    tls enabled = yes"
+      print "    tls keyfile = " keyfile
+      print "    tls certfile = " certfile
+      print "    tls cafile = " cafile
+      print "    ldap server require strong auth = yes"
+      inserted = 1
+    }
+    in_global=0
+  }
+  { print }
+  END {
+    if (!inserted) {
+      print "[global]"
+      print "    tls enabled = yes"
+      print "    tls keyfile = " keyfile
+      print "    tls certfile = " certfile
+      print "    tls cafile = " cafile
+      print "    ldap server require strong auth = yes"
+    }
+  }
+  ' "$SMB_CONF" > "$SMB_CONF.new" && mv "$SMB_CONF.new" "$SMB_CONF"
 fi
 
 echo "[*] Restarting Samba..."
