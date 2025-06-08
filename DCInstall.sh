@@ -1071,7 +1071,136 @@ else
 fi
 clear
 
+##Set Certs and StartTLS/LDAPS
+#!/bin/bash
 
+TLS_DIR="/var/lib/samba/private/tls"
+CERT="$TLS_DIR/samba.crt"
+KEY="$TLS_DIR/samba.key"
+CA="$TLS_DIR/ca.crt"
+SMB_CONF="/etc/samba/smb.conf"
+LOG="/var/log/samba-ldap-cert-setup.log"
+
+FQDN=$(hostname -f)
+IPADDR=$(hostname -I | awk '{print $1}')
+
+mkdir -p "$TLS_DIR"
+
+echo "[*] Generating self-signed certificate with SAN: $FQDN and $IPADDR"
+echo "[*] Generating a self-signed certificate valid for 10 years..."
+
+SAN_CONF=$(mktemp)
+cat > "$SAN_CONF" <<EOF
+[req]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+CN = $FQDN
+
+[v3_req]
+keyUsage = keyEncipherment, dataEncipherment, digitalSignature
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = $FQDN
+IP.1 = $IPADDR
+EOF
+
+openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+  -keyout "$KEY" \
+  -out "$CERT" \
+  -config "$SAN_CONF" \
+  -extensions v3_req >> "$LOG" 2>&1
+rm -f "$SAN_CONF"
+
+if [[ -f "$CERT" && -f "$KEY" ]]; then
+  cp "$CERT" "$CA"
+  chmod 600 "$CERT" "$CA" "$KEY"
+  echo "Certificate and key created at $TLS_DIR"
+else
+  echo "Certificate or key missing — OpenSSL generation failed. Check $LOG"
+  exit 1
+fi
+
+if ! grep -q "tls keyfile" "$SMB_CONF"; then
+  echo "[*] Updating smb.conf with TLS settings..."
+  cat >> "$SMB_CONF" <<EOF
+
+# TLS configuration for LDAPS/StartTLS
+tls enabled = yes
+tls keyfile = $KEY
+tls certfile = $CERT
+tls cafile = $CA
+ldap server require strong auth = yes
+EOF
+fi
+
+echo "[*] Restarting Samba..."
+systemctl restart samba
+
+if ! command -v ldapsearch >/dev/null; then
+  echo "[*] Installing ldapsearch utility..."
+  dnf install -y openldap-clients >> "$LOG" 2>&1
+fi
+
+# 🔐 Open LDAPS port in firewalld
+echo "[*] Ensuring LDAPS port (636/tcp) is open in firewalld..."
+if firewall-cmd --permanent --add-port=636/tcp >> "$LOG" 2>&1; then
+  echo "Port 636/tcp opened permanently"
+else
+  echo "Failed to open port 636/tcp (may already be open)"
+fi
+
+if firewall-cmd --reload >> "$LOG" 2>&1; then
+  echo "firewalld configuration reloaded"
+else
+  echo "firewalld reload failed — check $LOG"
+fi
+
+# 🔍 LDAP bind and test
+LDAP_ADMIN_DN=$(samba-tool user show Administrator | awk -F': ' '/^dn: / {print $2}')
+if [[ -z "$LDAP_ADMIN_DN" ]]; then
+  echo "❌ Failed to retrieve Administrator DN"
+  exit 1
+fi
+
+LDAP_BASEDN=$(echo "$LDAP_ADMIN_DN" | grep -oE 'DC=[^,]+(,DC=[^,]+)*')
+
+read -rsp "Enter Administrator password for LDAP bind test: " LDAP_PASS
+echo
+
+# Test StartTLS
+echo "[*] Testing StartTLS on port 389..."
+LDAPTLS_REQCERT=never \
+ldapsearch -x -H ldap://$IPADDR -ZZ \
+  -D "$LDAP_ADMIN_DN" \
+  -w "$LDAP_PASS" \
+  -b "$LDAP_BASEDN" dn >> "$LOG" 2>&1
+
+if grep -q "^dn: " "$LOG"; then
+  echo "StartTLS (389) test passed"
+else
+  echo "StartTLS test failed — see $LOG"
+fi
+
+# Test LDAPS
+echo "[*] Testing LDAPS on port 636..."
+LDAPTLS_REQCERT=never \
+ldapsearch -x -H ldaps://$IPADDR \
+  -D "$LDAP_ADMIN_DN" \
+  -w "$LDAP_PASS" \
+  -b "$LDAP_BASEDN" dn >> "$LOG" 2>&1
+
+if grep -q "^dn: " "$LOG"; then
+  echo "LDAPS (636) test passed"
+else
+  echo "LDAPS test failed — see $LOG"
+fi
+
+echo "[*] LDAP secure setup complete. Both StartTLS and LDAPS are now available for use."
 echo ${GREEN}"Installation is successful"${TEXTRESET}
 sleep 4
 clear
