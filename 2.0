@@ -582,7 +582,7 @@ update_and_install_packages() {
 
   dialog --title "Package Installation" --infobox "Installing Required Packages..." 5 50
   sleep 2
-  PACKAGE_LIST=("ntsysv" "iptraf" "nano" "fail2ban" "tuned" "cockpit" "cockpit-storaged" "mock" "cockpit-files" "net-tools" "dmidecode" "ipcalc" "bind-utils"  "iotop" "zip" "yum-utils" "nano" "curl" "wget" "dnf-automatic")
+  PACKAGE_LIST=("ntsysv" "iptraf" "nano" "fail2ban" "tuned" "createrepo" "cockpit" "cockpit-storaged" "mock" "cockpit-files" "net-tools" "dmidecode" "ipcalc" "bind-utils"  "iotop" "zip" "yum-utils" "nano" "curl" "wget" "dnf-automatic" "dnf-plugins-core" "util-linux")
   TOTAL_PACKAGES=${#PACKAGE_LIST[@]}
 
   PIPE=$(mktemp -u)
@@ -815,7 +815,69 @@ configure_firewall() {
   dialog --title "Firewall Status" --msgbox "These services are now open on the server:\n\n$FIREWALL_SERVICES\n\n" 12 60
 }
 
+configure_samba_provisioning() {
+  OSVER=$(grep -oE '[0-9]+\.[0-9]+' /etc/redhat-release)
+  MAJOROS=$(cut -d. -f1 <<< "$OSVER")
+  MINOROS=$(cut -d. -f2 <<< "$OSVER")
 
+  DOMAIN=$(hostname | sed 's/^[^.:]*[.:]//' | sed -e 's/\(.*\)/\U\1/')
+  ADDOMAIN=$(hostname | sed 's/^[^.:]*[.:]//' | cut -d. -f1 | sed -e 's/\(.*\)/\U\1/')
+
+  dialog --title "Samba Source Build" --msgbox \
+  "This step will download and compile Samba from source using 'mock'.\n\nThis may take up to 30 minutes." 10 60
+
+  dnf download samba --source
+  if ! ls /root/samba-*.rpm 1>/dev/null 2>&1; then
+    dialog --msgbox "Samba source RPM failed to download. Check your network." 8 50
+    return 1
+  fi
+
+  MOCKSMBVER=$(dnf provides samba | grep samba | sed '2,4d' | cut -d: -f1 | cut -dx -f1)
+  MOCKCMD="mock -r rocky-${MAJOROS}-x86_64 --enablerepo=devel --define 'dist .el${MAJOROS}_${MINOROS}.dc' --with dc ${MOCKSMBVER}src.rpm"
+
+  TMPLOG=$(mktemp)
+  PIPE=$(mktemp -u)
+  mkfifo "$PIPE"
+
+  # Launch mock inside a pseudo-terminal using `script`
+  script -q -c "$MOCKCMD" /dev/null > "$PIPE" 2>&1 &
+  MOCKPID=$!
+
+  dialog --title "Building Samba with Mock (Live)" --programbox 25 150 < "$PIPE"
+
+  wait $MOCKPID
+  rm -f "$PIPE"
+
+  if ! ls /var/lib/mock/rocky-${MAJOROS}-x86_64/result/*.rpm &>/dev/null; then
+    dialog --title "Mock Build Failed" --msgbox "Build failed. Check logs manually." 8 60
+    return 1
+  fi
+
+  mkdir -p /root/.samba
+  cp /var/lib/mock/rocky-${MAJOROS}-x86_64/result/*.rpm /root/.samba
+  createrepo /root/.samba
+  dnf config-manager --add-repo /root/.samba
+  dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
+    --repofrompath=samba,/root/.samba \
+    --enablerepo=samba >/dev/null
+
+  mv -f /etc/samba/smb.conf /etc/samba/smb.bak.orig
+
+  output=$(samba-tool domain provision \
+    --realm="$DOMAIN" \
+    --domain="$ADDOMAIN" \
+    --adminpass="$ADMINPASS" 2>&1)
+
+  echo "$output"
+
+  if echo "$output" | grep -q "ERROR"; then
+    dialog --msgbox "Provisioning failed. Check output." 8 60
+    return 1
+  fi
+
+  dialog --msgbox "Samba AD Domain provisioned successfully." 7 50
+  return 0
+}
 # ========= MAIN =========
 show_welcome_screen
 detect_active_interface
@@ -852,3 +914,4 @@ update_and_install_packages
 vm_detection
 configure_selinux
 configure_firewall
+configure_samba_provisioning
