@@ -582,7 +582,7 @@ update_and_install_packages() {
 
   dialog --title "Package Installation" --infobox "Installing Required Packages..." 5 50
   sleep 2
-  PACKAGE_LIST=("ntsysv" "iptraf" "nano" "fail2ban" "tuned" "createrepo" "cockpit" "cockpit-storaged" "mock" "cockpit-files" "net-tools" "dmidecode" "ipcalc" "bind-utils"  "iotop" "zip" "yum-utils" "nano" "curl" "wget" "dnf-automatic" "dnf-plugins-core" "util-linux")
+  PACKAGE_LIST=("ntsysv" "iptraf" "nano" "openldap-clients" "fail2ban" "tuned" "createrepo" "cockpit" "cockpit-storaged" "mock" "cockpit-files" "net-tools" "dmidecode" "ipcalc" "bind-utils"  "iotop" "zip" "yum-utils" "nano" "curl" "wget" "dnf-automatic" "dnf-plugins-core" "util-linux")
   TOTAL_PACKAGES=${#PACKAGE_LIST[@]}
 
   PIPE=$(mktemp -u)
@@ -792,8 +792,8 @@ EOF
     dialog --msgbox "The DHCP service is NOT running.\nPlease validate your configuration before expecting DHCP to service clients." 8 60
   fi
 }
+#===========SET SELINUX=============
 configure_selinux() {
-  # Set SELinux booleans
   dialog --title "SELinux Configuration" --infobox "Applying SELinux settings for Samba..." 5 50
   setsebool -P samba_create_home_dirs=on \
              samba_domain_controller=on \
@@ -802,10 +802,13 @@ configure_selinux() {
              use_samba_home_dirs=on
 sleep2
 }
+#===========CONFGIURE FIREWALL=============
 configure_firewall() {
   dialog --title "Firewall Configuration" --infobox "Applying firewall rules for AD services..." 5 60
   firewall-cmd --permanent --add-service=samba-dc >/dev/null
+  firewall-cmd --permanent --add-service=ldaps >/dev/null
   firewall-cmd --permanent --add-service=ntp >/dev/null
+
   firewall-cmd --reload >/dev/null
   systemctl restart firewalld
  sleep 2
@@ -814,7 +817,7 @@ configure_firewall() {
 
   dialog --title "Firewall Status" --msgbox "These services are now open on the server:\n\n$FIREWALL_SERVICES\n\n" 12 60
 }
-
+#===========PROVISION SAMBA WITH MOCK=============
 configure_samba_provisioning() {
   OSVER=$(grep -oE '[0-9]+\.[0-9]+' /etc/redhat-release)
   MAJOROS=$(cut -d. -f1 <<< "$OSVER")
@@ -878,6 +881,419 @@ configure_samba_provisioning() {
   dialog --msgbox "Samba AD Domain provisioned successfully." 7 50
   return 0
 }
+#===========CREATE KDC=============
+create_kdc_conf() {
+  KRB5_SRC="/var/lib/samba/private/krb5.conf"
+  KRB5_DEST="/etc/krb5.conf"
+
+  if [[ ! -f "$KRB5_SRC" ]]; then
+    dialog --title "KDC Error" --msgbox "Kerberos configuration file not found at $KRB5_SRC.\nProvisioning may have failed. Exiting..." 8 60
+    exit 1
+  fi
+
+  dialog --title "Creating KDC" --infobox "Copying Kerberos configuration to $KRB5_DEST..." 5 60
+  sleep 2
+  \cp -rf "$KRB5_SRC" "$KRB5_DEST"
+
+  if [[ $? -eq 0 ]]; then
+    dialog --infobox "Kerberos configuration successfully copied." 6 50
+    sleep 2
+  else
+    dialog --msgbox "Failed to copy Kerberos configuration. Please check permissions." 6 60
+    sleep 2
+  fi
+}
+
+#===========SET DNS to ITSELF=============
+set_local_dns_resolver() {
+  IP=$(hostname -I | awk '{print $1}')  # Get first IP address
+  INTERFACE=$(nmcli -t -f DEVICE,STATE dev | awk -F: '$2=="connected" {print $1}' | head -n1)
+
+  if [[ -z "$IP" || -z "$INTERFACE" ]]; then
+    dialog --msgbox "Failed to detect IP or active interface. Cannot set DNS." 8 50
+    return 1
+  fi
+
+  dialog --title "Setting DNS Resolver" --infobox \
+  "Configuring ${INTERFACE} to use ${IP} as its primary DNS resolver..." 5 80
+  sleep 2
+
+  nmcli con mod "$INTERFACE" ipv4.dns "$IP"
+  systemctl restart NetworkManager
+
+  if [[ $? -eq 0 ]]; then
+    dialog --infobox "DNS resolver successfully set to ${IP} on ${INTERFACE}." 6 80
+    sleep 2
+  else
+    dialog --msgbox "Failed to apply DNS resolver configuration." 6 50
+    return 1
+  fi
+}
+
+#===========ADD FREERADIUS SUPPORT=============
+add_freeradius_support() {
+  SMB_CONF="/etc/samba/smb.conf"
+
+  if [[ ! -f "$SMB_CONF" ]]; then
+    dialog --title "FreeRADIUS Error" --msgbox "$SMB_CONF not found. Please verify Samba is installed." 7 60
+    exit 1
+  fi
+
+  dialog --title "FreeRADIUS Integration" --infobox "Adding default FreeRADIUS support to smb.conf..." 5 60
+  sleep 2
+
+  sed -i '8i \       \ #Added for FreeRADIUS Support' "$SMB_CONF"
+  sed -i '9i \       \ ntlm auth = mschapv2-and-ntlmv2-only' "$SMB_CONF"
+  sed -i '10i \       \\#ldap server require strong auth = no #UNCOMMENT THIS IF YOU NEED PLAIN LDAP BIND (non-TLS)' "$SMB_CONF"
+
+  dialog --infobox "FreeRADIUS options successfully added to smb.conf." 6 60
+  sleep 2
+}
+#===========ADD DNF-SMB-MON CRON JOB=============
+add_dnf_smb_mon_cron() {
+  MONITOR_SCRIPT="/root/ADDCInstaller/dnf-smb-mon"
+  DEST_BIN="/usr/bin/dnf-smb-mon"
+
+  if [[ ! -f "$MONITOR_SCRIPT" ]]; then
+    dialog --title "Cron Job Error" --msgbox "$MONITOR_SCRIPT not found. Cannot configure cron job." 7 80
+    exit 1
+  fi
+
+  dialog --title "Configuring Repo Monitor" --infobox "Installing dnf-smb-mon and setting up cron job..." 5 80
+  sleep 2
+
+  touch /var/log/dnf-smb-mon.log
+  chmod 700 "$MONITOR_SCRIPT"
+  \cp "$MONITOR_SCRIPT" "$DEST_BIN"
+
+  (
+    crontab -l 2>/dev/null
+    echo "0 */6 * * * $DEST_BIN"
+  ) | sort -u | crontab -
+
+  systemctl restart crond
+  dialog --infobox "dnf-smb-mon installed and cron job scheduled every 6 hours." 6 60
+  sleep 2
+}
+#===========COPY SAMBA-DNF-PKG-UPDATE=============
+copy_samba_dnf_pkg_update() {
+  UPDATE_SCRIPT="/root/ADDCInstaller/samba-dnf-pkg-update"
+  DEST_BIN="/usr/bin/samba-dnf-pkg-update"
+
+  if [[ ! -f "$UPDATE_SCRIPT" ]]; then
+    dialog --title "Copy Error" --msgbox "$UPDATE_SCRIPT not found. Cannot continue." 7 60
+    exit 1
+  fi
+
+  dialog --title "Samba DNF Update" --infobox "Installing samba-dnf-pkg-update script..." 5 60
+  sleep 2
+
+  chmod 700 "$UPDATE_SCRIPT"
+  \cp "$UPDATE_SCRIPT" "$DEST_BIN"
+
+  dialog --infobox "samba-dnf-pkg-update successfully installed to /usr/bin." 6 60
+  sleep 2
+}
+#===========ENABLE AND CHECK SAMBA DC SERVICE=============
+enable_and_check_samba_service() {
+  SERVICE_NAME="samba"
+
+  # Check if the service exists
+  if ! systemctl list-unit-files | grep -q "^${SERVICE_NAME}.service"; then
+    dialog --title "Service Error" --msgbox "The service '${SERVICE_NAME}' was not found on this system.\nPlease ensure Samba is installed." 8 60
+    exit 1
+  fi
+
+  # Enable and start the service
+  dialog --title "Samba Service" --infobox "Enabling and starting the Samba service..." 5 60
+  sleep 2
+  systemctl enable "$SERVICE_NAME" --now
+
+  # Check service status
+  samba_status=$(systemctl is-active "$SERVICE_NAME")
+  if [[ "$samba_status" = "active" ]]; then
+    dialog --title "Samba Service" --infobox "Samba service is running." 5 40
+  else
+    dialog --title "Samba Error" --msgbox "Samba service is NOT running.\nStatus: $samba_status" 7 50
+    exit 1
+  fi
+  sleep 2
+}
+#===========UPDATE ISSUE FILE============
+update_issue_file() {
+  rm -rf /etc/issue
+  touch /etc/issue
+  cat <<EOF >/etc/issue
+\S
+Kernel \r on an \m
+Hostname: \n
+IP Address: \4
+EOF
+}
+#===========SAMBA LDAPS CERT SETUP=============
+setup_samba_ldaps_cert() {
+  TLS_DIR="/var/lib/samba/private/tls"
+  CERT="$TLS_DIR/samba.crt"
+  KEY="$TLS_DIR/samba.key"
+  CA="$TLS_DIR/ca.crt"
+  SMB_CONF="/etc/samba/smb.conf"
+  LOG="/var/log/samba-ldap-cert-setup.log"
+
+  FQDN=$(hostname -f)
+  IPADDR=$(hostname -I | awk '{print $1}')
+
+  mkdir -p "$TLS_DIR"
+
+  dialog --title "Samba TLS Setup" --infobox "Generating Samba LDAPS certificate for $FQDN with IP $IPADDR..." 6 60
+  sleep 2
+
+  SAN_CONF=$(mktemp)
+  cat > "$SAN_CONF" <<EOF
+[req]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+CN = $FQDN
+
+[v3_req]
+keyUsage = keyEncipherment, dataEncipherment, digitalSignature
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = $FQDN
+IP.1 = $IPADDR
+EOF
+
+  openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+    -keyout "$KEY" \
+    -out "$CERT" \
+    -config "$SAN_CONF" \
+    -extensions v3_req >> "$LOG" 2>&1
+  rm -f "$SAN_CONF"
+
+  if [[ -f "$CERT" && -f "$KEY" ]]; then
+    cp "$CERT" "$CA"
+    chmod 600 "$CERT" "$CA" "$KEY"
+    dialog --infobox "Certificate and key successfully created at $TLS_DIR" 6 60
+    sleep 2
+  else
+    dialog --title "Certificate Error" --msgbox "Certificate or key was not created. Check $LOG for errors." 7 60
+    return 1
+  fi
+
+  if ! grep -q "tls keyfile" "$SMB_CONF"; then
+    dialog --title "Updating smb.conf" --infobox "Inserting TLS configuration into smb.conf..." 6 60
+    sleep 2
+
+    awk -v keyfile="$KEY" -v certfile="$CERT" -v cafile="$CA" '
+    BEGIN { inserted=0 }
+    /^\[global\]/ { print; in_global=1; next }
+    in_global && /^\[/ {
+      if (!inserted) {
+        print "    # TLS configuration for LDAPS/StartTLS"
+        print "    tls enabled = yes"
+        print "    tls keyfile = " keyfile
+        print "    tls certfile = " certfile
+        print "    tls cafile = " cafile
+        print "    ldap server require strong auth = yes"
+        inserted = 1
+      }
+      in_global=0
+    }
+    { print }
+    END {
+      if (!inserted) {
+        print "[global]"
+        print "    tls enabled = yes"
+        print "    tls keyfile = " keyfile
+        print "    tls certfile = " certfile
+        print "    tls cafile = " cafile
+        print "    ldap server require strong auth = yes"
+      }
+    }
+    ' "$SMB_CONF" > "$SMB_CONF.new" && mv "$SMB_CONF.new" "$SMB_CONF"
+  fi
+
+  dialog --title "Restarting Samba" --infobox "Restarting Samba to apply certificate configuration..." 6 60
+  sleep 2
+  systemctl restart samba
+
+  # Validate that samba restarted successfully
+  if systemctl is-active --quiet samba; then
+    dialog --msgbox "Samba restarted and is running." 6 50
+  else
+    dialog --title "Samba Error" --msgbox "Samba failed to restart. Please check the service status manually." 7 60
+    return 1
+  fi
+}
+#===========LDAP BIND AND TEST=============
+test_ldap_secure_connection() {
+  LOG="/var/log/samba-ldap-cert-setup.log"
+  IPADDR=$(hostname -I | awk '{print $1}')
+
+  LDAP_ADMIN_DN=$(samba-tool user show Administrator | awk -F': ' '/^dn: / {print $2}')
+  if [[ -z "$LDAP_ADMIN_DN" ]]; then
+    dialog --title "LDAP Test Error" --msgbox "Failed to retrieve Administrator DN from samba-tool output." 7 60
+    return 1
+  fi
+
+  LDAP_BASEDN=$(echo "$LDAP_ADMIN_DN" | grep -oE 'DC=[^,]+(,DC=[^,]+)*')
+
+  dialog --infobox "Testing StartTLS on port 389..." 5 50
+  sleep 2
+  LDAPTLS_REQCERT=never \
+  ldapsearch -x -H ldap://$IPADDR -ZZ \
+    -D "$LDAP_ADMIN_DN" \
+    -w "$ADMINPASS" \
+    -b "$LDAP_BASEDN" dn >> "$LOG" 2>&1
+
+  if grep -q "^dn: " "$LOG"; then
+    dialog --infobox "✅ StartTLS (389) test passed." 5 50
+    sleep 2
+  else
+    dialog --msgbox "❌ StartTLS (389) test failed — see $LOG for details." 7 60
+  fi
+
+  dialog --infobox "Testing LDAPS on port 636..." 5 50
+  sleep 2
+  LDAPTLS_REQCERT=never \
+  ldapsearch -x -H ldaps://$IPADDR \
+    -D "$LDAP_ADMIN_DN" \
+    -w "$ADMINPASS" \
+    -b "$LDAP_BASEDN" dn >> "$LOG" 2>&1
+
+  if grep -q "^dn: " "$LOG"; then
+    dialog --infobox "✅ LDAPS (636) test passed." 5 50
+    sleep 2
+  else
+    dialog --msgbox "❌ LDAPS test failed — see $LOG for details." 7 60
+  fi
+
+  dialog --title "LDAP Secure Setup Complete" --msgbox "Both StartTLS and LDAPS were tested." 7 60
+  return 0
+}
+#===========KERBEROS LOGIN AND TICKET CHECK=============
+check_kerberos_ticket() {
+  dialog --title "Kerberos Login" --infobox "Attempting Kerberos login using Administrator credentials..." 5 80
+  sleep 2
+
+  # Attempt kinit with password from variable
+  echo "$ADMINPASS" | kinit Administrator 2>/tmp/kinit_error.log
+
+  if [[ $? -ne 0 ]]; then
+    ERROR_MSG=$(< /tmp/kinit_error.log)
+    dialog --title "Kerberos Login Failed" --msgbox "Kerberos login failed:\n$ERROR_MSG" 10 80
+    return 1
+  fi
+
+  # Run klist and capture output
+  klist_output=$(klist 2>&1)
+
+  if echo "$klist_output" | grep -q "Valid starting.*Service principal"; then
+    dialog --title "Kerberos Login Success" --infobox "Kerberos ticket successfully acquired for Administrator.\n\nTicket Details:\n\n$klist_output" 20 80
+    sleep 3
+  else
+    dialog --title "Kerberos Ticket Check Failed" --msgbox "Kerberos login succeeded, but no valid ticket found.\n\n$klist_output" 10 80
+    return 1
+  fi
+
+  return 0
+}
+#===========AUTHENTICATED SAMBA LOGIN CHECK=============
+check_smbclient_login() {
+  dialog --title "SMB Login Test" --infobox "Attempting SMB connection to //localhost/netlogon as Administrator..." 5 80
+  sleep 2
+
+  smb_output=$(echo "$ADMINPASS" | smbclient //localhost/netlogon -UAdministrator -c 'ls' 2>&1)
+
+  if echo "$smb_output" | grep -qE '^\s*\.\s+D\s+[0-9]+' && echo "$smb_output" | grep -qE '^\s*\.\.\s+D\s+[0-9]+'; then
+    dialog --title "SMB Login Success" --infobox "Successfully authenticated and listed netlogon share." 5 60
+    sleep 2
+  else
+    dialog --title "SMB Login Failed" --msgbox "SMB login failed or unexpected output.\n\n$smb_output" 15 70
+    return 1
+  fi
+
+  return 0
+}
+#===========DNS SRV RECORD CHECK=============
+check_dns_srv_records() {
+  dialog --title "Checking DNS SRV Records" --infobox "Setting up query for SRV records..." 5 60
+  sleep 2
+
+  # Timeout-based host queries
+  ldap_srv=$(timeout 5 host -t SRV _ldap._tcp."$DOMAIN")
+  if [[ $? -ne 0 ]]; then
+    dialog --title "DNS Query Timeout" --msgbox "Timed out while querying SRV record for LDAP." 8 60
+    return 1
+  fi
+
+  kerberos_srv=$(timeout 5 host -t SRV _kerberos._udp."$DOMAIN")
+  if [[ $? -ne 0 ]]; then
+    dialog --title "DNS Query Timeout" --msgbox "Timed out while querying SRV record for Kerberos." 8 60
+    return 1
+  fi
+
+  a_record=$(timeout 5 host -t A "$FQDN")
+  if [[ $? -ne 0 ]]; then
+    dialog --title "DNS Query Timeout" --msgbox "Timed out while querying A record for $FQDN." 8 60
+    return 1
+  fi
+
+  get_srv_hostnames() {
+    local srv_records=$1
+    echo "$srv_records" | awk '{print $NF}' | sed 's/\.$//'  # Remove trailing period
+  }
+
+  ldap_hostnames=$(get_srv_hostnames "$ldap_srv")
+  kerberos_hostnames=$(get_srv_hostnames "$kerberos_srv")
+
+  check_any_hostnames_match() {
+    local hostnames=$1
+    local fqdn=$2
+    for hn in $hostnames; do
+      if [ "$hn" == "$fqdn" ]; then
+        return 0
+      fi
+    done
+    return 1
+  }
+
+  if check_any_hostnames_match "$ldap_hostnames" "$FQDN" || check_any_hostnames_match "$kerberos_hostnames" "$FQDN"; then
+    dialog --title "DNS SRV Check Success" --infobox "Success: Hostname from SRV record matches.\n\nLDAP SRV: $ldap_srv\nKerberos SRV: $kerberos_srv\nA Record: $a_record" 15
+ 80
+    sleep 4
+  else
+    samba_status=$(systemctl is-active samba)
+    dns_entry=$(nmcli dev show | grep DNS)
+
+    dialog --title "DNS SRV Record Check Failed" --msgbox "Error: No matching SRV hostnames.\n\nSamba status: $samba_status\n\nDNS entries:\n$dns_entry" 20 70
+    return 1
+  fi
+
+  return 0
+}
+#===========ANONYMOUS LOGIN TEST=============
+test_anonymous_login() {
+  dialog --title "Anonymous SMB Login Test" --infobox "Testing anonymous login to the Samba server..." 5 60
+  sleep 2
+
+  output=$(smbclient -L localhost -N 2>&1)
+
+  if echo "$output" | grep -q "Anonymous login successful"; then
+    dialog --title "Anonymous Login Success" --infobox "Success: Anonymous login successful." 6 60
+    sleep 2
+  else
+    dialog --title "Anonymous Login Failed" --msgbox "Error: Anonymous logins are not available.\n\n$output" 15 70
+    return 1
+  fi
+
+  return 0
+}
+
 # ========= MAIN =========
 show_welcome_screen
 detect_active_interface
@@ -915,3 +1331,18 @@ vm_detection
 configure_selinux
 configure_firewall
 configure_samba_provisioning
+create_kdc_conf
+set_local_dns_resolver
+add_freeradius_support
+add_dnf_smb_mon_cron
+copy_samba_dnf_pkg_update
+enable_and_check_samba_service
+update_issue_file
+setup_samba_ldaps_cert
+test_ldap_secure_connection
+check_kerberos_ticket
+check_dns_srv_records
+check_smbclient_login
+test_anonymous_login
+
+
