@@ -508,7 +508,8 @@ validate_time_sync() {
     done
 
     if [[ "$success" -eq 1 ]]; then
-        dialog --backtitle "Configure NTP" --title "Chrony NTP Configuration" --msgbox "Time synchronized successfully:\n\n$TRACKING" 15 100
+        dialog --backtitle "Configure NTP" --title "Chrony NTP Configuration" --infobox "Time synchronized successfully:\n\n$TRACKING" 15 100
+        sleep 3
     else
         dialog --backtitle "Configure NTP" --title "Chrony NTP Configuration" --yesno "Time sync failed after 3 attempts.\nDo you want to proceed anyway?" 8 100
         [[ $? -eq 0 ]] || return 1
