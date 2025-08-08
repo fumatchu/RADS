@@ -32,13 +32,14 @@ else
   echo "Exiting the installer..."
   exit 1
 fi
-# ========= CHECK FOR PRE-EXISTING SMB SERVICE =========
+# ========= CHECK FOR PRE-EXISTING SMB AND SAMBA SERVICE =========
 check_samba_running() {
-  # Check if the samba service is active
-  if systemctl is-active --quiet smb; then
-    dialog --backtitle "Samba Check" --title "Samba Service Running" --msgbox "Samba is currently running on this system. A fresh install of the OS is required to install Samba.\n\nPlease perform a clean installation." 10 60
+  # Check if either smb or samba service is active
+  if systemctl is-active --quiet smb || systemctl is-active --quiet samba; then
+    dialog --backtitle "Samba Check" --title "Samba Service Running" --msgbox "Samba (or SMB) is currently running on this system. A fresh install of the OS is required to install Samba.\n\nPlease perform a clean installation." 10 60
   fi
 }
+
 
 # ========= REMOVE BRACKETED PASTING =========
 sed -i '8i set enable-bracketed-paste off' /etc/inputrc
