@@ -1619,6 +1619,59 @@ cleanup_installer_files() {
   dialog --backtitle "Installer Cleanup" --title "Cleanup Complete" --infobox "Installer files have been successfully removed from the system." 6 80
   sleep 3
 }
+configure_dnf_automatic() {
+    local CONFIG="/etc/dnf/automatic.conf"
+    local BACKUP="/etc/dnf/automatic.conf.bak"
+    local LOG="/tmp/dnf_automatic_setup.log"
+    : > "$LOG"
+
+    # 1. Inform the user
+    dialog --backtitle "DNF Automatic Setup" --title "Configure Security Updates" \
+        --msgbox "This will enable SECURITY-ONLY updates.\n\nIt will also disable major OS upgrades.\n\nUpdate time will be left to system default" 10 60
+
+    # 2. Backup current config
+    sudo cp -f "$CONFIG" "$BACKUP"
+    echo "[INFO] Backed up $CONFIG to $BACKUP" >> "$LOG"
+
+    # 3. Apply dnf-automatic settings
+    sudo sed -i 's/^upgrade_type.*/upgrade_type = security/' "$CONFIG"
+    sudo sed -i 's/^apply_updates.*/apply_updates = yes/' "$CONFIG"
+
+    # 4. Remove any [timer] section from the config (let systemd handle it)
+    sudo sed -i '/^\[timer\]/,/^$/d' "$CONFIG"
+
+    # 5. Remove any old systemd override (Cockpit workaround)
+    sudo rm -f /etc/systemd/system/dnf-automatic.timer.d/override.conf
+
+    # 6. Reload systemd and restart timer
+    sudo systemctl daemon-reexec
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now dnf-automatic.timer
+
+    # 7. Validate setup
+    local STATUS_MSG=""
+    local VALIDATE_OUTPUT
+    VALIDATE_OUTPUT=$(grep -E 'upgrade_type|apply_updates' "$CONFIG")
+    echo "$VALIDATE_OUTPUT" >> "$LOG"
+
+    if echo "$VALIDATE_OUTPUT" | grep -q "apply_updates = yes"; then
+        STATUS_MSG="✅ Security updates enabled.\n"
+    else
+        dialog --title "Error" --msgbox "Configuration failed.\nCheck $CONFIG or $LOG." 7 50
+        return 1
+    fi
+
+    if systemctl is-active --quiet dnf-automatic.timer; then
+        STATUS_MSG+="✅ Timer is active.\n"
+    else
+        STATUS_MSG+="⚠️  Timer is not running!\nCheck: journalctl -u dnf-automatic.timer\n"
+    fi
+
+    NEXT_RUN=$(systemctl list-timers --all | grep dnf-automatic.timer | awk '{print $1, $2}')
+    STATUS_MSG+="\nNext scheduled run: $NEXT_RUN"
+
+    dialog --backtitle "DNF Automatic Setup" --title "Setup Complete" --msgbox "$STATUS_MSG" 12 60
+}
 #===========FINAL INSTALLATION COMPLETE PROMPT=============
 prompt_reboot_now() {
   dialog --backtitle "Installation Complete" --title "Installation Complete" \
@@ -1683,6 +1736,7 @@ test_anonymous_login
 create_reverse_dns_zone
 relax_lab_password_policy
 configure_fail2ban
+configure_dnf_automatic
 install_server_management
 check_and_enable_services
 cleanup_installer_files
