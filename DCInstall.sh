@@ -803,6 +803,7 @@ EOF
 #===========SET SELINUX=============
 configure_selinux() {
   dialog --backtitle "SELinux setsbool Configuration" --title "SELinux Configuration" --infobox "Applying SELinux settings for Samba..." 5 50
+  sleep 2
   setsebool -P samba_create_home_dirs=on \
              samba_domain_controller=on \
              samba_enable_home_dirs=on \
