@@ -189,7 +189,7 @@ prompt_static_ip_if_dhcp() {
 elif [[ "$IP_METHOD" == "auto" ]]; then
     while true; do
       while true; do
-        IPADDR=$(dialog --backtitle "Interface Setup" --title "Static IP Address Required" --inputbox "Enter static IP in CIDR format (e.g., 192.168.1.100/24):" 8 60 3>&1 1>&2 2>&3)
+        IPADDR=$(dialog --backtitle "Interface Setup" --title "Static IP Address Required" --inputbox "***DHCP DETECTED on '$INTERFACE'***\n\n\Enter static IP in CIDR format (e.g., 192.168.1.100/24):" 8 60 3>&1 1>&2 2>&3)
         validate_cidr "$IPADDR" && break || dialog --msgbox "Invalid CIDR format. Try again." 6 40
       done
 
