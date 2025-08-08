@@ -183,7 +183,7 @@ prompt_static_ip_if_dhcp() {
   IP_METHOD=$(nmcli -g ipv4.method connection show "$CONNECTION" | tr -d '' | xargs)
 
   if [[ "$IP_METHOD" == "manual" ]]; then
-  dialog --title "Static IP Detected" --infobox "Interface '$INTERFACE' is already using a static IP.\nNo changes needed." 6 70
+  dialog --title "Static IP Detected" --infobox "Interface '$INTERFACE' is already using a static IP" 6 70
   sleep 3
   return
 elif [[ "$IP_METHOD" == "auto" ]]; then
