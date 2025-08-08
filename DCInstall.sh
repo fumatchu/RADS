@@ -183,25 +183,15 @@ prompt_static_ip_if_dhcp() {
   IP_METHOD=$(nmcli -g ipv4.method connection show "$CONNECTION" | tr -d '' | xargs)
 
   if [[ "$IP_METHOD" == "manual" ]]; then
-    dialog --title "Static IP Detected" --infobox "Interface '$INTERFACE' is already using a static IP.\nNo changes needed." 6 70
-    sleep 3
-    return
-  elif [[ "$IP_METHOD" == "auto" ]]; then
-    # Check for DHCP status and set the message
-    DHCP_MESSAGE="***DHCP Detected on Interface***"
-
-    # Merging DHCP message and the static IP prompt
+  dialog --title "Static IP Detected" --infobox "Interface '$INTERFACE' is already using a static IP.\nNo changes needed." 6 70
+  sleep 3
+  return
+elif [[ "$IP_METHOD" == "auto" ]]; then
     while true; do
-      IPADDR=$(dialog --backtitle "Interface Setup" \
-                      --title "Static IP Configuration" \
-                      --inputbox "$DHCP_MESSAGE\n\nEnter static IP in CIDR format (e.g., 192.168.1.100/24):" \
-                      10 60 3>&1 1>&2 2>&3)
-
-      # Validate CIDR format
-      validate_cidr "$IPADDR" && break || dialog --msgbox "Invalid CIDR format. Try again." 6 40
-    done
-  fi
-}
+      while true; do
+        IPADDR=$(dialog --backtitle "Interface Setup" --title "Static IP Address Required" --inputbox "Enter static IP in CIDR format (e.g., 192.168.1.100/24):" 8 60 3>&1 1>&2 2>&3)
+        validate_cidr "$IPADDR" && break || dialog --msgbox "Invalid CIDR format. Try again." 6 40
+      done
 
       while true; do
         GW=$(dialog --backtitle "Interface Setup" --title "Gateway" --inputbox "Enter default gateway:" 8 60 3>&1 1>&2 2>&3)
