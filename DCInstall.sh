@@ -837,52 +837,43 @@ configure_samba_provisioning() {
   "Downloading and compiling Samba from source using 'mock'\n\nThis may take up to 30 minutes\n\nThe Installer will Continue Shortly " 10 80
   sleep 4
 
+  dnf download samba --source
+  if ! ls /root/samba-*.rpm 1>/dev/null 2>&1; then
+    dialog --backtitle "Samba Build --dc with Mock" --msgbox "Samba source RPM failed to download. Check your network." 8 50
+    return 1
+  fi
+
+  MOCKSMBVER=$(dnf provides samba | grep samba | sed '2,4d' | cut -d: -f1 | cut -dx -f1)
+  MOCKCMD="mock -r rocky-${MAJOROS}-x86_64 --enablerepo=devel --define 'dist .el${MAJOROS}_${MINOROS}.dc' --with dc ${MOCKSMBVER}src.rpm"
+
   TMPLOG=$(mktemp)
   PIPE=$(mktemp -u)
   mkfifo "$PIPE"
 
-  # Redirecting the download and build process into the pipe
-  {
-    dnf download samba --source
-    if ! ls /root/samba-*.rpm 1>/dev/null 2>&1; then
-      echo "Samba source RPM failed to download. Check your network."
-      return 1
-    fi
+  # Launch mock inside a pseudo-terminal using `script`
+  script -q -c "$MOCKCMD" /dev/null > "$PIPE" 2>&1 &
+  MOCKPID=$!
 
-    MOCKSMBVER=$(dnf provides samba | grep samba | sed '2,4d' | cut -d: -f1 | cut -dx -f1)
-    MOCKCMD="mock -r rocky-${MAJOROS}-x86_64 --enablerepo=devel --define 'dist .el${MAJOROS}_${MINOROS}.dc' --with dc ${MOCKSMBVER}src.rpm"
+  dialog --backtitle "Samba Build --dc with Mock" --title "Building Samba with Mock (Live)" --programbox 25 150 < "$PIPE"
 
-    # Launch mock inside a pseudo-terminal using `script`, redirect the output to the pipe
-    script -q -c "$MOCKCMD" /dev/null > "$PIPE" 2>&1 &
+  wait $MOCKPID
+  rm -f "$PIPE"
 
-    MOCKPID=$!
+  if ! ls /var/lib/mock/rocky-${MAJOROS}-x86_64/result/*.rpm &>/dev/null; then
+    dialog --backtitle "Samba Build --dc with Mock" --title "Mock Build Failed" --msgbox "Build failed. Check logs manually." 8 60
+    return 1
+  fi
 
-    # Display mock build output inside dialog's programbox
-    dialog --backtitle "Samba Build --dc with Mock" --title "Building Samba with Mock (Live)" --programbox 25 150 < "$PIPE"
+  mkdir -p /root/.samba
+  cp /var/lib/mock/rocky-${MAJOROS}-x86_64/result/*.rpm /root/.samba
+  createrepo /root/.samba
+  dnf config-manager --add-repo /root/.samba
+  dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
+    --repofrompath=samba,/root/.samba \
+    --enablerepo=samba >/dev/null
 
-    # Wait for the mock build process to complete
-    wait $MOCKPID
-    rm -f "$PIPE"
-
-    if ! ls /var/lib/mock/rocky-${MAJOROS}-x86_64/result/*.rpm &>/dev/null; then
-      echo "Build failed. Check logs manually."
-      return 1
-    fi
-
-    mkdir -p /root/.samba
-    cp /var/lib/mock/rocky-${MAJOROS}-x86_64/result/*.rpm /root/.samba
-    createrepo /root/.samba
-    dnf config-manager --add-repo /root/.samba
-    dnf -y install --nogpgcheck samba-dc samba-client krb5-workstation samba \
-      --repofrompath=samba,/root/.samba \
-      --enablerepo=samba >/dev/null
-  } > "$PIPE" 2>&1 &
-  wait $!
-
-  # After the Samba provisioning, the rest of the function proceeds normally without being displayed in the dialog.
   mv -f /etc/samba/smb.conf /etc/samba/smb.bak.orig
 
-  # Attempt domain join
   output=$(samba-tool domain provision \
     --realm="$DOMAIN" \
     --domain="$ADDOMAIN" \
