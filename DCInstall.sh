@@ -37,6 +37,7 @@ check_samba_running() {
   # Check if either smb or samba service is active
   if systemctl is-active --quiet smb || systemctl is-active --quiet samba; then
     dialog --backtitle "Samba Check" --title "Samba Service Running" --msgbox "Samba (or SMB) is currently running on this system. A fresh install of the OS is required to install Samba.\n\nPlease perform a clean installation." 10 60
+    exit 1
   fi
 }
 
