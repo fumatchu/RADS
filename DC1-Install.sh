@@ -265,7 +265,7 @@ show_welcome_screen() {
                               /((((((((((((((((((((((.
                                 ,((((((((((((((,
 ${RESET}"
-  echo -e "                         ${GREEN}Rocky Linux${RESET} ${CYAN}RADS SECONDARY/TERTIARY${RESET} ${YELLOW}Builder${RESET}"
+  echo -e "                    ${GREEN}Rocky Linux${RESET} ${CYAN}RADS SECONDARY/TERTIARY${RESET} ${YELLOW}Builder${RESET}"
 
   sleep 2
 }
