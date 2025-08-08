@@ -1658,7 +1658,7 @@ if ! validate_time_sync; then
     exit 1
 fi
 
-dialog --backtitle "Configure NTP" --title "Chrony NTP Configuration" --infobox "Chrony NTP configuration completed successfully." 4 60
+dialog --backtitle "Configure NTP" --title "Chrony NTP Configuration" --infobox "NTP configuration completed successfully." 4 60
 sleep 3
 #=== End Set time ===
 update_and_install_packages
