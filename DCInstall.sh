@@ -202,6 +202,7 @@ prompt_static_ip_if_dhcp() {
     done
   fi
 }
+
       while true; do
         GW=$(dialog --backtitle "Interface Setup" --title "Gateway" --inputbox "Enter default gateway:" 8 60 3>&1 1>&2 2>&3)
         validate_ip "$GW" && break || dialog --msgbox "Invalid IP address. Try again." 6 40
