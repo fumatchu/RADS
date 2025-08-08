@@ -1627,7 +1627,8 @@ configure_dnf_automatic() {
 
     # 1. Inform the user
     dialog --backtitle "DNF Automatic Setup" --title "Configure Security Updates" \
-        --msgbox "This will enable SECURITY-ONLY updates.\n\nIt will also disable major OS upgrades.\n\nUpdate time will be left to system default" 10 60
+        --infobox "This will enable SECURITY-ONLY updates.\n\nIt will also disable major OS upgrades.\n\nUpdate time will be left to system default" 10 60
+        sleep 4
 
     # 2. Backup current config
     sudo cp -f "$CONFIG" "$BACKUP"
@@ -1655,22 +1656,23 @@ configure_dnf_automatic() {
     echo "$VALIDATE_OUTPUT" >> "$LOG"
 
     if echo "$VALIDATE_OUTPUT" | grep -q "apply_updates = yes"; then
-        STATUS_MSG="✅ Security updates enabled.\n"
+        STATUS_MSG=" Security updates enabled.\n"
     else
         dialog --title "Error" --msgbox "Configuration failed.\nCheck $CONFIG or $LOG." 7 50
         return 1
     fi
 
     if systemctl is-active --quiet dnf-automatic.timer; then
-        STATUS_MSG+="✅ Timer is active.\n"
+        STATUS_MSG+="Timer is active.\n"
     else
-        STATUS_MSG+="⚠️  Timer is not running!\nCheck: journalctl -u dnf-automatic.timer\n"
+        STATUS_MSG+="⚠Timer is not running!\nCheck: journalctl -u dnf-automatic.timer\n"
     fi
 
     NEXT_RUN=$(systemctl list-timers --all | grep dnf-automatic.timer | awk '{print $1, $2}')
     STATUS_MSG+="\nNext scheduled run: $NEXT_RUN"
 
-    dialog --backtitle "DNF Automatic Setup" --title "Setup Complete" --msgbox "$STATUS_MSG" 12 60
+    dialog --backtitle "DNF Automatic Setup" --title "Setup Complete" --infobox "$STATUS_MSG" 12 60
+    sleep 3
 }
 #===========FINAL INSTALLATION COMPLETE PROMPT=============
 prompt_reboot_now() {
