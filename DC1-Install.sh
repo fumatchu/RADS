@@ -858,7 +858,6 @@ configure_dhcp_server() {
       done
       echo 100; echo "XXX"; echo "Finishing up..."; echo "XXX"
     ) | $DIALOG --backtitle "$BACKTITLE" --title "$title" --gauge "Preparing..." 10 70 0
-    set -e
 
     local rc=1
     [[ -f "$status" ]] && { rc="$(cat "$status" 2>/dev/null || echo 1)"; rm -f "$status"; }
