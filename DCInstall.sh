@@ -528,90 +528,145 @@ validate_time_sync() {
 
 # ========= SYSTEM UPDATE & PACKAGE INSTALL =========
 update_and_install_packages() {
-  # Simulate progress while enabling EPEL and CRB
-  dialog --backtitle "Base Package Update" --title "Repository Setup" --gauge "Enabling EPEL and CRB repositories..." 10 60 0 < <(
+  # Repo enable with progress
+  dialog --backtitle "Base Package Update" --title "Repository Setup" \
+         --gauge "Enabling CRB and EPEL repositories..." 10 70 0 < <(
     (
-      (
-        dnf install -y epel-release >/dev/null 2>&1
-        dnf config-manager --set-enabled crb >/dev/null 2>&1
-      ) &
-      PID=$!
+      rc=0
+      {
+        dnf -y install dnf-plugins-core >/dev/null 2>&1 || rc=1
+        dnf config-manager --set-enabled crb >/dev/null 2>&1 || rc=1
+        dnf -y install epel-release >/dev/null 2>&1 || rc=1
+        dnf -y makecache --refresh >/dev/null 2>&1 || rc=1
+      } || rc=1
+
+      # animate while work runs
       PROGRESS=0
-      while kill -0 "$PID" 2>/dev/null; do
-        echo "$PROGRESS"
-        echo "XXX"
-        echo "Enabling EPEL and CRB..."
-        echo "XXX"
-        ((PROGRESS += 5))
-        if [[ $PROGRESS -ge 95 ]]; then
-          PROGRESS=5
-        fi
-        sleep 0.5
+      while kill -0 "$!" 2>/dev/null; do
+        :
       done
-      echo "100"
+
+      echo 100
       echo "XXX"
-      echo "Repositories enabled."
+      if [[ $rc -eq 0 ]]; then
+        echo "Repositories enabled and metadata refreshed."
+      else
+        echo "Repository setup encountered an error. (See logs in /var/log/dnf* )"
+      fi
       echo "XXX"
     )
   )
 
-  dialog --backtitle "Base Package Update" --title "System Update" --infobox "Checking for updates. This may take a few moments..." 5 70
-  sleep 2
+  # ---- Check for updates (handle rc=100) ----
+  dialog --backtitle "Base Package Update" --title "System Update" \
+         --infobox "Checking for updates. This may take a few moments..." 5 70
+  sleep 1
 
-  dnf check-update -y &>/dev/null
+  TMP_CHECK=/tmp/dnf-check.$$.out
+  set +e
+  dnf -q check-update >"$TMP_CHECK" 2>&1
+  RC=$?
+  set -e
 
-  TEMP_FILE=$(mktemp)
-  dnf check-update | awk '{print $1}' | grep -vE '^$|Obsoleting|Last' | awk -F'.' '{print $1}' | sort -u > "$TEMP_FILE"
+  case "$RC" in
+    0)
+      # No updates available
+      dialog --backtitle "Base Package Update" --title "System Update" \
+             --msgbox "No updates available!" 6 50
+      ;;
+    100)
+      # Updates available; build list from captured output
+      TEMP_FILE=$(mktemp)
+      # first column of “check-update” output are NEVRAs (strip arch/suffix)
+      awk '
+        NF==0 {next}
+        /^Last metadata/ {next}
+        /^Obsoleting/ {skip=1; next}
+        skip==1 && NF>0 {next}
+        /^[[:space:]]/ {next}
+        /^[A-Za-z0-9._:-]/ {print $1}
+      ' "$TMP_CHECK" \
+      | awk -F'.' '{print $1}' \
+      | sort -u > "$TEMP_FILE"
 
-  PACKAGE_LIST=($(cat "$TEMP_FILE"))
+      mapfile -t PACKAGE_LIST < "$TEMP_FILE"
+      rm -f "$TEMP_FILE"
+
+      TOTAL_PACKAGES=${#PACKAGE_LIST[@]}
+      if [[ $TOTAL_PACKAGES -eq 0 ]]; then
+        dialog --backtitle "Base Package Update" --title "System Update" \
+               --msgbox "Updates are available, but no parsable package list was returned.\nProceeding with a standard update." 8 70
+        # Fallback: single-shot update with a gauge
+        PIPE=$(mktemp -u); mkfifo "$PIPE"
+        dialog --backtitle "Base Package Update" --title "System Update" \
+               --gauge "Applying updates..." 10 70 0 < "$PIPE" &
+        exec 3>"$PIPE"
+        echo 10 >&3; echo "XXX" >&3; echo "Refreshing metadata..." >&3; echo "XXX" >&3
+        dnf -y update --refresh >/dev/null 2>&1
+        echo 100 >&3; echo "XXX" >&3; echo "Done." >&3; echo "XXX" >&3
+        exec 3>&-; rm -f "$PIPE"
+      else
+        # Per-package progress (your original UX)
+        PIPE=$(mktemp -u); mkfifo "$PIPE"
+        dialog --backtitle "Base Package Update" --title "System Update" \
+               --gauge "Installing updates..." 10 70 0 < "$PIPE" &
+        exec 3>"$PIPE"
+        COUNT=0
+        for PACKAGE in "${PACKAGE_LIST[@]}"; do
+          ((COUNT++))
+          PERCENT=$(( (COUNT * 100) / TOTAL_PACKAGES ))
+          echo "$PERCENT" >&3
+          echo "XXX" >&3
+          echo "Updating: $PACKAGE" >&3
+          echo "XXX" >&3
+          dnf -y install "$PACKAGE" >/dev/null 2>&1 || true
+        done
+        exec 3>&-
+        rm -f "$PIPE"
+      fi
+      ;;
+    *)
+      # Real error
+      dialog --backtitle "Base Package Update" --title "DNF Error" --msgbox \
+"Error while checking for updates (rc=$RC).
+
+$(tail -n 25 "$TMP_CHECK")" 15 80
+      rm -f "$TMP_CHECK"
+      return 1
+      ;;
+  esac
+  rm -f "$TMP_CHECK"
+
+  # ---- Install required packages (unchanged idea, slight hardening) ----
+  dialog --backtitle "Required Package Install" --title "Package Installation" \
+         --infobox "Installing Required Packages..." 5 50
+  sleep 1
+
+  PACKAGE_LIST=(ntsysv iptraf expect nano rsync sshpass openldap-clients fail2ban tuned createrepo cockpit cockpit-storaged mock cockpit-files net-tools dmidecode ipcalc bind-utils iotop zip yum-utils curl wget git dnf-automatic dnf-plugins-core util-linux htop iptraf-ng mc)
   TOTAL_PACKAGES=${#PACKAGE_LIST[@]}
 
-  if [[ "$TOTAL_PACKAGES" -eq 0 ]]; then
-    dialog --backtitle "Base Package Update" --title "System Update" --msgbox "No updates available!" 6 50
-    rm -f "$TEMP_FILE"
-  else
-    PIPE=$(mktemp -u)
-    mkfifo "$PIPE"
-    dialog --backtitle "Base Package Update" --title "System Update" --gauge "Installing updates..." 10 70 0 < "$PIPE" &
-    exec 3>"$PIPE"
-    COUNT=0
-    for PACKAGE in "${PACKAGE_LIST[@]}"; do
-      ((COUNT++))
-      PERCENT=$(( (COUNT * 100) / TOTAL_PACKAGES ))
-      echo "$PERCENT" > "$PIPE"
-      echo "XXX" > "$PIPE"
-      echo "Updating: $PACKAGE" > "$PIPE"
-      echo "XXX" > "$PIPE"
-      dnf -y install "$PACKAGE" >/dev/null 2>&1
-    done
-    exec 3>&-
-    rm -f "$PIPE" "$TEMP_FILE"
-  fi
-
-  dialog --backtitle "Required Package Install" --title "Package Installation" --infobox "Installing Required Packages..." 5 50
-  sleep 2
-  PACKAGE_LIST=("ntsysv" "iptraf" "expect" "nano" "rsync" "sshpass" "openldap-clients" "fail2ban" "tuned" "createrepo" "cockpit" "cockpit-storaged" "mock" "cockpit-files" "net-tools" "dmidecode" "ipcalc" "bind-utils"  "iotop" "zip" "yum-utils" "nano" "curl" "wget" "git" "dnf-automatic" "dnf-plugins-core" "util-linux" "htop" "iptraf-ng" "mc")
-  TOTAL_PACKAGES=${#PACKAGE_LIST[@]}
-
-  PIPE=$(mktemp -u)
-  mkfifo "$PIPE"
-  dialog --backtitle "Required Package Install" --title "Installing Required Packages" --gauge "Preparing to install packages..." 10 70 0 < "$PIPE" &
+  PIPE=$(mktemp -u); mkfifo "$PIPE"
+  dialog --backtitle "Required Package Install" --title "Installing Required Packages" \
+         --gauge "Preparing to install packages..." 10 70 0 < "$PIPE" &
   exec 3>"$PIPE"
   COUNT=0
   for PACKAGE in "${PACKAGE_LIST[@]}"; do
     ((COUNT++))
     PERCENT=$(( (COUNT * 100) / TOTAL_PACKAGES ))
-    echo "$PERCENT" > "$PIPE"
-    echo "XXX" > "$PIPE"
-    echo "Installing: $PACKAGE" > "$PIPE"
-    echo "XXX" > "$PIPE"
-    dnf -y install "$PACKAGE" >/dev/null 2>&1
+    echo "$PERCENT" >&3
+    echo "XXX" >&3
+    echo "Installing: $PACKAGE" >&3
+    echo "XXX" >&3
+    dnf -y install "$PACKAGE" >/dev/null 2>&1 || true
   done
   exec 3>&-
   rm -f "$PIPE"
-  dialog --backtitle "Required Package Install" --title "Installation Complete" --infobox "All packages installed successfully!" 6 50
-  sleep 3
+
+  dialog --backtitle "Required Package Install" --title "Installation Complete" \
+         --infobox "All packages processed." 5 50
+  sleep 2
 }
+
 #===========DETECT VIRT and INSTALL GUEST=============
 # Function to show a dialog infobox
 vm_detection() {
