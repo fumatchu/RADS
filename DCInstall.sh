@@ -651,154 +651,397 @@ if [ "$HWVMWARE" = "VMware" ]; then
 fi
 }
 configure_dhcp_server() {
-  dialog --backtitle "DHCP Server Setup" --title "DHCP Server Setup" --yesno \
-  "Would you like to install and configure a DHCP Server with a default scope?" 8 90
-  if [[ $? -ne 0 ]]; then
-    return 0
-  fi
+  local DIALOG="${DIALOG_BIN:-dialog}"
+  local BACKTITLE="DHCP Server Install"
+  local CHOSEN_BACKEND=""
 
-  DHCPNSNAME=$(hostname | sed 's/^[^.:]*[.:]//')
+  # ── UI helpers ────────────────────────────────────────────────────────────────
+  msgbox() { $DIALOG --backtitle "$BACKTITLE" --title "$1" --msgbox "$2" "${3:-8}" "${4:-72}"; }
+  infobox() { $DIALOG --backtitle "$BACKTITLE" --title "$1" --infobox "$2" "${3:-6}" "${4:-60}"; }
 
-  # Progress gauge for DHCP package install
-  PACKAGE_LIST=("dhcp-server")
-  PIPE=$(mktemp -u)
-  mkfifo "$PIPE"
-  dialog --backtitle "DHCP Server Setup" --title "Installing DHCP Server" --gauge "Preparing..." 10 60 0 < "$PIPE" &
-  exec 3>"$PIPE"
-  for PACKAGE in "${PACKAGE_LIST[@]}"; do
-    echo "XXX" > "$PIPE"
-    echo "Installing: $PACKAGE" > "$PIPE"
-    echo "XXX" > "$PIPE"
-    dnf -y install "$PACKAGE" >/dev/null 2>&1
-    echo "100" > "$PIPE"
-  done
-  exec 3>&-
-  rm -f "$PIPE"
-  sleep 1
+  # ── detect installed backends ────────────────────────────────────────────────
+  detect_isc_dhcp() { [[ -f /etc/dhcp/dhcpd.conf ]] || rpm -q dhcp-server >/dev/null 2>&1; }
+  detect_kea()      { [[ -f /etc/kea/kea-dhcp4.conf ]] || rpm -q kea >/dev/null 2>&1; }
 
-  firewall-cmd --zone=public --add-service=dhcp --permanent >/dev/null
-  firewall-cmd --reload >/dev/null
+  # ── generic installer gauge ─────────────────────────────────────────────────
+  run_gauge_cmd() {
+    local title="$1"; shift
+    local log="/tmp/$(basename "$1")-install.$(date +%s).log"
+    local status="/tmp/$(basename "$1")-status.$$"
+    : > "$log"
+    ( "$@" &> "$log"; echo $? > "$status" ) & local pid=$!
+    set +e
+    (
+      local pct=0
+      while kill -0 "$pid" 2>/dev/null; do
+        echo "$pct"
+        echo "XXX"
+        echo -e "Installing... Please wait.\nLog: $log"
+        echo "XXX"
+        sleep 0.3
+        pct=$(( (pct + 2) % 97 ))
+      done
+      echo 100; echo "XXX"; echo "Finishing up..."; echo "XXX"
+    ) | $DIALOG --backtitle "$BACKTITLE" --title "$title" --gauge "Preparing..." 10 70 0
+    set -e
 
-  # Detect active interface
-  active_interface=$(nmcli -t -f DEVICE,STATE device status | grep ':connected' | cut -d: -f1 | head -n 1)
-  if [ -z "$active_interface" ]; then
-    dialog --backtitle "DHCP Server Setup" --msgbox "No active interface found." 6 40
-    return 1
-  fi
-
-  inet4_line=$(nmcli -g IP4.ADDRESS device show "$active_interface" | head -n 1)
-  if [ -z "$inet4_line" ]; then
-    dialog --backtitle "DHCP Server Setup" --msgbox "No IPv4 address found on $active_interface." 6 50
-    return 1
-  fi
-
-  INET4=$(echo "$inet4_line" | cut -d'/' -f1)
-  DHCPCIDR=$(echo "$inet4_line" | cut -d'/' -f2)
-
-  # IP helper functions
-  ipToNumber() {
-    local ip=$1; IFS=. read -r o1 o2 o3 o4 <<< "$ip"
-    echo $(( (o1 << 24) + (o2 << 16) + (o3 << 8) + o4 ))
+    local rc=1
+    [[ -f "$status" ]] && { rc="$(cat "$status" 2>/dev/null || echo 1)"; rm -f "$status"; }
+    if [[ "$rc" -ne 0 ]]; then
+      msgbox "Error" "$title failed.\n\nSee the next screen for details.\n\nLog: $log" 10 72
+      $DIALOG --backtitle "$BACKTITLE" --title "Install log: $title" --textbox "$log" 22 100
+      return "$rc"
+    else
+      infobox "Success" "$title completed.\n\nLog: $log" 8 70
+      sleep 1
+    fi
   }
 
-  calculateNetworkAddress() {
-    local ip=$1 cidr=$2
-    local mask=$(( 0xFFFFFFFF << (32 - cidr) ))
-    local ipnum=$(ipToNumber "$ip")
-    local netnum=$(( ipnum & mask ))
-    echo "$(( (netnum >> 24) & 0xFF )).$(( (netnum >> 16) & 0xFF )).$(( (netnum >> 8) & 0xFF )).$(( netnum & 0xFF ))"
+  install_isc_dhcp() { run_gauge_cmd "Installing ISC DHCP (dhcp-server)" dnf -y install dhcp-server; }
+  install_kea()      { run_gauge_cmd "Installing Kea DHCP (kea)"       dnf -y install kea; }
+
+  # ── shared IP/CIDR helpers ──────────────────────────────────────────────────
+  is_valid_ip() {
+    [[ $1 =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || return 1
+    local IFS=.; local o; for o in $1; do [[ $o -ge 0 && $o -le 255 ]] || return 1; done
+  }
+  ip_to_int() { local IFS=.; read -r a b c d <<<"$1"; echo $(( (a<<24) + (b<<16) + (c<<8) + d )); }
+  int_to_ip() { local i=$1; printf "%d.%d.%d.%d" $(( (i>>24)&255 )) $(( (i>>16)&255 )) $(( (i>>8)&255 )) $(( i&255 )); }
+  cidr_to_netmask() { local c=$1; local m=$(( 0xFFFFFFFF << (32-c) & 0xFFFFFFFF )); int_to_ip "$m"; }
+  netmask_to_cidr() {
+    local ip=$1; is_valid_ip "$ip" || { echo -1; return; }
+    local n=$(ip_to_int "$ip"); local c=0; local z=0
+    for ((i=31;i>=0;i--)); do
+      if (( (n>>i)&1 )); then (( z )) && { echo -1; return; }; ((c++))
+      else z=1
+      fi
+    done
+    echo "$c"
+  }
+  network_from_ip_cidr() { local ip=$1 c=$2; local m=$(( 0xFFFFFFFF << (32-c) & 0xFFFFFFFF )); int_to_ip $(( $(ip_to_int "$ip") & m )); }
+  broadcast_from_ip_cidr(){ local ip=$1 c=$2; local m=$(( 0xFFFFFFFF << (32-c) & 0xFFFFFFFF )); int_to_ip $(( $(ip_to_int "$ip") | (~m & 0xFFFFFFFF) )); }
+  ip_in_cidr() {
+    local ip=$1 net=$2 c=$3
+    local m=$(( 0xFFFFFFFF << (32-c) & 0xFFFFFFFF ))
+    (( ( $(ip_to_int "$ip") & m ) == ( $(ip_to_int "$net") & m ) ))
   }
 
-  calculateBroadcastAddress() {
-    local ip=$1 cidr=$2
-    local mask=$(( 0xFFFFFFFF << (32 - cidr) ))
-    local ipnum=$(ipToNumber "$ip")
-    local broadcastnum=$(( ipnum | ~mask ))
-    echo "$(( (broadcastnum >> 24) & 0xFF )).$(( (broadcastnum >> 16) & 0xFF )).$(( (broadcastnum >> 8) & 0xFF )).$(( broadcastnum & 0xFF ))"
+  # ── light domain validation (letters/digits/hyphens + dots, no trailing dot) ─
+  is_valid_domain() {
+    local d="$1"
+    [[ -n "$d" ]] || return 1
+    [[ "$d" =~ ^([A-Za-z0-9-]+\.)+[A-Za-z0-9-]+$ ]] || return 1
   }
 
-  NETWORK=$(calculateNetworkAddress "$INET4" "$DHCPCIDR")
-  BROADCAST=$(calculateBroadcastAddress "$INET4" "$DHCPCIDR")
+  # ── ISC DHCP (dhcpd) dialog setup (hardened + domain prompts) ───────────────
+  dhcpd_setup() {
+    local iface inet4_line INET4 DHCPCIDR NET_DETECTED NETMASK_DETECTED
+    iface=$(nmcli -t -f DEVICE,STATE device status | awk -F: '$2=="connected"{print $1; exit}')
+    [[ -z "$iface" ]] && { msgbox "DHCPD Setup" "No active interface found."; return 1; }
+    inet4_line=$(nmcli -g IP4.ADDRESS device show "$iface" | head -n 1)
+    [[ -z "$inet4_line" ]] && { msgbox "DHCPD Setup" "No IPv4 address found on $iface."; return 1; }
 
-  while true; do
-    # Ask for DHCP range
-    while true; do
-      DHCPBEGIP=$(dialog --inputbox "Enter beginning IP of DHCP lease range (in $NETWORK):" 8 80 3>&1 1>&2 2>&3)
-      [[ -z "$DHCPBEGIP" ]] && continue
-      isValidIP "$DHCPBEGIP" || continue
-      isIPInRange "$DHCPBEGIP" || continue
-      break
-    done
+    INET4=${inet4_line%/*}
+    DHCPCIDR=${inet4_line#*/}
+    NET_DETECTED=$(network_from_ip_cidr "$INET4" "$DHCPCIDR")
+    NETMASK_DETECTED=$(cidr_to_netmask "$DHCPCIDR")
 
-    while true; do
-      DHCPENDIP=$(dialog --inputbox "Enter ending IP of DHCP lease range (in $NETWORK):" 8 80 3>&1 1>&2 2>&3)
-      [[ -z "$DHCPENDIP" ]] && continue
-      isValidIP "$DHCPENDIP" || continue
-      isIPInRange "$DHCPENDIP" || continue
-      break
-    done
+    local DHCPBEGIP DHCPENDIP DHCPNETMASK DHCPDEFGW SUBNETDESC DOM_SUFFIX SEARCH_DOMAIN
+    local DEF_SUFFIX="$(hostname -d 2>/dev/null || true)"
+    local DEF_SEARCH="${DEF_SUFFIX}"
 
     while true; do
-      DHCPNETMASK=$(dialog --backtitle "DHCP Server Setup" --inputbox "Enter netmask for clients (e.g., 255.255.255.0):" 8 80 3>&1 1>&2 2>&3)
-      [[ -z "$DHCPNETMASK" ]] && continue
-      isValidNetmask "$DHCPNETMASK" && break
+      # Range start
+      while true; do
+        DHCPBEGIP=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+          "Enter beginning IP of DHCP lease range (in $NET_DETECTED/$DHCPCIDR):" 8 78)
+        [[ -n "$DHCPBEGIP" ]] && is_valid_ip "$DHCPBEGIP" && ip_in_cidr "$DHCPBEGIP" "$NET_DETECTED" "$DHCPCIDR" && break
+        msgbox "Invalid Input" "Start IP must be a valid IPv4 within $NET_DETECTED/$DHCPCIDR."
+      done
+      # Range end
+      while true; do
+        DHCPENDIP=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+          "Enter ending IP of DHCP lease range (in $NET_DETECTED/$DHCPCIDR):" 8 78)
+        [[ -n "$DHCPENDIP" ]] && is_valid_ip "$DHCPENDIP" && ip_in_cidr "$DHCPENDIP" "$NET_DETECTED" "$DHCPCIDR" && \
+          (( $(ip_to_int "$DHCPBEGIP") <= $(ip_to_int "$DHCPENDIP") )) && break
+        msgbox "Invalid Input" "End IP must be valid, in $NET_DETECTED/$DHCPCIDR, and ≥ start IP."
+      done
+      # Netmask (contiguous, equals detected)
+      while true; do
+        DHCPNETMASK=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+          "Enter netmask for clients (must match detected $NETMASK_DETECTED):" 8 78 "$NETMASK_DETECTED")
+        local nm_cidr; nm_cidr=$(netmask_to_cidr "$DHCPNETMASK")
+        [[ "$nm_cidr" -eq "$DHCPCIDR" ]] && break
+        msgbox "Invalid Netmask" "Netmask must be contiguous and equal to $NETMASK_DETECTED."
+      done
+      # Default gateway
+      while true; do
+        DHCPDEFGW=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+          "Enter default gateway for clients (in $NET_DETECTED/$DHCPCIDR):" 8 78)
+        [[ -n "$DHCPDEFGW" ]] && is_valid_ip "$DHCPDEFGW" && ip_in_cidr "$DHCPDEFGW" "$NET_DETECTED" "$DHCPCIDR" && break
+        msgbox "Invalid Gateway" "Gateway must be a valid IPv4 within $NET_DETECTED/$DHCPCIDR."
+      done
+      # Domain suffix (domain-name)
+      while true; do
+        DOM_SUFFIX=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+          "Enter domain suffix (for 'option domain-name'):" 8 78 "${DEF_SUFFIX}")
+        is_valid_domain "$DOM_SUFFIX" && break
+        msgbox "Invalid Domain" "Please enter a valid domain suffix like 'ad.example.com'."
+      done
+      # Search domain (domain-search; allow comma list)
+      while true; do
+        SEARCH_DOMAIN=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+          "Enter search domain(s) for clients (comma-separated if multiple):" 9 78 "${DEF_SEARCH}")
+        # Validate each comma-separated item
+        local ok=1 IFS=, item
+        for item in $SEARCH_DOMAIN; do
+          item="${item// /}" ; is_valid_domain "$item" || { ok=0; break; }
+        done
+        [[ $ok -eq 1 ]] && break
+        msgbox "Invalid Search Domain" "One or more domains are invalid. Use comma-separated FQDNs."
+      done
+
+      SUBNETDESC=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+        "Enter a friendly name/description for this subnet:" 8 78)
+
+      $DIALOG --backtitle "$BACKTITLE" --title "DHCP Configuration Summary" --yesno \
+"Interface:     $iface
+Interface IP:  $INET4/$DHCPCIDR
+Subnet:        $NET_DETECTED
+Netmask:       $DHCPNETMASK
+Range:         $DHCPBEGIP  →  $DHCPENDIP
+Gateway:       $DHCPDEFGW
+Domain:        $DOM_SUFFIX
+Search:        $SEARCH_DOMAIN
+Description:   $SUBNETDESC
+
+Are these settings correct?" 18 72 && break
     done
 
-    while true; do
-      DHCPDEFGW=$(dialog --backtitle "DHCP Server Setup" --inputbox "Enter default gateway for clients:" 8 80 3>&1 1>&2 2>&3)
-      [[ -z "$DHCPDEFGW" ]] && continue
-      isValidIP "$DHCPDEFGW" && break
-    done
-
-    SUBNETDESC=$(dialog --backtitle "DHCP Server Setup" --inputbox "Enter a friendly name/description for this subnet:" 8 80 3>&1 1>&2 2>&3)
-
-    # Show summary
-    dialog --backtitle "DHCP Server Setup" --title "DHCP Configuration Summary" --yesno \
-"Subnet:        $NETWORK
-Begin IP:       $DHCPBEGIP
-End IP:         $DHCPENDIP
-Netmask:        $DHCPNETMASK
-Gateway:        $DHCPDEFGW
-Description:    $SUBNETDESC
-
-Are these settings correct?" 15 60
-
-    [[ $? -eq 0 ]] && break
-    dialog --backtitle "DHCP Server Setup" --msgbox "Let's try again..." 5 40
-  done
-
-  dialog --backtitle "DHCP Server Setup" --infobox "Creating DHCP configuration..." 5 50
-  sleep 1
-
-  mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig 2>/dev/null
-
-  cat <<EOF >/etc/dhcp/dhcpd.conf
+    infobox "DHCPD Setup" "Creating /etc/dhcp/dhcpd.conf..."
+    mkdir -p /etc/dhcp
+    mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.orig 2>/dev/null || true
+    cat <<EOF >/etc/dhcp/dhcpd.conf
 authoritative;
 allow unknown-clients;
+default-lease-time 600;
+max-lease-time 7200;
+
 option ntp-servers ${INET4};
 option time-servers ${INET4};
 option domain-name-servers ${INET4};
-option domain-name "${DHCPNSNAME}";
-option domain-search "${DHCPNSNAME}";
+option domain-name "${DOM_SUFFIX}";
+option domain-search "${SEARCH_DOMAIN}";
 
 # ${SUBNETDESC}
-subnet ${NETWORK} netmask ${DHCPNETMASK} {
-        range ${DHCPBEGIP} ${DHCPENDIP};
-        option subnet-mask ${DHCPNETMASK};
-        option routers ${DHCPDEFGW};
+subnet ${NET_DETECTED} netmask ${DHCPNETMASK} {
+  range ${DHCPBEGIP} ${DHCPENDIP};
+  option subnet-mask ${DHCPNETMASK};
+  option routers ${DHCPDEFGW};
 }
 EOF
+  }
 
-  dialog --backtitle "DHCP Server Setup" --infobox "Starting DHCP service..." 5 50
-  systemctl enable dhcpd >/dev/null 2>&1
-  systemctl start dhcpd
-  sleep 2
+  # ── KEA (kea-dhcp4) dialog setup (hardened + domain prompts) ────────────────
+  kea_dhcp_setup() {
+    local KEA_CONF="/etc/kea/kea-dhcp4.conf"
+    mkdir -p /etc/kea; touch "$KEA_CONF"
 
-  if systemctl is-active --quiet dhcpd; then
-    dialog --backtitle "DHCP Server Setup" --msgbox "The DHCP service is running." 6 50
+    local iface inet4_line INET4 CIDR NETMASK NETWORK BROADCAST
+    iface=$(nmcli -t -f DEVICE,STATE device status | awk -F: '$2=="connected"{print $1; exit}')
+    [[ -z "$iface" ]] && { msgbox "KEA DHCP Setup" "No active interface found."; return 1; }
+    inet4_line=$(nmcli -g IP4.ADDRESS device show "$iface" | head -n 1)
+    [[ -z "$inet4_line" ]] && { msgbox "KEA DHCP Setup" "No IPv4 address found on $iface."; return 1; }
+
+    INET4=${inet4_line%/*}
+    CIDR=${inet4_line#*/}
+    NETWORK=$(network_from_ip_cidr "$INET4" "$CIDR")
+    NETMASK=$(cidr_to_netmask "$CIDR")
+    BROADCAST=$(broadcast_from_ip_cidr "$INET4" "$CIDR")
+
+    local POOL_START POOL_END ROUTER DOM_SUFFIX SEARCH_DOMAIN DNS_SERVERS SUBNET_DESC
+    local DEF_SUFFIX="$(hostname -d 2>/dev/null || true)"
+    local DEF_SEARCH="${DEF_SUFFIX}"
+
+    while true; do
+      # pool start
+      while true; do
+        POOL_START=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+          "Enter beginning IP of DHCP lease range (in $NETWORK/$CIDR):" 8 78)
+        [[ -n "$POOL_START" ]] && is_valid_ip "$POOL_START" && ip_in_cidr "$POOL_START" "$NETWORK" "$CIDR" && break
+        msgbox "Invalid Input" "Start IP must be a valid IPv4 within $NETWORK/$CIDR."
+      done
+      # pool end
+      while true; do
+        POOL_END=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+          "Enter ending IP of DHCP lease range:" 8 78)
+        [[ -n "$POOL_END" ]] && is_valid_ip "$POOL_END" && ip_in_cidr "$POOL_END" "$NETWORK" "$CIDR" && \
+          (( $(ip_to_int "$POOL_START") <= $(ip_to_int "$POOL_END") )) && break
+        msgbox "Invalid Input" "End IP must be valid, in $NETWORK/$CIDR, and ≥ start IP."
+      done
+      # gateway
+      while true; do
+        ROUTER=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+          "Enter default gateway for clients (in $NETWORK/$CIDR):" 8 78)
+        [[ -n "$ROUTER" ]] && is_valid_ip "$ROUTER" && ip_in_cidr "$ROUTER" "$NETWORK" "$CIDR" && break
+        msgbox "Invalid Gateway" "Gateway must be a valid IPv4 within $NETWORK/$CIDR."
+      done
+      # domains
+      while true; do
+        DOM_SUFFIX=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+          "Enter domain suffix (for 'domain-name'):" 8 78 "${DEF_SUFFIX}")
+        is_valid_domain "$DOM_SUFFIX" && break
+        msgbox "Invalid Domain" "Please enter a valid domain suffix like 'ad.example.com'."
+      done
+      while true; do
+        SEARCH_DOMAIN=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+          "Enter search domain(s) for clients (comma-separated if multiple):" 9 78 "${DEF_SEARCH}")
+        local ok=1 IFS=, item
+        for item in $SEARCH_DOMAIN; do
+          item="${item// /}" ; is_valid_domain "$item" || { ok=0; break; }
+        done
+        [[ $ok -eq 1 ]] && break
+        msgbox "Invalid Search Domain" "One or more domains are invalid. Use comma-separated FQDNs."
+      done
+      DNS_SERVERS=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+        "Enter DNS servers (comma separated, or leave blank to use $INET4):" 8 78 "$INET4")
+      SUBNET_DESC=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
+        "Enter a friendly name/description for this subnet:" 8 78)
+
+      $DIALOG --backtitle "$BACKTITLE" --title "KEA DHCP Settings Review" --yesno \
+"Interface:     $iface
+Interface IP:  $INET4/$CIDR
+Subnet:        $NETWORK/$CIDR
+Broadcast:     $BROADCAST
+Range:         $POOL_START  →  $POOL_END
+Gateway:       $ROUTER
+DNS:           $DNS_SERVERS
+Domain:        $DOM_SUFFIX
+Search:        $SEARCH_DOMAIN
+Description:   $SUBNET_DESC
+
+Are these settings correct?" 20 72 && break
+    done
+
+    infobox "KEA DHCP Setup" "Creating /etc/kea/kea-dhcp4.conf..."
+    cat <<EOF > "$KEA_CONF"
+{
+  "Dhcp4": {
+    "interfaces-config": {
+      "interfaces": [ "$iface" ]
+    },
+    "lease-database": {
+      "type": "memfile",
+      "persist": true,
+      "name": "/var/lib/kea/kea-leases4.csv"
+    },
+    "subnet4": [
+      {
+        "id": 1,
+        "subnet": "$NETWORK/$CIDR",
+        "interface": "$iface",
+        "comment": "$SUBNET_DESC",
+        "pools": [ { "pool": "$POOL_START - $POOL_END" } ],
+        "option-data": [
+          { "name": "routers",               "data": "$ROUTER" },
+          { "name": "domain-name-servers",   "data": "$DNS_SERVERS" },
+          { "name": "ntp-servers",           "data": "$DNS_SERVERS" },
+          { "name": "domain-name",           "data": "$DOM_SUFFIX" },
+          { "name": "domain-search",         "data": "$SEARCH_DOMAIN" }
+        ]
+      }
+    ],
+    "authoritative": true
+  }
+}
+EOF
+    chown root:kea "$KEA_CONF"
+    chmod 640 "$KEA_CONF"
+    restorecon "$KEA_CONF" 2>/dev/null || true
+  }
+
+  # ── prompt to proceed ────────────────────────────────────────────────────────
+  $DIALOG --backtitle "$BACKTITLE" --title "DHCP Installation" --yesno \
+"Would you like to install a DHCP service on this system?
+
+You will be able to choose between ISC DHCP or Kea DHCP in the next step." 9 80 || { clear; return 0; }
+
+  # detect current state and suggest default
+  local isc_installed="not installed" kea_installed="not installed"
+  detect_isc_dhcp && isc_installed="installed"
+  detect_kea && kea_installed="installed"
+
+  local default="kea"
+  detect_kea && default="kea"
+  { detect_isc_dhcp && ! detect_kea; } && default="isc"
+
+  local kea_desc="Install/upgrade Kea DHCP (recommended)"
+  [[ $kea_installed == "installed" ]] && kea_desc+=" [installed]"
+  local isc_desc="Install/upgrade ISC DHCP (dhcp-server)"
+  [[ $isc_installed == "installed" ]] && isc_desc+=" [installed]"
+
+  local KEA_ON="OFF" ISC_ON="OFF"
+  [[ $default == "kea" ]] && KEA_ON="ON" || ISC_ON="ON"
+
+  local choice
+  choice=$($DIALOG --backtitle "$BACKTITLE" --stdout --title "DHCP Installer" --radiolist \
+"Select which DHCP server to install or upgrade.
+
+Detected:
+- ISC DHCP: $isc_installed
+- Kea DHCP: $kea_installed" \
+    14 76 2 \
+    kea "$kea_desc" $KEA_ON \
+    isc "$isc_desc" $ISC_ON)
+
+  case "${choice:-}" in
+    kea) install_kea && CHOSEN_BACKEND="kea" ;;
+    isc) install_isc_dhcp && CHOSEN_BACKEND="isc" ;;
+    *)   clear; return 0 ;;
+  esac
+
+  # ── run setup, enable service, open firewall ────────────────────────────────
+  local CONF SVC
+  if [[ "$CHOSEN_BACKEND" == "kea" ]]; then
+    kea_dhcp_setup
+    systemctl enable --now kea-dhcp4 >/dev/null 2>&1
+    CONF="/etc/kea/kea-dhcp4.conf"; SVC="kea-dhcp4"
   else
-    dialog --backtitle "DHCP Server Setup" --msgbox "The DHCP service is NOT running.\nPlease validate your configuration before expecting DHCP to service clients." 8 60
+    dhcpd_setup
+    systemctl enable --now dhcpd >/dev/null 2>&1
+    CONF="/etc/dhcp/dhcpd.conf"; SVC="dhcpd"
   fi
+
+  firewall-cmd --zone=public --add-service=dhcp --permanent >/dev/null 2>&1
+  firewall-cmd --reload >/dev/null 2>&1
+
+  # ── final validation ─────────────────────────────────────────────────────────
+  local ok_conf=0 ok_svc=0
+  [[ -s "$CONF" ]] && ok_conf=1
+  if systemctl is-active --quiet "$SVC"; then ok_svc=1; fi
+
+  if [[ $ok_conf -eq 1 && $ok_svc -eq 1 ]]; then
+    msgbox "Success" "$SVC is running and $CONF configured successfully."
+    clear; return 0
+  fi
+
+  # Syntax hint on failure
+  local syntax=""
+  if [[ "$SVC" == "kea-dhcp4" && -f "$CONF" ]]; then
+    syntax=$(KEA_LOG="$(kea-dhcp4 -t "$CONF" 2>&1)" && echo "$KEA_LOG" || echo "$KEA_LOG")
+  elif [[ "$SVC" == "dhcpd" && -f "$CONF" ]]; then
+    syntax=$(DHCPLINT="$(dhcpd -t -cf "$CONF" 2>&1)" && echo "$DHCPLINT" || echo "$DHCPLINT")
+  fi
+
+  local err="Validation failed:
+- Config file present: $( [[ $ok_conf -eq 1 ]] && echo YES || echo NO )
+- Service active:      $( [[ $ok_svc -eq 1 ]] && echo YES || echo NO )
+
+$( [[ -n "$syntax" ]] && echo -e "Syntax check output:\n\n$syntax" || echo "No syntax details available.")"
+
+  msgbox "DHCP Validation" "$err" 18 90
+  clear
+  return 1
 }
 #===========SET SELINUX=============
 configure_selinux() {
