@@ -755,20 +755,90 @@ if [ "$HWVMWARE" = "VMware" ]; then
     dnf -y install open-vm-tools &>/dev/null
 fi
 }
+#===========OPTIONAL DHCP INSTALL=============
 configure_dhcp_server() {
   local DIALOG="${DIALOG_BIN:-dialog}"
   local BACKTITLE="DHCP Server Install"
   local CHOSEN_BACKEND=""
 
-  # ── UI helpers ────────────────────────────────────────────────────────────────
+  # ────────────────────────────── UI helpers ──────────────────────────────
   msgbox() { $DIALOG --backtitle "$BACKTITLE" --title "$1" --msgbox "$2" "${3:-8}" "${4:-72}"; }
-  infobox() { $DIALOG --backtitle "$BACKTITLE" --title "$1" --infobox "$2" "${3:-6}" "${4:-60}"; }
+  infobox(){ $DIALOG --backtitle "$BACKTITLE" --title "$1" --infobox "$2" "${3:-6}" "${4:-60}"; }
 
-  # ── detect installed backends ────────────────────────────────────────────────
-  detect_isc_dhcp() { [[ -f /etc/dhcp/dhcpd.conf ]] || rpm -q dhcp-server >/dev/null 2>&1; }
-  detect_kea()      { [[ -f /etc/kea/kea-dhcp4.conf ]] || rpm -q kea >/dev/null 2>&1; }
+  # Require root + Rocky 9+
+  require_root(){ [[ $EUID -eq 0 ]] || { echo "Run as root." >&2; return 1; }; }
+  require_rocky9plus(){
+    . /etc/os-release 2>/dev/null || true
+    if [[ "${ID:-}" != "rocky" ]]; then
+      msgbox "Unsupported OS" "This installer is limited to Rocky Linux 9+."; return 1
+    fi
+    local maj="${VERSION_ID%%.*}"
+    if [[ -z "$maj" || "$maj" -lt 9 ]]; then
+      msgbox "Unsupported Version" "Detected Rocky Linux ${VERSION_ID:-unknown}. This script supports Rocky Linux 9+ only."
+      return 1
+    fi
+    return 0
+  }
 
-  # ── generic installer gauge ─────────────────────────────────────────────────
+  # ─────────────────────── detection of installed backends ─────────────────────
+  detect_isc_dhcp(){ [[ -f /etc/dhcp/dhcpd.conf ]] || rpm -q dhcp-server >/dev/null 2>&1; }
+  detect_kea()     { [[ -f /etc/kea/kea-dhcp4.conf ]] || rpm -q kea >/dev/null 2>&1; }
+
+  # ───────────────────────── repo enable (Rocky 9+) ───────────────────────────
+  enable_repos_with_gauge() {
+    # Rocky 9+: enable EPEL + CRB, then refresh metadata
+    local log="/tmp/repo-setup.$(date +%s).log"
+    local status="/tmp/repo-setup-status.$$"
+    local msg="/tmp/repo-setup-phase.$$"
+    : >"$log"; : >"$msg"
+    trap 'rm -f "$status" "$msg"' RETURN
+
+    (
+      rc=0
+      {
+        echo "Installing dnf-plugins-core..." >"$msg"
+        dnf -y install dnf-plugins-core >>"$log" 2>&1 || rc=1
+
+        echo "Installing epel-release..." >"$msg"
+        dnf -y install epel-release >>"$log" 2>&1 || rc=1
+
+        echo "Enabling CRB repository..." >"$msg"
+        dnf config-manager --set-enabled crb >>"$log" 2>&1 || rc=1
+
+        echo "Refreshing repository metadata (makecache --refresh)..." >"$msg"
+        dnf -y makecache --refresh >>"$log" 2>&1 || rc=1
+      } || rc=1
+      echo "$rc" >"$status"
+    ) &
+
+    local pid=$!
+    (
+      local PROGRESS=0
+      while kill -0 "$pid" 2>/dev/null; do
+        (( PROGRESS < 95 )) && PROGRESS=$(( PROGRESS + 5 ))
+        echo "$PROGRESS"
+        echo "XXX"
+        echo -e "Enabling EPEL and CRB...\n$(cat "$msg" 2>/dev/null || echo "Working...")\n\nLog: $log"
+        echo "XXX"
+        sleep 0.5
+      done
+      echo "100"
+      echo "XXX"
+      echo -e "Repositories enabled and metadata refreshed.\n\nLog: $log"
+      echo "XXX"
+    ) | $DIALOG --backtitle "$BACKTITLE" --title "Repository Setup" --gauge "Preparing..." 10 70 0
+
+    local rc=1
+    [[ -f "$status" ]] && rc="$(cat "$status" 2>/dev/null || echo 1)"
+    if [[ "$rc" -ne 0 ]]; then
+      msgbox "Repository Setup Failed" "There was a problem enabling repositories.\n\nYou'll see the log next." 9 70
+      $DIALOG --backtitle "$BACKTITLE" --title "Repo Setup Log" --textbox "$log" 22 100
+      return 1
+    fi
+    return 0
+  }
+
+  # ────────────────────────── generic gauge runner ────────────────────────────
   run_gauge_cmd() {
     local title="$1"; shift
     local log="/tmp/$(basename "$1")-install.$(date +%s).log"
@@ -802,43 +872,48 @@ configure_dhcp_server() {
     fi
   }
 
-  install_isc_dhcp() { run_gauge_cmd "Installing ISC DHCP (dhcp-server)" dnf -y install dhcp-server; }
-  install_kea()      { run_gauge_cmd "Installing Kea DHCP (kea)"       dnf -y install kea; }
+  # ───────────────────────────── dnf installers ────────────────────────────────
+  install_isc_dhcp() {
+    enable_repos_with_gauge || return 1
+    run_gauge_cmd "Installing ISC DHCP (dhcp-server)" dnf -y install dhcp-server
+  }
+  install_kea() {
+    enable_repos_with_gauge || return 1
+    run_gauge_cmd "Installing Kea DHCP (kea)" dnf -y install kea
+  }
 
-  # ── shared IP/CIDR helpers ──────────────────────────────────────────────────
-  is_valid_ip() {
+  # ───────────────────── shared IP/CIDR + domain helpers ──────────────────────
+  is_valid_ip(){
     [[ $1 =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || return 1
     local IFS=.; local o; for o in $1; do [[ $o -ge 0 && $o -le 255 ]] || return 1; done
   }
-  ip_to_int() { local IFS=.; read -r a b c d <<<"$1"; echo $(( (a<<24) + (b<<16) + (c<<8) + d )); }
-  int_to_ip() { local i=$1; printf "%d.%d.%d.%d" $(( (i>>24)&255 )) $(( (i>>16)&255 )) $(( (i>>8)&255 )) $(( i&255 )); }
-  cidr_to_netmask() { local c=$1; local m=$(( 0xFFFFFFFF << (32-c) & 0xFFFFFFFF )); int_to_ip "$m"; }
-  netmask_to_cidr() {
+  ip_to_int(){ local IFS=.; read -r a b c d <<<"$1"; echo $(( (a<<24)+(b<<16)+(c<<8)+d )); }
+  int_to_ip(){ local i=$1; printf "%d.%d.%d.%d" $(( (i>>24)&255 )) $(( (i>>16)&255 )) $(( (i>>8)&255 )) $(( i&255 )); }
+  cidr_to_netmask(){ local c=$1; local m=$(( 0xFFFFFFFF << (32-c) & 0xFFFFFFFF )); int_to_ip "$m"; }
+  netmask_to_cidr(){
     local ip=$1; is_valid_ip "$ip" || { echo -1; return; }
-    local n=$(ip_to_int "$ip"); local c=0; local z=0
+    local n=$(ip_to_int "$ip") c=0 saw_zero=0
     for ((i=31;i>=0;i--)); do
-      if (( (n>>i)&1 )); then (( z )) && { echo -1; return; }; ((c++))
-      else z=1
+      if (( (n>>i)&1 )); then (( saw_zero )) && { echo -1; return; }; ((c++))
+      else saw_zero=1
       fi
     done
     echo "$c"
   }
-  network_from_ip_cidr() { local ip=$1 c=$2; local m=$(( 0xFFFFFFFF << (32-c) & 0xFFFFFFFF )); int_to_ip $(( $(ip_to_int "$ip") & m )); }
+  network_from_ip_cidr(){ local ip=$1 c=$2; local m=$(( 0xFFFFFFFF << (32-c) & 0xFFFFFFFF )); int_to_ip $(( $(ip_to_int "$ip") & m )); }
   broadcast_from_ip_cidr(){ local ip=$1 c=$2; local m=$(( 0xFFFFFFFF << (32-c) & 0xFFFFFFFF )); int_to_ip $(( $(ip_to_int "$ip") | (~m & 0xFFFFFFFF) )); }
-  ip_in_cidr() {
+  ip_in_cidr(){
     local ip=$1 net=$2 c=$3
     local m=$(( 0xFFFFFFFF << (32-c) & 0xFFFFFFFF ))
     (( ( $(ip_to_int "$ip") & m ) == ( $(ip_to_int "$net") & m ) ))
   }
-
-  # ── light domain validation (letters/digits/hyphens + dots, no trailing dot) ─
-  is_valid_domain() {
+  is_valid_domain(){
     local d="$1"
     [[ -n "$d" ]] || return 1
-    [[ "$d" =~ ^([A-Za-z0-9-]+\.)+[A-Za-z0-9-]+$ ]] || return 1
+    [[ "$d" =~ ^([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?$ ]]
   }
 
-  # ── ISC DHCP (dhcpd) dialog setup (hardened + domain prompts) ───────────────
+  # ───────────────────────────── dhcpd setup flow ─────────────────────────────
   dhcpd_setup() {
     local iface inet4_line INET4 DHCPCIDR NET_DETECTED NETMASK_DETECTED
     iface=$(nmcli -t -f DEVICE,STATE device status | awk -F: '$2=="connected"{print $1; exit}')
@@ -871,7 +946,7 @@ configure_dhcp_server() {
           (( $(ip_to_int "$DHCPBEGIP") <= $(ip_to_int "$DHCPENDIP") )) && break
         msgbox "Invalid Input" "End IP must be valid, in $NET_DETECTED/$DHCPCIDR, and ≥ start IP."
       done
-      # Netmask (contiguous, equals detected)
+      # Netmask (must match detected)
       while true; do
         DHCPNETMASK=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
           "Enter netmask for clients (must match detected $NETMASK_DETECTED):" 8 78 "$NETMASK_DETECTED")
@@ -886,18 +961,17 @@ configure_dhcp_server() {
         [[ -n "$DHCPDEFGW" ]] && is_valid_ip "$DHCPDEFGW" && ip_in_cidr "$DHCPDEFGW" "$NET_DETECTED" "$DHCPCIDR" && break
         msgbox "Invalid Gateway" "Gateway must be a valid IPv4 within $NET_DETECTED/$DHCPCIDR."
       done
-      # Domain suffix (domain-name)
+      # Domain suffix (option 15)
       while true; do
         DOM_SUFFIX=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
           "Enter domain suffix (for 'option domain-name'):" 8 78 "${DEF_SUFFIX}")
         is_valid_domain "$DOM_SUFFIX" && break
         msgbox "Invalid Domain" "Please enter a valid domain suffix like 'ad.example.com'."
       done
-      # Search domain (domain-search; allow comma list)
+      # Search domain(s) (option 119)
       while true; do
         SEARCH_DOMAIN=$($DIALOG --backtitle "$BACKTITLE" --stdout --inputbox \
           "Enter search domain(s) for clients (comma-separated if multiple):" 9 78 "${DEF_SEARCH}")
-        # Validate each comma-separated item
         local ok=1 IFS=, item
         for item in $SEARCH_DOMAIN; do
           item="${item// /}" ; is_valid_domain "$item" || { ok=0; break; }
@@ -947,7 +1021,7 @@ subnet ${NET_DETECTED} netmask ${DHCPNETMASK} {
 EOF
   }
 
-  # ── KEA (kea-dhcp4) dialog setup (hardened + domain prompts) ────────────────
+  # ───────────────────────────── Kea setup flow ───────────────────────────────
   kea_dhcp_setup() {
     local KEA_CONF="/etc/kea/kea-dhcp4.conf"
     mkdir -p /etc/kea; touch "$KEA_CONF"
@@ -1065,13 +1139,18 @@ EOF
     restorecon "$KEA_CONF" 2>/dev/null || true
   }
 
-  # ── prompt to proceed ────────────────────────────────────────────────────────
+  # ────────────────────────────── preflight checks ─────────────────────────────
+  require_root || return 1
+  require_rocky9plus || return 1
+  command -v "$DIALOG" >/dev/null 2>&1 || { echo "dialog not found. dnf -y install dialog" >&2; return 1; }
+  command -v nmcli   >/dev/null 2>&1 || { echo "nmcli not found. dnf -y install NetworkManager" >&2; return 1; }
+
+  # ────────────────────────────── user selection ───────────────────────────────
   $DIALOG --backtitle "$BACKTITLE" --title "DHCP Installation" --yesno \
 "Would you like to install a DHCP service on this system?
 
 You will be able to choose between ISC DHCP or Kea DHCP in the next step." 9 80 || { clear; return 0; }
 
-  # detect current state and suggest default
   local isc_installed="not installed" kea_installed="not installed"
   detect_isc_dhcp && isc_installed="installed"
   detect_kea && kea_installed="installed"
@@ -1105,22 +1184,22 @@ Detected:
     *)   clear; return 0 ;;
   esac
 
-  # ── run setup, enable service, open firewall ────────────────────────────────
+  # ────────────────── run setup, enable service, open firewall ────────────────
   local CONF SVC
   if [[ "$CHOSEN_BACKEND" == "kea" ]]; then
     kea_dhcp_setup
-    systemctl enable --now kea-dhcp4 >/dev/null 2>&1
+    systemctl enable --now kea-dhcp4 >/dev/null 2>&1 || true
     CONF="/etc/kea/kea-dhcp4.conf"; SVC="kea-dhcp4"
   else
     dhcpd_setup
-    systemctl enable --now dhcpd >/dev/null 2>&1
+    systemctl enable --now dhcpd >/dev/null 2>&1 || true
     CONF="/etc/dhcp/dhcpd.conf"; SVC="dhcpd"
   fi
 
-  firewall-cmd --zone=public --add-service=dhcp --permanent >/dev/null 2>&1
-  firewall-cmd --reload >/dev/null 2>&1
+  firewall-cmd --zone=public --add-service=dhcp --permanent >/dev/null 2>&1 || true
+  firewall-cmd --reload >/dev/null 2>&1 || true
 
-  # ── final validation ─────────────────────────────────────────────────────────
+  # ────────────────────────────── final validation ─────────────────────────────
   local ok_conf=0 ok_svc=0
   [[ -s "$CONF" ]] && ok_conf=1
   if systemctl is-active --quiet "$SVC"; then ok_svc=1; fi
@@ -1133,9 +1212,9 @@ Detected:
   # Syntax hint on failure
   local syntax=""
   if [[ "$SVC" == "kea-dhcp4" && -f "$CONF" ]]; then
-    syntax=$(KEA_LOG="$(kea-dhcp4 -t "$CONF" 2>&1)" && echo "$KEA_LOG" || echo "$KEA_LOG")
+    syntax="$(kea-dhcp4 -t "$CONF" 2>&1 || true)"
   elif [[ "$SVC" == "dhcpd" && -f "$CONF" ]]; then
-    syntax=$(DHCPLINT="$(dhcpd -t -cf "$CONF" 2>&1)" && echo "$DHCPLINT" || echo "$DHCPLINT")
+    syntax="$(dhcpd -t -cf "$CONF" 2>&1 || true)"
   fi
 
   local err="Validation failed:
