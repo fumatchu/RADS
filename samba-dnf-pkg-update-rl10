@@ -1,0 +1,110 @@
+#!/bin/bash
+#===============================================================================
+# Samba DC Package Update Script - Rocky Linux 10 Compatible
+# Based on RADS (Rocky Active Directory Script)
+#
+# This script rebuilds Samba packages with AD DC support when upstream
+# releases a new version.
+#
+# FIXED: Version parsing for Rocky Linux 10+ (was broken for 2-digit versions)
+#===============================================================================
+
+TEXTRESET=$(tput sgr0)
+RED=$(tput setaf 1)
+YELLOW=$(tput setaf 3)
+GREEN=$(tput setaf 2)
+USER=$(whoami)
+
+# FIXED: Proper version parsing for Rocky 10+
+source /etc/os-release
+majoros=$(echo $VERSION_ID | cut -d. -f1)
+minoros=$(echo $VERSION_ID | cut -d. -f2)
+
+# Get package versions
+dnflocal=$(dnf provides samba 2>/dev/null | grep Provide | sed 's/.dc//' | sed '1d')
+dnfremote=$(dnf provides samba 2>/dev/null | grep Provide | sed 's/.dc//' | sed '$d')
+mocksmbver=$(dnf provides samba 2>/dev/null | grep samba | sed '2,4d' | cut -d: -f1 | cut -dx -f1)
+
+echo "Detected OS: Rocky Linux ${majoros}.${minoros}"
+
+# Check for root
+if [ "$USER" != "root" ]; then
+    echo "${RED}This program must be run as root${TEXTRESET}"
+    exit 1
+fi
+
+clear
+cat <<EOF
+${GREEN}Samba Server Management${TEXTRESET}
+${GREEN}Samba Mock Update (Rocky 10 Compatible)${TEXTRESET}
+
+This script will update your Samba binary packages to the latest version
+as prescribed from the upstream Rocky Provider.
+
+It's suggested that you schedule downtime for this as the sources will
+need to rebuild. It's suggested that you ${YELLOW}REBOOT${TEXTRESET} after the update.
+
+The current local version on the system is:
+$dnflocal
+
+And the Version in the upstream repository is:
+$dnfremote
+
+Mock target: rocky-${majoros}-x86_64
+Dist tag: .el${majoros}_${minoros}.dc
+
+EOF
+
+echo "${YELLOW}The Last log entry for the Samba replication log is:${TEXTRESET}"
+tail -1 /var/log/dnf-smb-mon.log 2>/dev/null || echo "(no log found)"
+echo ""
+
+cat <<EOF
+This process will:
+    -Remove local packages
+    -Download the new samba source
+    -Use mock to compile the source rpm
+    -Recreate the repo in the same location
+    -Run dnf update to the new version of Samba, with dependencies
+EOF
+
+while true; do
+    read -p "Would you like to update the system now? (y/n) " yn
+    case $yn in
+        [yY])
+            # Delete old packages
+            rm -rf /root/.samba/*.rpm
+
+            # Download source
+            cd /tmp
+            dnf download samba --source
+
+            # Build with mock (Rocky 10 compatible)
+            mock -r rocky-${majoros}-x86_64-epel \
+                --enablerepo=devel \
+                --define "dist .el${majoros}_${minoros}.dc" \
+                --with dc \
+                ${mocksmbver}src.rpm
+
+            # Copy to local repo
+            cp /var/lib/mock/rocky-${majoros}-x86_64-epel/result/*.rpm /root/.samba/
+            createrepo /root/.samba
+
+            # Update
+            dnf update --nogpgcheck -y
+
+            # Clear MOTD notification
+            sed -i d /etc/motd 2>/dev/null || true
+
+            echo "${GREEN}Update complete! Please reboot.${TEXTRESET}"
+            break
+            ;;
+        [nN])
+            echo "${RED}Upgrade Cancelled${TEXTRESET}"
+            exit 0
+            ;;
+        *)
+            echo "Invalid response"
+            ;;
+    esac
+done
