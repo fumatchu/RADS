@@ -1,5 +1,14 @@
 RADS IS officially unsupported and this code is here for archiving purposes
-Please go to RADS_WEB for a full UI experience many fixes and new features. 
+
+Please go to RADS_WEB for a full UI experience many fixes and new features including:
+Full HTTP based administration 
+DNF lock implementation for SAMBA SRC Versions
+KEA support for DHCP 
+Hybrid DNS for BIND/SAMBA INTERNAL Co-existance
+User imports 
+Health and telemetry 
+Sites and Services 
+DNS/DHCP management 
 
 https://github.com/fumatchu/RADS_WEB
 
