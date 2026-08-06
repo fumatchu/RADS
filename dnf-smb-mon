@@ -1,47 +1,58 @@
 #!/bin/bash
-#Patch 1.0
+#Patch 1.1 - Fixed version comparison for DC builds
 # dnf_smb_mon
-# Monitoring script that will compare the @System Repository with the Upstream Repository for Samba DC
-# If a match between the files are resolved, there will be no update
-# If a match is NOT resolved between files, a message will be sent to MOTD and upon next login
-# the (root) User should run "samba-dnf-pkg-update"
+# Monitoring script that compares MAIN VERSION (not release) of installed Samba DC
+# with upstream Rocky repository. Alerts when upstream has newer main version.
 
-# Update the DNF cache
-dnf makecache
+LOG="/var/log/dnf-smb-mon.log"
 
-# Get the Samba versions from the provides output
-VERSIONS=$(dnf provides samba | grep -oP 'samba = \K[0-9]+\.[0-9]+\.[0-9]+-[0-9]+')
+# Get installed samba-dc version (e.g., 4.22.4-106.el10_1.dc -> 4.22.4)
+INSTALLED_FULL=$(rpm -q samba-dc --qf '%{VERSION}-%{RELEASE}' 2>/dev/null)
+INSTALLED_VER=$(rpm -q samba-dc --qf '%{VERSION}' 2>/dev/null)
 
-# Convert the versions to an array
-VERSION_ARRAY=($VERSIONS)
+if [ -z "$INSTALLED_VER" ]; then
+  logger -s "dnf-smb-mon: samba-dc not installed" 2>>$LOG
+  exit 0
+fi
 
-# Check if two versions were found
-if [ ${#VERSION_ARRAY[@]} -lt 2 ]; then
-  echo "Not enough version information found. Please check your DNF configuration."
+# Get upstream samba version from repo (e.g., 4.22.4-6.el10 -> 4.22.4)
+dnf makecache -q 2>/dev/null
+UPSTREAM_FULL=$(dnf info samba 2>/dev/null | grep "^Version" | head -1 | awk '{print $3}')
+
+if [ -z "$UPSTREAM_FULL" ]; then
+  logger -s "dnf-smb-mon: Cannot get upstream version" 2>>$LOG
   exit 1
 fi
 
-# Extract the first and second versions
-VERSION1=${VERSION_ARRAY[0]}
-VERSION2=${VERSION_ARRAY[1]}
+UPSTREAM_VER="$UPSTREAM_FULL"
 
-# Compare the versions
-if [ "$VERSION1" == "$VERSION2" ]; then
-  logger -s "dnf-smb-mon: The Samba versions match: $VERSION1. Repositories are in sync." 2>>/var/log/dnf-smb-mon.log
+# Compare main versions (X.Y.Z)
+if [ "$INSTALLED_VER" == "$UPSTREAM_VER" ]; then
+  # Same main version - all good
+  rm -f /etc/motd
+  logger -s "dnf-smb-mon: OK - installed $INSTALLED_FULL, upstream $UPSTREAM_VER" 2>>$LOG
 else
-  cat <<EOF >/etc/motd
+  # Different main versions - check if upstream is newer
+  NEWER=$(printf '%s\n' "$INSTALLED_VER" "$UPSTREAM_VER" | sort -V | tail -1)
+
+  if [ "$NEWER" == "$UPSTREAM_VER" ] && [ "$NEWER" != "$INSTALLED_VER" ]; then
+    # Upstream is newer - alert!
+    cat <<EOF >/etc/motd
 *********************************************
             ATTENTION!
 *********************************************
-dnf_smb_mon sees a difference between the @System dnf repository
-for Samba and the dnf repository upstream. This probably means that
-the upstream Samba packages are a new version and the --dc packages
-are now out of date.
+New Samba version available in upstream repository!
 
-Found versions: $VERSION1 and $VERSION2
-You should probably run the command samba-dnf-pkg-update from the cli
-or samba service management --> samba update (from server-manager).
+Installed (DC build): $INSTALLED_FULL
+Upstream available:   $UPSTREAM_VER
+
+You should rebuild samba-dc with the new version.
+Run: samba-dnf-pkg-update
 EOF
-
-  logger -s "dnf-smb-mon: Repositories are NOT in sync. Found versions: $VERSION1 and $VERSION2. Review and run samba-dnf-pkg-update." 2>>/var/log/dnf-smb-mon.log
+    logger -s "dnf-smb-mon: UPDATE AVAILABLE - installed $INSTALLED_VER, upstream $UPSTREAM_VER" 2>>$LOG
+  else
+    # Installed is same or newer - all good
+    rm -f /etc/motd
+    logger -s "dnf-smb-mon: OK - installed $INSTALLED_FULL (upstream $UPSTREAM_VER)" 2>>$LOG
+  fi
 fi
